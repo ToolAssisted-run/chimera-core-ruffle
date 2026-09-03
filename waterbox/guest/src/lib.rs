@@ -119,6 +119,9 @@ struct Machine {
     video: Vec<u8>,
     video_w: u32,
     video_h: u32,
+    /// The movie's declared frame rate, as a ratio the engine can clock from.
+    vsync_num: i32,
+    vsync_den: i32,
 }
 
 // One machine per sandbox, driven by one thread (vsched runs guest threads one
@@ -169,11 +172,23 @@ pub extern "C" fn AllocSwf(len: u64) -> *mut u8 {
 
 #[no_mangle]
 pub extern "C" fn Init() -> i32 {
-    let data: &[u8] = unsafe { &*core::ptr::addr_of!(SWF) };
-    if data.is_empty() {
-        set_load_error("no SWF was handed over (call AllocSwf first)");
-        return 0;
-    }
+    // The movie arrives one of two ways: handed over directly through AllocSwf
+    // (the gate's runner does that), or mounted into the guest's filesystem
+    // under the name waterbox.config calls romFile, which is how the engine
+    // loads a game.
+    let handed: &[u8] = unsafe { &*core::ptr::addr_of!(SWF) };
+    let mounted;
+    let data: &[u8] = if !handed.is_empty() {
+        handed
+    } else {
+        match std::fs::read("game") {
+            Ok(bytes) if !bytes.is_empty() => { mounted = bytes; &mounted }
+            _ => {
+                set_load_error("no SWF: nothing was handed over and no movie is mounted as 'game'");
+                return 0;
+            }
+        }
+    };
     let movie = match SwfMovie::from_data(data, "file:///game.swf".to_string(), None, None) {
         Ok(m) => m,
         Err(e) => {
@@ -188,6 +203,13 @@ pub extern "C" fn Init() -> i32 {
     // click lands somewhere else: the per-object hit tests silently miss while
     // the root-level handlers still fire. (Same rule as ruffle's own runner.)
     let (vw, vh) = (movie.width().to_pixels() as u32, movie.height().to_pixels() as u32);
+
+    // a rate like 23.976 has to survive as a ratio; a whole number stays whole
+    let (vsync_num, vsync_den) = if (frame_rate - frame_rate.round()).abs() < 1e-6 {
+        (frame_rate.round() as i32, 1)
+    } else {
+        ((frame_rate * 1000.0).round() as i32, 1000)
+    };
 
     let trace = Rc::new(RefCell::new(Vec::new()));
     let audio_f32 = Rc::new(RefCell::new(Vec::new()));
@@ -231,6 +253,7 @@ pub extern "C" fn Init() -> i32 {
                 mouse: (0, 0), prev_mouse: (0, 0), text_input: true,
                 audio_f32, audio_i16: Vec::new(), tasks,
                 video: Vec::new(), video_w: vw.max(1), video_h: vh.max(1),
+                vsync_num, vsync_den,
             });
     }
     1
@@ -420,15 +443,34 @@ pub extern "C" fn SetButton(index: i32, state: i32) {
     }
 }
 
+/// The pointer, as the frontend sends it: a position normalised across the
+/// range waterbox.config declares, not stage pixels. A movie decides its own
+/// stage size, and the config cannot know it, so the scaling belongs here -
+/// the same shape as a light gun's screen axes on the other cores.
+const MOUSE_AXIS_MAX: i32 = 8191;
+
 #[no_mangle]
 pub extern "C" fn SetAxis(index: i32, value: i32) {
     unsafe {
         if let Some(m) = &mut *core::ptr::addr_of_mut!(MACHINE) {
+            let v = value.clamp(0, MOUSE_AXIS_MAX) as i64;
             match index {
-                0 => m.mouse.0 = value,
-                1 => m.mouse.1 = value,
+                0 => m.mouse.0 = ((v * (m.video_w as i64 - 1)) / MOUSE_AXIS_MAX as i64) as i32,
+                1 => m.mouse.1 = ((v * (m.video_h as i64 - 1)) / MOUSE_AXIS_MAX as i64) as i32,
                 _ => {}
             }
+        }
+    }
+}
+
+/// The pointer in exact stage pixels. The gate replays ruffle's own recorded
+/// mouse positions, which are stage coordinates, and must not go through the
+/// normalised axis and back.
+#[no_mangle]
+pub extern "C" fn SetMousePixels(x: i32, y: i32) {
+    unsafe {
+        if let Some(m) = &mut *core::ptr::addr_of_mut!(MACHINE) {
+            m.mouse = (x, y);
         }
     }
 }
@@ -444,6 +486,30 @@ pub extern "C" fn SetTextInput(on: i32) {
         }
     }
 }
+
+/// Memory domains: a Flash movie has none worth naming.
+///
+/// The other cores expose a machine's flat RAM here, which is what a RAM search
+/// or a watch is for. Flash has no such thing: a movie's state is a garbage
+/// collected object graph inside the AVM, moved and recycled as it runs, and
+/// there is no address that means the same thing from one frame to the next.
+/// Publishing the guest's heap as "RAM" would be worse than publishing nothing,
+/// because it would look searchable and quietly lie. So the count is zero and
+/// the rest of the contract is answered honestly.
+#[no_mangle]
+pub extern "C" fn GetMemoryDomainCount() -> i32 { 0 }
+
+#[no_mangle]
+pub extern "C" fn GetMemoryDomainName(_i: i32) -> *const u8 { core::ptr::null() }
+
+#[no_mangle]
+pub extern "C" fn GetMemoryDomainPtr(_i: i32) -> *const u8 { core::ptr::null() }
+
+#[no_mangle]
+pub extern "C" fn GetMemoryDomainSize(_i: i32) -> i64 { 0 }
+
+#[no_mangle]
+pub extern "C" fn GetMemoryDomainWritable(_i: i32) -> i32 { 0 }
 
 /// The frame's picture, BGRA, as the chimera video contract wants it: a pointer
 /// into guest memory the host reads GetVideoWidth x GetVideoHeight pixels from.
@@ -462,6 +528,22 @@ pub extern "C" fn GetVideoBgra() -> *const u8 {
             Some(m) => m.video.as_ptr(),
             None => core::ptr::null(),
         }
+    }
+}
+
+/// Flash movies carry their own frame rate, and it is not always a whole
+/// number, so the engine is told a ratio rather than a rounded figure.
+#[no_mangle]
+pub extern "C" fn GetVsyncNumerator() -> i32 {
+    unsafe {
+        match &*core::ptr::addr_of!(MACHINE) { Some(m) => m.vsync_num, None => 60 }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn GetVsyncDenominator() -> i32 {
+    unsafe {
+        match &*core::ptr::addr_of!(MACHINE) { Some(m) => m.vsync_den, None => 1 }
     }
 }
 

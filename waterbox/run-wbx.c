@@ -51,6 +51,7 @@ uintptr_t chimera_gl_host_dispatch(uintptr_t op, uintptr_t a, uintptr_t b,
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <string.h>
 
 typedef struct { FILE *f; } freader;
 static intptr_t file_read(uintptr_t ud, uint8_t *d, uintptr_t n) {
@@ -72,6 +73,7 @@ int main(int argc, char **argv) {
 	const char *movespath = NULL, *audiopath = NULL, *peakspath = NULL, *spoofurl = NULL;
 	const char *videopath = NULL;
 	int rerecord = 0;
+	int from_vfs = 0;
 	const char *files[64][2]; int nfiles = 0;
 	for (int i = 3; i < argc; i++) {
 		if (!strcmp(argv[i], "--frames") && i + 1 < argc) frames = atol(argv[++i]);
@@ -82,6 +84,9 @@ int main(int argc, char **argv) {
 		else if (!strcmp(argv[i], "--spoof-url") && i + 1 < argc) spoofurl = argv[++i];
 		else if (!strcmp(argv[i], "--video-out") && i + 1 < argc) videopath = argv[++i];
 		else if (!strcmp(argv[i], "--rerecord")) rerecord = 1;
+		/* skip AllocSwf and let Init find the movie in the guest's filesystem,
+		 * which is how the engine loads a game (waterbox.config: romFile) */
+		else if (!strcmp(argv[i], "--from-vfs")) from_vfs = 1;
 		else if (!strcmp(argv[i], "--file") && i + 1 < argc && nfiles < 64) {
 			char *eq = strchr(argv[++i], '=');
 			if (eq) { *eq = 0; files[nfiles][0] = argv[i]; files[nfiles][1] = eq + 1; nfiles++; }
@@ -107,14 +112,21 @@ int main(int argc, char **argv) {
 	/* Hand the movie over directly: ask the guest for a buffer and fill it. The
 	 * host can write guest memory while the block is active, and it avoids the
 	 * guest-side file IO bug (see docs/PLAN.md). */
-	uint8_t *(*AllocSwf)(uint64_t) = (uint8_t *(*)(uint64_t))proc(h, "AllocSwf");
-	FILE *sf = fopen(swfpath, "rb");
-	if (!sf) { perror(swfpath); return 1; }
-	fseek(sf, 0, SEEK_END); long swflen = ftell(sf); fseek(sf, 0, SEEK_SET);
-	uint8_t *dst = AllocSwf((uint64_t)swflen);
-	if (!dst) { fprintf(stderr, "guest refused a %ld byte buffer\n", swflen); return 1; }
-	if (fread(dst, 1, (size_t)swflen, sf) != (size_t)swflen) { fprintf(stderr, "short read\n"); return 1; }
-	fclose(sf);
+	if (!from_vfs) {
+		uint8_t *(*AllocSwf)(uint64_t) = (uint8_t *(*)(uint64_t))proc(h, "AllocSwf");
+		FILE *sf = fopen(swfpath, "rb");
+		if (!sf) { perror(swfpath); return 1; }
+		fseek(sf, 0, SEEK_END); long swflen = ftell(sf); fseek(sf, 0, SEEK_SET);
+		uint8_t *dst = AllocSwf((uint64_t)swflen);
+		if (!dst) { fprintf(stderr, "guest refused a %ld byte buffer\n", swflen); return 1; }
+		if (fread(dst, 1, (size_t)swflen, sf) != (size_t)swflen) { fprintf(stderr, "short read\n"); return 1; }
+		fclose(sf);
+	} else {
+		/* the engine's route: the movie is a mounted file called romFile */
+		mb_return mr;
+		wbx_mount_file_path(h, "game", swfpath, &mr);
+		if (mr.error_message[0]) { fprintf(stderr, "mount game: %s\n", mr.error_message); return 1; }
+	}
 
 	/* associated files a movie may load (loadMovie/loadSound): mount each into
 	 * the guest VFS under the name the movie asks for. The navigator reads them
@@ -156,6 +168,10 @@ int main(int argc, char **argv) {
 	uint64_t (*GetTraceDigest)(void) = (uint64_t (*)(void))proc(h, "GetTraceDigest");
 	void (*SetButton)(int32_t, int32_t) = (void (*)(int32_t, int32_t))proc(h, "SetButton");
 	void (*SetAxis)(int32_t, int32_t) = (void (*)(int32_t, int32_t))proc(h, "SetAxis");
+	/* the gate replays ruffle's recorded stage coordinates exactly, so it uses
+	 * the pixel entry rather than the frontend's normalised axis */
+	void (*SetMousePixels)(int32_t, int32_t) = (void (*)(int32_t, int32_t))proc(h, "SetMousePixels");
+	int32_t mx = 0, my = 0;
 	void (*SetTextInput)(int32_t) = (void (*)(int32_t))proc(h, "SetTextInput");
 	const int16_t *(*GetAudio)(void) = (const int16_t *(*)(void))proc(h, "GetAudio");
 	int32_t (*GetAudioSampleCount)(void) = (int32_t (*)(void))proc(h, "GetAudioSampleCount");
@@ -192,7 +208,11 @@ int main(int argc, char **argv) {
 		if (moves && fgets(line, sizeof line, moves)) {
 			for (char *tok = strtok(line, " \n"); tok; tok = strtok(NULL, " \n")) {
 				long idx, val;
-				if (sscanf(tok, "A%ld=%ld", &idx, &val) == 2) SetAxis((int32_t)idx, (int32_t)val);
+				if (sscanf(tok, "A%ld=%ld", &idx, &val) == 2) {
+					if (idx == 0) mx = (int32_t)val; else if (idx == 1) my = (int32_t)val;
+					SetMousePixels(mx, my);
+					(void)SetAxis;
+				}
 				else if (sscanf(tok, "B%ld=%ld", &idx, &val) == 2) SetButton((int32_t)idx, (int32_t)val);
 			}
 		}

@@ -1,0 +1,36 @@
+{
+  "_comment": "The core-declared file form for chimera's project wizard. A Flash project is one movie, plus whatever that movie loads at runtime: a game commonly pulls in more .swf files, images, sounds or data alongside itself. Those must keep the names the movie asks for, because a movie loads them by name relative to itself.",
+  "slots": [
+    {
+      "id": "movie",
+      "title": "Movie",
+      "min": 1,
+      "max": 1,
+      "formats": [
+        "swf"
+      ],
+      "help": "The Flash movie (.swf) to play."
+    },
+    {
+      "id": "assets",
+      "title": "Files the movie loads",
+      "min": 0,
+      "max": -1,
+      "formats": [
+        "swf",
+        "mp3",
+        "png",
+        "jpg",
+        "jpeg",
+        "gif",
+        "xml",
+        "txt",
+        "dat",
+        "bin",
+        "flv",
+        "csv"
+      ],
+      "help": "Anything the movie loads while it runs (loadMovie, loadSound, loadVariables, URLLoader): further .swf files, images, sounds, data. Keep the names the movie asks for - it looks them up beside itself. A movie that loads nothing needs none of this."
+    }
+  ]
+}

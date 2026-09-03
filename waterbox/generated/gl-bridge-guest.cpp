@@ -2,13 +2,11 @@
  * Do not edit; edit the generator or the name list beside it. */
 
 /* The guest's side: 709 entry points, each one a struct and a call
- * to the sandbox's single callback, plus the table wgpu's loader searches.
- * This is the whole of what makes ruffle's renderer talk to a GPU it cannot
- * see. */
+ * to the sandbox's single callback. Installing them is the whole of what makes
+ * this core's renderer talk to a GPU it cannot see. */
 #include <glad/gl.h>
 #include <cstdint>
 #include <cstdio>
-#include <cstdlib>
 #include <cstring>
 
 #include "gl-bridge.h"
@@ -16,1029 +14,415 @@
 
 static chimera_gl_bridge_fn g_bridge;
 
-extern "C" void chimera_gl_flush_mapped_buffer_range(GLenum target, GLintptr offset, GLsizeiptr length);
-extern "C" void chimera_gl_get_buffer_pointerv(GLenum target, GLenum pname, void ** params);
-extern "C" void * chimera_gl_map_buffer(GLenum target, GLenum access);
-extern "C" void * chimera_gl_map_buffer_range(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access);
-extern "C" GLboolean chimera_gl_unmap_buffer(GLenum target);
-
-static void GLAD_API_PTR w_glActiveShaderProgram(GLuint pipeline, GLuint program)
-{
-	struct ChimeraGlArgs_glActiveShaderProgram cargs;
-	cargs.pipeline = pipeline;
-	cargs.program = program;
-	g_bridge(CHIMERA_GL_OP_glActiveShaderProgram, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
 static void GLAD_API_PTR w_glActiveTexture(GLenum texture)
 {
-	struct ChimeraGlArgs_glActiveTexture cargs;
-	cargs.texture = texture;
-	g_bridge(CHIMERA_GL_OP_glActiveTexture, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glActiveTexture chimera_a;
+	chimera_a.texture = texture;
+	g_bridge(CHIMERA_GL_OP_glActiveTexture, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glAttachShader(GLuint program, GLuint shader)
 {
-	struct ChimeraGlArgs_glAttachShader cargs;
-	cargs.program = program;
-	cargs.shader = shader;
-	g_bridge(CHIMERA_GL_OP_glAttachShader, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glBeginConditionalRender(GLuint id, GLenum mode)
-{
-	struct ChimeraGlArgs_glBeginConditionalRender cargs;
-	cargs.id = id;
-	cargs.mode = mode;
-	g_bridge(CHIMERA_GL_OP_glBeginConditionalRender, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glAttachShader chimera_a;
+	chimera_a.program = program;
+	chimera_a.shader = shader;
+	g_bridge(CHIMERA_GL_OP_glAttachShader, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glBeginQuery(GLenum target, GLuint id)
 {
-	struct ChimeraGlArgs_glBeginQuery cargs;
-	cargs.target = target;
-	cargs.id = id;
-	g_bridge(CHIMERA_GL_OP_glBeginQuery, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glBeginQueryEXT(GLenum target, GLuint id)
-{
-	struct ChimeraGlArgs_glBeginQueryEXT cargs;
-	cargs.target = target;
-	cargs.id = id;
-	g_bridge(CHIMERA_GL_OP_glBeginQueryEXT, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glBeginQueryIndexed(GLenum target, GLuint index, GLuint id)
-{
-	struct ChimeraGlArgs_glBeginQueryIndexed cargs;
-	cargs.target = target;
-	cargs.index = index;
-	cargs.id = id;
-	g_bridge(CHIMERA_GL_OP_glBeginQueryIndexed, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glBeginTransformFeedback(GLenum primitiveMode)
-{
-	struct ChimeraGlArgs_glBeginTransformFeedback cargs;
-	cargs.primitiveMode = primitiveMode;
-	g_bridge(CHIMERA_GL_OP_glBeginTransformFeedback, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glBeginQuery chimera_a;
+	chimera_a.target = target;
+	chimera_a.id = id;
+	g_bridge(CHIMERA_GL_OP_glBeginQuery, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glBindAttribLocation(GLuint program, GLuint index, const GLchar * name)
 {
-	struct ChimeraGlArgs_glBindAttribLocation cargs;
-	cargs.program = program;
-	cargs.index = index;
-	cargs.name = name;
-	g_bridge(CHIMERA_GL_OP_glBindAttribLocation, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glBindAttribLocation chimera_a;
+	chimera_a.program = program;
+	chimera_a.index = index;
+	chimera_a.name = name;
+	g_bridge(CHIMERA_GL_OP_glBindAttribLocation, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glBindBuffer(GLenum target, GLuint buffer)
 {
-	struct ChimeraGlArgs_glBindBuffer cargs;
-	cargs.target = target;
-	cargs.buffer = buffer;
-	g_bridge(CHIMERA_GL_OP_glBindBuffer, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glBindBufferBase(GLenum target, GLuint index, GLuint buffer)
-{
-	struct ChimeraGlArgs_glBindBufferBase cargs;
-	cargs.target = target;
-	cargs.index = index;
-	cargs.buffer = buffer;
-	g_bridge(CHIMERA_GL_OP_glBindBufferBase, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glBindBuffer chimera_a;
+	chimera_a.target = target;
+	chimera_a.buffer = buffer;
+	g_bridge(CHIMERA_GL_OP_glBindBuffer, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glBindBufferRange(GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size)
 {
-	struct ChimeraGlArgs_glBindBufferRange cargs;
-	cargs.target = target;
-	cargs.index = index;
-	cargs.buffer = buffer;
-	cargs.offset = offset;
-	cargs.size = size;
-	g_bridge(CHIMERA_GL_OP_glBindBufferRange, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glBindBuffersBase(GLenum target, GLuint first, GLsizei count, const GLuint * buffers)
-{
-	struct ChimeraGlArgs_glBindBuffersBase cargs;
-	cargs.target = target;
-	cargs.first = first;
-	cargs.count = count;
-	cargs.buffers = buffers;
-	g_bridge(CHIMERA_GL_OP_glBindBuffersBase, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glBindBuffersRange(GLenum target, GLuint first, GLsizei count, const GLuint * buffers, const GLintptr * offsets, const GLsizeiptr * sizes)
-{
-	struct ChimeraGlArgs_glBindBuffersRange cargs;
-	cargs.target = target;
-	cargs.first = first;
-	cargs.count = count;
-	cargs.buffers = buffers;
-	cargs.offsets = offsets;
-	cargs.sizes = sizes;
-	g_bridge(CHIMERA_GL_OP_glBindBuffersRange, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glBindBufferRange chimera_a;
+	chimera_a.target = target;
+	chimera_a.index = index;
+	chimera_a.buffer = buffer;
+	chimera_a.offset = offset;
+	chimera_a.size = size;
+	g_bridge(CHIMERA_GL_OP_glBindBufferRange, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glBindFragDataLocation(GLuint program, GLuint color, const GLchar * name)
 {
-	struct ChimeraGlArgs_glBindFragDataLocation cargs;
-	cargs.program = program;
-	cargs.color = color;
-	cargs.name = name;
-	g_bridge(CHIMERA_GL_OP_glBindFragDataLocation, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glBindFragDataLocation chimera_a;
+	chimera_a.program = program;
+	chimera_a.color = color;
+	chimera_a.name = name;
+	g_bridge(CHIMERA_GL_OP_glBindFragDataLocation, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glBindFragDataLocationIndexed(GLuint program, GLuint colorNumber, GLuint index, const GLchar * name)
 {
-	struct ChimeraGlArgs_glBindFragDataLocationIndexed cargs;
-	cargs.program = program;
-	cargs.colorNumber = colorNumber;
-	cargs.index = index;
-	cargs.name = name;
-	g_bridge(CHIMERA_GL_OP_glBindFragDataLocationIndexed, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glBindFragDataLocationIndexed chimera_a;
+	chimera_a.program = program;
+	chimera_a.colorNumber = colorNumber;
+	chimera_a.index = index;
+	chimera_a.name = name;
+	g_bridge(CHIMERA_GL_OP_glBindFragDataLocationIndexed, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glBindFramebuffer(GLenum target, GLuint framebuffer)
 {
-	struct ChimeraGlArgs_glBindFramebuffer cargs;
-	cargs.target = target;
-	cargs.framebuffer = framebuffer;
-	g_bridge(CHIMERA_GL_OP_glBindFramebuffer, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glBindFramebuffer chimera_a;
+	chimera_a.target = target;
+	chimera_a.framebuffer = framebuffer;
+	g_bridge(CHIMERA_GL_OP_glBindFramebuffer, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glBindImageTexture(GLuint unit, GLuint texture, GLint level, GLboolean layered, GLint layer, GLenum access, GLenum format)
 {
-	struct ChimeraGlArgs_glBindImageTexture cargs;
-	cargs.unit = unit;
-	cargs.texture = texture;
-	cargs.level = level;
-	cargs.layered = layered;
-	cargs.layer = layer;
-	cargs.access = access;
-	cargs.format = format;
-	g_bridge(CHIMERA_GL_OP_glBindImageTexture, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glBindImageTextures(GLuint first, GLsizei count, const GLuint * textures)
-{
-	struct ChimeraGlArgs_glBindImageTextures cargs;
-	cargs.first = first;
-	cargs.count = count;
-	cargs.textures = textures;
-	g_bridge(CHIMERA_GL_OP_glBindImageTextures, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glBindProgramPipeline(GLuint pipeline)
-{
-	struct ChimeraGlArgs_glBindProgramPipeline cargs;
-	cargs.pipeline = pipeline;
-	g_bridge(CHIMERA_GL_OP_glBindProgramPipeline, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glBindImageTexture chimera_a;
+	chimera_a.unit = unit;
+	chimera_a.texture = texture;
+	chimera_a.level = level;
+	chimera_a.layered = layered;
+	chimera_a.layer = layer;
+	chimera_a.access = access;
+	chimera_a.format = format;
+	g_bridge(CHIMERA_GL_OP_glBindImageTexture, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glBindRenderbuffer(GLenum target, GLuint renderbuffer)
 {
-	struct ChimeraGlArgs_glBindRenderbuffer cargs;
-	cargs.target = target;
-	cargs.renderbuffer = renderbuffer;
-	g_bridge(CHIMERA_GL_OP_glBindRenderbuffer, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glBindRenderbuffer chimera_a;
+	chimera_a.target = target;
+	chimera_a.renderbuffer = renderbuffer;
+	g_bridge(CHIMERA_GL_OP_glBindRenderbuffer, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glBindSampler(GLuint unit, GLuint sampler)
 {
-	struct ChimeraGlArgs_glBindSampler cargs;
-	cargs.unit = unit;
-	cargs.sampler = sampler;
-	g_bridge(CHIMERA_GL_OP_glBindSampler, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glBindSamplers(GLuint first, GLsizei count, const GLuint * samplers)
-{
-	struct ChimeraGlArgs_glBindSamplers cargs;
-	cargs.first = first;
-	cargs.count = count;
-	cargs.samplers = samplers;
-	g_bridge(CHIMERA_GL_OP_glBindSamplers, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glBindSampler chimera_a;
+	chimera_a.unit = unit;
+	chimera_a.sampler = sampler;
+	g_bridge(CHIMERA_GL_OP_glBindSampler, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glBindTexture(GLenum target, GLuint texture)
 {
-	struct ChimeraGlArgs_glBindTexture cargs;
-	cargs.target = target;
-	cargs.texture = texture;
-	g_bridge(CHIMERA_GL_OP_glBindTexture, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glBindTextures(GLuint first, GLsizei count, const GLuint * textures)
-{
-	struct ChimeraGlArgs_glBindTextures cargs;
-	cargs.first = first;
-	cargs.count = count;
-	cargs.textures = textures;
-	g_bridge(CHIMERA_GL_OP_glBindTextures, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glBindTexture chimera_a;
+	chimera_a.target = target;
+	chimera_a.texture = texture;
+	g_bridge(CHIMERA_GL_OP_glBindTexture, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glBindTextureUnit(GLuint unit, GLuint texture)
 {
-	struct ChimeraGlArgs_glBindTextureUnit cargs;
-	cargs.unit = unit;
-	cargs.texture = texture;
-	g_bridge(CHIMERA_GL_OP_glBindTextureUnit, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glBindTransformFeedback(GLenum target, GLuint id)
-{
-	struct ChimeraGlArgs_glBindTransformFeedback cargs;
-	cargs.target = target;
-	cargs.id = id;
-	g_bridge(CHIMERA_GL_OP_glBindTransformFeedback, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glBindTextureUnit chimera_a;
+	chimera_a.unit = unit;
+	chimera_a.texture = texture;
+	g_bridge(CHIMERA_GL_OP_glBindTextureUnit, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glBindVertexArray(GLuint array)
 {
-	struct ChimeraGlArgs_glBindVertexArray cargs;
-	cargs.array = array;
-	g_bridge(CHIMERA_GL_OP_glBindVertexArray, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glBindVertexArrayAPPLE(GLuint array)
-{
-	struct ChimeraGlArgs_glBindVertexArrayAPPLE cargs;
-	cargs.array = array;
-	g_bridge(CHIMERA_GL_OP_glBindVertexArrayAPPLE, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glBindVertexArrayOES(GLuint array)
-{
-	struct ChimeraGlArgs_glBindVertexArrayOES cargs;
-	cargs.array = array;
-	g_bridge(CHIMERA_GL_OP_glBindVertexArrayOES, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glBindVertexBuffer(GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride)
-{
-	struct ChimeraGlArgs_glBindVertexBuffer cargs;
-	cargs.bindingindex = bindingindex;
-	cargs.buffer = buffer;
-	cargs.offset = offset;
-	cargs.stride = stride;
-	g_bridge(CHIMERA_GL_OP_glBindVertexBuffer, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glBindVertexBuffers(GLuint first, GLsizei count, const GLuint * buffers, const GLintptr * offsets, const GLsizei * strides)
-{
-	struct ChimeraGlArgs_glBindVertexBuffers cargs;
-	cargs.first = first;
-	cargs.count = count;
-	cargs.buffers = buffers;
-	cargs.offsets = offsets;
-	cargs.strides = strides;
-	g_bridge(CHIMERA_GL_OP_glBindVertexBuffers, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glBlendBarrier(void)
-{
-	g_bridge(CHIMERA_GL_OP_glBlendBarrier, 0, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glBindVertexArray chimera_a;
+	chimera_a.array = array;
+	g_bridge(CHIMERA_GL_OP_glBindVertexArray, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glBlendColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
 {
-	struct ChimeraGlArgs_glBlendColor cargs;
-	cargs.red = red;
-	cargs.green = green;
-	cargs.blue = blue;
-	cargs.alpha = alpha;
-	g_bridge(CHIMERA_GL_OP_glBlendColor, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glBlendEquation(GLenum mode)
-{
-	struct ChimeraGlArgs_glBlendEquation cargs;
-	cargs.mode = mode;
-	g_bridge(CHIMERA_GL_OP_glBlendEquation, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glBlendEquationi(GLuint buf, GLenum mode)
-{
-	struct ChimeraGlArgs_glBlendEquationi cargs;
-	cargs.buf = buf;
-	cargs.mode = mode;
-	g_bridge(CHIMERA_GL_OP_glBlendEquationi, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glBlendColor chimera_a;
+	chimera_a.red = red;
+	chimera_a.green = green;
+	chimera_a.blue = blue;
+	chimera_a.alpha = alpha;
+	g_bridge(CHIMERA_GL_OP_glBlendColor, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glBlendEquationSeparate(GLenum modeRGB, GLenum modeAlpha)
 {
-	struct ChimeraGlArgs_glBlendEquationSeparate cargs;
-	cargs.modeRGB = modeRGB;
-	cargs.modeAlpha = modeAlpha;
-	g_bridge(CHIMERA_GL_OP_glBlendEquationSeparate, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glBlendEquationSeparatei(GLuint buf, GLenum modeRGB, GLenum modeAlpha)
-{
-	struct ChimeraGlArgs_glBlendEquationSeparatei cargs;
-	cargs.buf = buf;
-	cargs.modeRGB = modeRGB;
-	cargs.modeAlpha = modeAlpha;
-	g_bridge(CHIMERA_GL_OP_glBlendEquationSeparatei, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glBlendEquationSeparate chimera_a;
+	chimera_a.modeRGB = modeRGB;
+	chimera_a.modeAlpha = modeAlpha;
+	g_bridge(CHIMERA_GL_OP_glBlendEquationSeparate, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glBlendFunc(GLenum sfactor, GLenum dfactor)
 {
-	struct ChimeraGlArgs_glBlendFunc cargs;
-	cargs.sfactor = sfactor;
-	cargs.dfactor = dfactor;
-	g_bridge(CHIMERA_GL_OP_glBlendFunc, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glBlendFunci(GLuint buf, GLenum src, GLenum dst)
-{
-	struct ChimeraGlArgs_glBlendFunci cargs;
-	cargs.buf = buf;
-	cargs.src = src;
-	cargs.dst = dst;
-	g_bridge(CHIMERA_GL_OP_glBlendFunci, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glBlendFunc chimera_a;
+	chimera_a.sfactor = sfactor;
+	chimera_a.dfactor = dfactor;
+	g_bridge(CHIMERA_GL_OP_glBlendFunc, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glBlendFuncSeparate(GLenum sfactorRGB, GLenum dfactorRGB, GLenum sfactorAlpha, GLenum dfactorAlpha)
 {
-	struct ChimeraGlArgs_glBlendFuncSeparate cargs;
-	cargs.sfactorRGB = sfactorRGB;
-	cargs.dfactorRGB = dfactorRGB;
-	cargs.sfactorAlpha = sfactorAlpha;
-	cargs.dfactorAlpha = dfactorAlpha;
-	g_bridge(CHIMERA_GL_OP_glBlendFuncSeparate, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glBlendFuncSeparatei(GLuint buf, GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha)
-{
-	struct ChimeraGlArgs_glBlendFuncSeparatei cargs;
-	cargs.buf = buf;
-	cargs.srcRGB = srcRGB;
-	cargs.dstRGB = dstRGB;
-	cargs.srcAlpha = srcAlpha;
-	cargs.dstAlpha = dstAlpha;
-	g_bridge(CHIMERA_GL_OP_glBlendFuncSeparatei, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glBlendFuncSeparate chimera_a;
+	chimera_a.sfactorRGB = sfactorRGB;
+	chimera_a.dfactorRGB = dfactorRGB;
+	chimera_a.sfactorAlpha = sfactorAlpha;
+	chimera_a.dfactorAlpha = dfactorAlpha;
+	g_bridge(CHIMERA_GL_OP_glBlendFuncSeparate, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glBlitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter)
 {
-	struct ChimeraGlArgs_glBlitFramebuffer cargs;
-	cargs.srcX0 = srcX0;
-	cargs.srcY0 = srcY0;
-	cargs.srcX1 = srcX1;
-	cargs.srcY1 = srcY1;
-	cargs.dstX0 = dstX0;
-	cargs.dstY0 = dstY0;
-	cargs.dstX1 = dstX1;
-	cargs.dstY1 = dstY1;
-	cargs.mask = mask;
-	cargs.filter = filter;
-	g_bridge(CHIMERA_GL_OP_glBlitFramebuffer, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glBlitNamedFramebuffer(GLuint readFramebuffer, GLuint drawFramebuffer, GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter)
-{
-	struct ChimeraGlArgs_glBlitNamedFramebuffer cargs;
-	cargs.readFramebuffer = readFramebuffer;
-	cargs.drawFramebuffer = drawFramebuffer;
-	cargs.srcX0 = srcX0;
-	cargs.srcY0 = srcY0;
-	cargs.srcX1 = srcX1;
-	cargs.srcY1 = srcY1;
-	cargs.dstX0 = dstX0;
-	cargs.dstY0 = dstY0;
-	cargs.dstX1 = dstX1;
-	cargs.dstY1 = dstY1;
-	cargs.mask = mask;
-	cargs.filter = filter;
-	g_bridge(CHIMERA_GL_OP_glBlitNamedFramebuffer, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glBlitFramebuffer chimera_a;
+	chimera_a.srcX0 = srcX0;
+	chimera_a.srcY0 = srcY0;
+	chimera_a.srcX1 = srcX1;
+	chimera_a.srcY1 = srcY1;
+	chimera_a.dstX0 = dstX0;
+	chimera_a.dstY0 = dstY0;
+	chimera_a.dstX1 = dstX1;
+	chimera_a.dstY1 = dstY1;
+	chimera_a.mask = mask;
+	chimera_a.filter = filter;
+	g_bridge(CHIMERA_GL_OP_glBlitFramebuffer, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glBufferData(GLenum target, GLsizeiptr size, const void * data, GLenum usage)
 {
-	struct ChimeraGlArgs_glBufferData cargs;
-	cargs.target = target;
-	cargs.size = size;
-	cargs.data = data;
-	cargs.usage = usage;
-	g_bridge(CHIMERA_GL_OP_glBufferData, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glBufferData chimera_a;
+	chimera_a.target = target;
+	chimera_a.size = size;
+	chimera_a.data = data;
+	chimera_a.usage = usage;
+	g_bridge(CHIMERA_GL_OP_glBufferData, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glBufferStorage(GLenum target, GLsizeiptr size, const void * data, GLbitfield flags)
 {
-	struct ChimeraGlArgs_glBufferStorage cargs;
-	cargs.target = target;
-	cargs.size = size;
-	cargs.data = data;
-	cargs.flags = flags;
-	g_bridge(CHIMERA_GL_OP_glBufferStorage, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glBufferStorage chimera_a;
+	chimera_a.target = target;
+	chimera_a.size = size;
+	chimera_a.data = data;
+	chimera_a.flags = flags;
+	g_bridge(CHIMERA_GL_OP_glBufferStorage, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glBufferStorageEXT(GLenum target, GLsizeiptr size, const void * data, GLbitfield flags)
 {
-	struct ChimeraGlArgs_glBufferStorageEXT cargs;
-	cargs.target = target;
-	cargs.size = size;
-	cargs.data = data;
-	cargs.flags = flags;
-	g_bridge(CHIMERA_GL_OP_glBufferStorageEXT, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glBufferStorageEXT chimera_a;
+	chimera_a.target = target;
+	chimera_a.size = size;
+	chimera_a.data = data;
+	chimera_a.flags = flags;
+	g_bridge(CHIMERA_GL_OP_glBufferStorageEXT, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const void * data)
 {
-	struct ChimeraGlArgs_glBufferSubData cargs;
-	cargs.target = target;
-	cargs.offset = offset;
-	cargs.size = size;
-	cargs.data = data;
-	g_bridge(CHIMERA_GL_OP_glBufferSubData, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glBufferSubData chimera_a;
+	chimera_a.target = target;
+	chimera_a.offset = offset;
+	chimera_a.size = size;
+	chimera_a.data = data;
+	g_bridge(CHIMERA_GL_OP_glBufferSubData, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static GLenum GLAD_API_PTR w_glCheckFramebufferStatus(GLenum target)
 {
-	struct ChimeraGlArgs_glCheckFramebufferStatus cargs;
-	cargs.target = target;
-	return (GLenum)g_bridge(CHIMERA_GL_OP_glCheckFramebufferStatus, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static GLenum GLAD_API_PTR w_glCheckNamedFramebufferStatus(GLuint framebuffer, GLenum target)
-{
-	struct ChimeraGlArgs_glCheckNamedFramebufferStatus cargs;
-	cargs.framebuffer = framebuffer;
-	cargs.target = target;
-	return (GLenum)g_bridge(CHIMERA_GL_OP_glCheckNamedFramebufferStatus, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glClampColor(GLenum target, GLenum clamp)
-{
-	struct ChimeraGlArgs_glClampColor cargs;
-	cargs.target = target;
-	cargs.clamp = clamp;
-	g_bridge(CHIMERA_GL_OP_glClampColor, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glCheckFramebufferStatus chimera_a;
+	chimera_a.target = target;
+	return (GLenum)g_bridge(CHIMERA_GL_OP_glCheckFramebufferStatus, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glClear(GLbitfield mask)
 {
-	struct ChimeraGlArgs_glClear cargs;
-	cargs.mask = mask;
-	g_bridge(CHIMERA_GL_OP_glClear, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glClearBufferData(GLenum target, GLenum internalformat, GLenum format, GLenum type, const void * data)
-{
-	struct ChimeraGlArgs_glClearBufferData cargs;
-	cargs.target = target;
-	cargs.internalformat = internalformat;
-	cargs.format = format;
-	cargs.type = type;
-	cargs.data = data;
-	g_bridge(CHIMERA_GL_OP_glClearBufferData, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glClearBufferfi(GLenum buffer, GLint drawbuffer, GLfloat depth, GLint stencil)
-{
-	struct ChimeraGlArgs_glClearBufferfi cargs;
-	cargs.buffer = buffer;
-	cargs.drawbuffer = drawbuffer;
-	cargs.depth = depth;
-	cargs.stencil = stencil;
-	g_bridge(CHIMERA_GL_OP_glClearBufferfi, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glClear chimera_a;
+	chimera_a.mask = mask;
+	g_bridge(CHIMERA_GL_OP_glClear, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glClearBufferfv(GLenum buffer, GLint drawbuffer, const GLfloat * value)
 {
-	struct ChimeraGlArgs_glClearBufferfv cargs;
-	cargs.buffer = buffer;
-	cargs.drawbuffer = drawbuffer;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glClearBufferfv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glClearBufferfv chimera_a;
+	chimera_a.buffer = buffer;
+	chimera_a.drawbuffer = drawbuffer;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glClearBufferfv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glClearBufferiv(GLenum buffer, GLint drawbuffer, const GLint * value)
 {
-	struct ChimeraGlArgs_glClearBufferiv cargs;
-	cargs.buffer = buffer;
-	cargs.drawbuffer = drawbuffer;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glClearBufferiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glClearBufferSubData(GLenum target, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void * data)
-{
-	struct ChimeraGlArgs_glClearBufferSubData cargs;
-	cargs.target = target;
-	cargs.internalformat = internalformat;
-	cargs.offset = offset;
-	cargs.size = size;
-	cargs.format = format;
-	cargs.type = type;
-	cargs.data = data;
-	g_bridge(CHIMERA_GL_OP_glClearBufferSubData, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glClearBufferiv chimera_a;
+	chimera_a.buffer = buffer;
+	chimera_a.drawbuffer = drawbuffer;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glClearBufferiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glClearBufferuiv(GLenum buffer, GLint drawbuffer, const GLuint * value)
 {
-	struct ChimeraGlArgs_glClearBufferuiv cargs;
-	cargs.buffer = buffer;
-	cargs.drawbuffer = drawbuffer;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glClearBufferuiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glClearBufferuiv chimera_a;
+	chimera_a.buffer = buffer;
+	chimera_a.drawbuffer = drawbuffer;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glClearBufferuiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glClearColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
 {
-	struct ChimeraGlArgs_glClearColor cargs;
-	cargs.red = red;
-	cargs.green = green;
-	cargs.blue = blue;
-	cargs.alpha = alpha;
-	g_bridge(CHIMERA_GL_OP_glClearColor, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glClearDepth(GLdouble depth)
-{
-	struct ChimeraGlArgs_glClearDepth cargs;
-	cargs.depth = depth;
-	g_bridge(CHIMERA_GL_OP_glClearDepth, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glClearColor chimera_a;
+	chimera_a.red = red;
+	chimera_a.green = green;
+	chimera_a.blue = blue;
+	chimera_a.alpha = alpha;
+	g_bridge(CHIMERA_GL_OP_glClearColor, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glClearDepthf(GLfloat d)
 {
-	struct ChimeraGlArgs_glClearDepthf cargs;
-	cargs.d = d;
-	g_bridge(CHIMERA_GL_OP_glClearDepthf, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glClearNamedBufferData(GLuint buffer, GLenum internalformat, GLenum format, GLenum type, const void * data)
-{
-	struct ChimeraGlArgs_glClearNamedBufferData cargs;
-	cargs.buffer = buffer;
-	cargs.internalformat = internalformat;
-	cargs.format = format;
-	cargs.type = type;
-	cargs.data = data;
-	g_bridge(CHIMERA_GL_OP_glClearNamedBufferData, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glClearNamedBufferSubData(GLuint buffer, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void * data)
-{
-	struct ChimeraGlArgs_glClearNamedBufferSubData cargs;
-	cargs.buffer = buffer;
-	cargs.internalformat = internalformat;
-	cargs.offset = offset;
-	cargs.size = size;
-	cargs.format = format;
-	cargs.type = type;
-	cargs.data = data;
-	g_bridge(CHIMERA_GL_OP_glClearNamedBufferSubData, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glClearNamedFramebufferfi(GLuint framebuffer, GLenum buffer, GLint drawbuffer, GLfloat depth, GLint stencil)
-{
-	struct ChimeraGlArgs_glClearNamedFramebufferfi cargs;
-	cargs.framebuffer = framebuffer;
-	cargs.buffer = buffer;
-	cargs.drawbuffer = drawbuffer;
-	cargs.depth = depth;
-	cargs.stencil = stencil;
-	g_bridge(CHIMERA_GL_OP_glClearNamedFramebufferfi, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glClearNamedFramebufferfv(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLfloat * value)
-{
-	struct ChimeraGlArgs_glClearNamedFramebufferfv cargs;
-	cargs.framebuffer = framebuffer;
-	cargs.buffer = buffer;
-	cargs.drawbuffer = drawbuffer;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glClearNamedFramebufferfv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glClearNamedFramebufferiv(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLint * value)
-{
-	struct ChimeraGlArgs_glClearNamedFramebufferiv cargs;
-	cargs.framebuffer = framebuffer;
-	cargs.buffer = buffer;
-	cargs.drawbuffer = drawbuffer;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glClearNamedFramebufferiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glClearNamedFramebufferuiv(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLuint * value)
-{
-	struct ChimeraGlArgs_glClearNamedFramebufferuiv cargs;
-	cargs.framebuffer = framebuffer;
-	cargs.buffer = buffer;
-	cargs.drawbuffer = drawbuffer;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glClearNamedFramebufferuiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glClearDepthf chimera_a;
+	chimera_a.d = d;
+	g_bridge(CHIMERA_GL_OP_glClearDepthf, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glClearStencil(GLint s)
 {
-	struct ChimeraGlArgs_glClearStencil cargs;
-	cargs.s = s;
-	g_bridge(CHIMERA_GL_OP_glClearStencil, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glClearTexImage(GLuint texture, GLint level, GLenum format, GLenum type, const void * data)
-{
-	struct ChimeraGlArgs_glClearTexImage cargs;
-	cargs.texture = texture;
-	cargs.level = level;
-	cargs.format = format;
-	cargs.type = type;
-	cargs.data = data;
-	g_bridge(CHIMERA_GL_OP_glClearTexImage, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glClearTexSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void * data)
-{
-	struct ChimeraGlArgs_glClearTexSubImage cargs;
-	cargs.texture = texture;
-	cargs.level = level;
-	cargs.xoffset = xoffset;
-	cargs.yoffset = yoffset;
-	cargs.zoffset = zoffset;
-	cargs.width = width;
-	cargs.height = height;
-	cargs.depth = depth;
-	cargs.format = format;
-	cargs.type = type;
-	cargs.data = data;
-	g_bridge(CHIMERA_GL_OP_glClearTexSubImage, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glClearStencil chimera_a;
+	chimera_a.s = s;
+	g_bridge(CHIMERA_GL_OP_glClearStencil, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static GLenum GLAD_API_PTR w_glClientWaitSync(GLsync sync, GLbitfield flags, GLuint64 timeout)
 {
-	struct ChimeraGlArgs_glClientWaitSync cargs;
-	cargs.sync = sync;
-	cargs.flags = flags;
-	cargs.timeout = timeout;
-	return (GLenum)g_bridge(CHIMERA_GL_OP_glClientWaitSync, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glClientWaitSync chimera_a;
+	chimera_a.sync = sync;
+	chimera_a.flags = flags;
+	chimera_a.timeout = timeout;
+	return (GLenum)g_bridge(CHIMERA_GL_OP_glClientWaitSync, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glClipControl(GLenum origin, GLenum depth)
 {
-	struct ChimeraGlArgs_glClipControl cargs;
-	cargs.origin = origin;
-	cargs.depth = depth;
-	g_bridge(CHIMERA_GL_OP_glClipControl, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glClipControl chimera_a;
+	chimera_a.origin = origin;
+	chimera_a.depth = depth;
+	g_bridge(CHIMERA_GL_OP_glClipControl, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glColorMask(GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha)
 {
-	struct ChimeraGlArgs_glColorMask cargs;
-	cargs.red = red;
-	cargs.green = green;
-	cargs.blue = blue;
-	cargs.alpha = alpha;
-	g_bridge(CHIMERA_GL_OP_glColorMask, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glColorMask chimera_a;
+	chimera_a.red = red;
+	chimera_a.green = green;
+	chimera_a.blue = blue;
+	chimera_a.alpha = alpha;
+	g_bridge(CHIMERA_GL_OP_glColorMask, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glColorMaski(GLuint index, GLboolean r, GLboolean g, GLboolean b, GLboolean a)
 {
-	struct ChimeraGlArgs_glColorMaski cargs;
-	cargs.index = index;
-	cargs.r = r;
-	cargs.g = g;
-	cargs.b = b;
-	cargs.a = a;
-	g_bridge(CHIMERA_GL_OP_glColorMaski, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glColorMaskIndexedEXT(GLuint index, GLboolean r, GLboolean g, GLboolean b, GLboolean a)
-{
-	struct ChimeraGlArgs_glColorMaskIndexedEXT cargs;
-	cargs.index = index;
-	cargs.r = r;
-	cargs.g = g;
-	cargs.b = b;
-	cargs.a = a;
-	g_bridge(CHIMERA_GL_OP_glColorMaskIndexedEXT, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glColorMaski chimera_a;
+	chimera_a.index = index;
+	chimera_a.r = r;
+	chimera_a.g = g;
+	chimera_a.b = b;
+	chimera_a.a = a;
+	g_bridge(CHIMERA_GL_OP_glColorMaski, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glCompileShader(GLuint shader)
 {
-	struct ChimeraGlArgs_glCompileShader cargs;
-	cargs.shader = shader;
-	g_bridge(CHIMERA_GL_OP_glCompileShader, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glCompressedTexImage1D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLint border, GLsizei imageSize, const void * data)
-{
-	struct ChimeraGlArgs_glCompressedTexImage1D cargs;
-	cargs.target = target;
-	cargs.level = level;
-	cargs.internalformat = internalformat;
-	cargs.width = width;
-	cargs.border = border;
-	cargs.imageSize = imageSize;
-	cargs.data = data;
-	g_bridge(CHIMERA_GL_OP_glCompressedTexImage1D, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glCompressedTexImage2D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const void * data)
-{
-	struct ChimeraGlArgs_glCompressedTexImage2D cargs;
-	cargs.target = target;
-	cargs.level = level;
-	cargs.internalformat = internalformat;
-	cargs.width = width;
-	cargs.height = height;
-	cargs.border = border;
-	cargs.imageSize = imageSize;
-	cargs.data = data;
-	g_bridge(CHIMERA_GL_OP_glCompressedTexImage2D, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glCompressedTexImage3D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLsizei imageSize, const void * data)
-{
-	struct ChimeraGlArgs_glCompressedTexImage3D cargs;
-	cargs.target = target;
-	cargs.level = level;
-	cargs.internalformat = internalformat;
-	cargs.width = width;
-	cargs.height = height;
-	cargs.depth = depth;
-	cargs.border = border;
-	cargs.imageSize = imageSize;
-	cargs.data = data;
-	g_bridge(CHIMERA_GL_OP_glCompressedTexImage3D, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glCompressedTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void * data)
-{
-	struct ChimeraGlArgs_glCompressedTexSubImage1D cargs;
-	cargs.target = target;
-	cargs.level = level;
-	cargs.xoffset = xoffset;
-	cargs.width = width;
-	cargs.format = format;
-	cargs.imageSize = imageSize;
-	cargs.data = data;
-	g_bridge(CHIMERA_GL_OP_glCompressedTexSubImage1D, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glCompileShader chimera_a;
+	chimera_a.shader = shader;
+	g_bridge(CHIMERA_GL_OP_glCompileShader, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glCompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void * data)
 {
-	struct ChimeraGlArgs_glCompressedTexSubImage2D cargs;
-	cargs.target = target;
-	cargs.level = level;
-	cargs.xoffset = xoffset;
-	cargs.yoffset = yoffset;
-	cargs.width = width;
-	cargs.height = height;
-	cargs.format = format;
-	cargs.imageSize = imageSize;
-	cargs.data = data;
-	g_bridge(CHIMERA_GL_OP_glCompressedTexSubImage2D, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glCompressedTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void * data)
-{
-	struct ChimeraGlArgs_glCompressedTexSubImage3D cargs;
-	cargs.target = target;
-	cargs.level = level;
-	cargs.xoffset = xoffset;
-	cargs.yoffset = yoffset;
-	cargs.zoffset = zoffset;
-	cargs.width = width;
-	cargs.height = height;
-	cargs.depth = depth;
-	cargs.format = format;
-	cargs.imageSize = imageSize;
-	cargs.data = data;
-	g_bridge(CHIMERA_GL_OP_glCompressedTexSubImage3D, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glCompressedTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void * data)
-{
-	struct ChimeraGlArgs_glCompressedTextureSubImage1D cargs;
-	cargs.texture = texture;
-	cargs.level = level;
-	cargs.xoffset = xoffset;
-	cargs.width = width;
-	cargs.format = format;
-	cargs.imageSize = imageSize;
-	cargs.data = data;
-	g_bridge(CHIMERA_GL_OP_glCompressedTextureSubImage1D, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glCompressedTexSubImage2D chimera_a;
+	chimera_a.target = target;
+	chimera_a.level = level;
+	chimera_a.xoffset = xoffset;
+	chimera_a.yoffset = yoffset;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	chimera_a.format = format;
+	chimera_a.imageSize = imageSize;
+	chimera_a.data = data;
+	g_bridge(CHIMERA_GL_OP_glCompressedTexSubImage2D, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glCompressedTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void * data)
 {
-	struct ChimeraGlArgs_glCompressedTextureSubImage2D cargs;
-	cargs.texture = texture;
-	cargs.level = level;
-	cargs.xoffset = xoffset;
-	cargs.yoffset = yoffset;
-	cargs.width = width;
-	cargs.height = height;
-	cargs.format = format;
-	cargs.imageSize = imageSize;
-	cargs.data = data;
-	g_bridge(CHIMERA_GL_OP_glCompressedTextureSubImage2D, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glCompressedTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void * data)
-{
-	struct ChimeraGlArgs_glCompressedTextureSubImage3D cargs;
-	cargs.texture = texture;
-	cargs.level = level;
-	cargs.xoffset = xoffset;
-	cargs.yoffset = yoffset;
-	cargs.zoffset = zoffset;
-	cargs.width = width;
-	cargs.height = height;
-	cargs.depth = depth;
-	cargs.format = format;
-	cargs.imageSize = imageSize;
-	cargs.data = data;
-	g_bridge(CHIMERA_GL_OP_glCompressedTextureSubImage3D, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glCopyBufferSubData(GLenum readTarget, GLenum writeTarget, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size)
-{
-	struct ChimeraGlArgs_glCopyBufferSubData cargs;
-	cargs.readTarget = readTarget;
-	cargs.writeTarget = writeTarget;
-	cargs.readOffset = readOffset;
-	cargs.writeOffset = writeOffset;
-	cargs.size = size;
-	g_bridge(CHIMERA_GL_OP_glCopyBufferSubData, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glCopyBufferSubDataNV(GLenum readTarget, GLenum writeTarget, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size)
-{
-	struct ChimeraGlArgs_glCopyBufferSubDataNV cargs;
-	cargs.readTarget = readTarget;
-	cargs.writeTarget = writeTarget;
-	cargs.readOffset = readOffset;
-	cargs.writeOffset = writeOffset;
-	cargs.size = size;
-	g_bridge(CHIMERA_GL_OP_glCopyBufferSubDataNV, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glCompressedTextureSubImage2D chimera_a;
+	chimera_a.texture = texture;
+	chimera_a.level = level;
+	chimera_a.xoffset = xoffset;
+	chimera_a.yoffset = yoffset;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	chimera_a.format = format;
+	chimera_a.imageSize = imageSize;
+	chimera_a.data = data;
+	g_bridge(CHIMERA_GL_OP_glCompressedTextureSubImage2D, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glCopyImageSubData(GLuint srcName, GLenum srcTarget, GLint srcLevel, GLint srcX, GLint srcY, GLint srcZ, GLuint dstName, GLenum dstTarget, GLint dstLevel, GLint dstX, GLint dstY, GLint dstZ, GLsizei srcWidth, GLsizei srcHeight, GLsizei srcDepth)
 {
-	struct ChimeraGlArgs_glCopyImageSubData cargs;
-	cargs.srcName = srcName;
-	cargs.srcTarget = srcTarget;
-	cargs.srcLevel = srcLevel;
-	cargs.srcX = srcX;
-	cargs.srcY = srcY;
-	cargs.srcZ = srcZ;
-	cargs.dstName = dstName;
-	cargs.dstTarget = dstTarget;
-	cargs.dstLevel = dstLevel;
-	cargs.dstX = dstX;
-	cargs.dstY = dstY;
-	cargs.dstZ = dstZ;
-	cargs.srcWidth = srcWidth;
-	cargs.srcHeight = srcHeight;
-	cargs.srcDepth = srcDepth;
-	g_bridge(CHIMERA_GL_OP_glCopyImageSubData, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glCopyNamedBufferSubData(GLuint readBuffer, GLuint writeBuffer, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size)
-{
-	struct ChimeraGlArgs_glCopyNamedBufferSubData cargs;
-	cargs.readBuffer = readBuffer;
-	cargs.writeBuffer = writeBuffer;
-	cargs.readOffset = readOffset;
-	cargs.writeOffset = writeOffset;
-	cargs.size = size;
-	g_bridge(CHIMERA_GL_OP_glCopyNamedBufferSubData, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glCopyTexImage1D(GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLint border)
-{
-	struct ChimeraGlArgs_glCopyTexImage1D cargs;
-	cargs.target = target;
-	cargs.level = level;
-	cargs.internalformat = internalformat;
-	cargs.x = x;
-	cargs.y = y;
-	cargs.width = width;
-	cargs.border = border;
-	g_bridge(CHIMERA_GL_OP_glCopyTexImage1D, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glCopyTexImage2D(GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height, GLint border)
-{
-	struct ChimeraGlArgs_glCopyTexImage2D cargs;
-	cargs.target = target;
-	cargs.level = level;
-	cargs.internalformat = internalformat;
-	cargs.x = x;
-	cargs.y = y;
-	cargs.width = width;
-	cargs.height = height;
-	cargs.border = border;
-	g_bridge(CHIMERA_GL_OP_glCopyTexImage2D, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glCopyTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width)
-{
-	struct ChimeraGlArgs_glCopyTexSubImage1D cargs;
-	cargs.target = target;
-	cargs.level = level;
-	cargs.xoffset = xoffset;
-	cargs.x = x;
-	cargs.y = y;
-	cargs.width = width;
-	g_bridge(CHIMERA_GL_OP_glCopyTexSubImage1D, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glCopyImageSubData chimera_a;
+	chimera_a.srcName = srcName;
+	chimera_a.srcTarget = srcTarget;
+	chimera_a.srcLevel = srcLevel;
+	chimera_a.srcX = srcX;
+	chimera_a.srcY = srcY;
+	chimera_a.srcZ = srcZ;
+	chimera_a.dstName = dstName;
+	chimera_a.dstTarget = dstTarget;
+	chimera_a.dstLevel = dstLevel;
+	chimera_a.dstX = dstX;
+	chimera_a.dstY = dstY;
+	chimera_a.dstZ = dstZ;
+	chimera_a.srcWidth = srcWidth;
+	chimera_a.srcHeight = srcHeight;
+	chimera_a.srcDepth = srcDepth;
+	g_bridge(CHIMERA_GL_OP_glCopyImageSubData, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height)
 {
-	struct ChimeraGlArgs_glCopyTexSubImage2D cargs;
-	cargs.target = target;
-	cargs.level = level;
-	cargs.xoffset = xoffset;
-	cargs.yoffset = yoffset;
-	cargs.x = x;
-	cargs.y = y;
-	cargs.width = width;
-	cargs.height = height;
-	g_bridge(CHIMERA_GL_OP_glCopyTexSubImage2D, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glCopyTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height)
-{
-	struct ChimeraGlArgs_glCopyTexSubImage3D cargs;
-	cargs.target = target;
-	cargs.level = level;
-	cargs.xoffset = xoffset;
-	cargs.yoffset = yoffset;
-	cargs.zoffset = zoffset;
-	cargs.x = x;
-	cargs.y = y;
-	cargs.width = width;
-	cargs.height = height;
-	g_bridge(CHIMERA_GL_OP_glCopyTexSubImage3D, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glCopyTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width)
-{
-	struct ChimeraGlArgs_glCopyTextureSubImage1D cargs;
-	cargs.texture = texture;
-	cargs.level = level;
-	cargs.xoffset = xoffset;
-	cargs.x = x;
-	cargs.y = y;
-	cargs.width = width;
-	g_bridge(CHIMERA_GL_OP_glCopyTextureSubImage1D, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glCopyTexSubImage2D chimera_a;
+	chimera_a.target = target;
+	chimera_a.level = level;
+	chimera_a.xoffset = xoffset;
+	chimera_a.yoffset = yoffset;
+	chimera_a.x = x;
+	chimera_a.y = y;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	g_bridge(CHIMERA_GL_OP_glCopyTexSubImage2D, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glCopyTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height)
 {
-	struct ChimeraGlArgs_glCopyTextureSubImage2D cargs;
-	cargs.texture = texture;
-	cargs.level = level;
-	cargs.xoffset = xoffset;
-	cargs.yoffset = yoffset;
-	cargs.x = x;
-	cargs.y = y;
-	cargs.width = width;
-	cargs.height = height;
-	g_bridge(CHIMERA_GL_OP_glCopyTextureSubImage2D, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glCopyTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height)
-{
-	struct ChimeraGlArgs_glCopyTextureSubImage3D cargs;
-	cargs.texture = texture;
-	cargs.level = level;
-	cargs.xoffset = xoffset;
-	cargs.yoffset = yoffset;
-	cargs.zoffset = zoffset;
-	cargs.x = x;
-	cargs.y = y;
-	cargs.width = width;
-	cargs.height = height;
-	g_bridge(CHIMERA_GL_OP_glCopyTextureSubImage3D, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glCreateBuffers(GLsizei n, GLuint * buffers)
-{
-	struct ChimeraGlArgs_glCreateBuffers cargs;
-	cargs.n = n;
-	cargs.buffers = buffers;
-	g_bridge(CHIMERA_GL_OP_glCreateBuffers, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glCreateFramebuffers(GLsizei n, GLuint * framebuffers)
-{
-	struct ChimeraGlArgs_glCreateFramebuffers cargs;
-	cargs.n = n;
-	cargs.framebuffers = framebuffers;
-	g_bridge(CHIMERA_GL_OP_glCreateFramebuffers, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glCopyTextureSubImage2D chimera_a;
+	chimera_a.texture = texture;
+	chimera_a.level = level;
+	chimera_a.xoffset = xoffset;
+	chimera_a.yoffset = yoffset;
+	chimera_a.x = x;
+	chimera_a.y = y;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	g_bridge(CHIMERA_GL_OP_glCopyTextureSubImage2D, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static GLuint GLAD_API_PTR w_glCreateProgram(void)
@@ -1046,659 +430,2002 @@ static GLuint GLAD_API_PTR w_glCreateProgram(void)
 	return (GLuint)g_bridge(CHIMERA_GL_OP_glCreateProgram, 0, 0, 0, 0, 0);
 }
 
-static void GLAD_API_PTR w_glCreateProgramPipelines(GLsizei n, GLuint * pipelines)
-{
-	struct ChimeraGlArgs_glCreateProgramPipelines cargs;
-	cargs.n = n;
-	cargs.pipelines = pipelines;
-	g_bridge(CHIMERA_GL_OP_glCreateProgramPipelines, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glCreateQueries(GLenum target, GLsizei n, GLuint * ids)
-{
-	struct ChimeraGlArgs_glCreateQueries cargs;
-	cargs.target = target;
-	cargs.n = n;
-	cargs.ids = ids;
-	g_bridge(CHIMERA_GL_OP_glCreateQueries, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glCreateRenderbuffers(GLsizei n, GLuint * renderbuffers)
-{
-	struct ChimeraGlArgs_glCreateRenderbuffers cargs;
-	cargs.n = n;
-	cargs.renderbuffers = renderbuffers;
-	g_bridge(CHIMERA_GL_OP_glCreateRenderbuffers, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
 static void GLAD_API_PTR w_glCreateSamplers(GLsizei n, GLuint * samplers)
 {
-	struct ChimeraGlArgs_glCreateSamplers cargs;
-	cargs.n = n;
-	cargs.samplers = samplers;
-	g_bridge(CHIMERA_GL_OP_glCreateSamplers, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glCreateSamplers chimera_a;
+	chimera_a.n = n;
+	chimera_a.samplers = samplers;
+	g_bridge(CHIMERA_GL_OP_glCreateSamplers, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static GLuint GLAD_API_PTR w_glCreateShader(GLenum type)
 {
-	struct ChimeraGlArgs_glCreateShader cargs;
-	cargs.type = type;
-	return (GLuint)g_bridge(CHIMERA_GL_OP_glCreateShader, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static GLuint GLAD_API_PTR w_glCreateShaderProgramv(GLenum type, GLsizei count, const GLchar *const* strings)
-{
-	struct ChimeraGlArgs_glCreateShaderProgramv cargs;
-	cargs.type = type;
-	cargs.count = count;
-	cargs.strings = strings;
-	return (GLuint)g_bridge(CHIMERA_GL_OP_glCreateShaderProgramv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glCreateShader chimera_a;
+	chimera_a.type = type;
+	return (GLuint)g_bridge(CHIMERA_GL_OP_glCreateShader, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glCreateTextures(GLenum target, GLsizei n, GLuint * textures)
 {
-	struct ChimeraGlArgs_glCreateTextures cargs;
-	cargs.target = target;
-	cargs.n = n;
-	cargs.textures = textures;
-	g_bridge(CHIMERA_GL_OP_glCreateTextures, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glCreateTransformFeedbacks(GLsizei n, GLuint * ids)
-{
-	struct ChimeraGlArgs_glCreateTransformFeedbacks cargs;
-	cargs.n = n;
-	cargs.ids = ids;
-	g_bridge(CHIMERA_GL_OP_glCreateTransformFeedbacks, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glCreateVertexArrays(GLsizei n, GLuint * arrays)
-{
-	struct ChimeraGlArgs_glCreateVertexArrays cargs;
-	cargs.n = n;
-	cargs.arrays = arrays;
-	g_bridge(CHIMERA_GL_OP_glCreateVertexArrays, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glCreateTextures chimera_a;
+	chimera_a.target = target;
+	chimera_a.n = n;
+	chimera_a.textures = textures;
+	g_bridge(CHIMERA_GL_OP_glCreateTextures, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glCullFace(GLenum mode)
 {
-	struct ChimeraGlArgs_glCullFace cargs;
-	cargs.mode = mode;
-	g_bridge(CHIMERA_GL_OP_glCullFace, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glCullFace chimera_a;
+	chimera_a.mode = mode;
+	g_bridge(CHIMERA_GL_OP_glCullFace, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glDebugMessageCallback(GLDEBUGPROC callback, const void * userParam)
 {
-	struct ChimeraGlArgs_glDebugMessageCallback cargs;
-	cargs.callback = callback;
-	cargs.userParam = userParam;
-	g_bridge(CHIMERA_GL_OP_glDebugMessageCallback, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glDebugMessageCallbackARB(GLDEBUGPROCARB callback, const void * userParam)
-{
-	struct ChimeraGlArgs_glDebugMessageCallbackARB cargs;
-	cargs.callback = callback;
-	cargs.userParam = userParam;
-	g_bridge(CHIMERA_GL_OP_glDebugMessageCallbackARB, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glDebugMessageCallbackKHR(GLDEBUGPROCKHR callback, const void * userParam)
-{
-	struct ChimeraGlArgs_glDebugMessageCallbackKHR cargs;
-	cargs.callback = callback;
-	cargs.userParam = userParam;
-	g_bridge(CHIMERA_GL_OP_glDebugMessageCallbackKHR, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glDebugMessageCallback chimera_a;
+	chimera_a.callback = callback;
+	chimera_a.userParam = userParam;
+	g_bridge(CHIMERA_GL_OP_glDebugMessageCallback, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glDebugMessageControl(GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint * ids, GLboolean enabled)
 {
-	struct ChimeraGlArgs_glDebugMessageControl cargs;
-	cargs.source = source;
-	cargs.type = type;
-	cargs.severity = severity;
-	cargs.count = count;
-	cargs.ids = ids;
-	cargs.enabled = enabled;
-	g_bridge(CHIMERA_GL_OP_glDebugMessageControl, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glDebugMessageControlARB(GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint * ids, GLboolean enabled)
-{
-	struct ChimeraGlArgs_glDebugMessageControlARB cargs;
-	cargs.source = source;
-	cargs.type = type;
-	cargs.severity = severity;
-	cargs.count = count;
-	cargs.ids = ids;
-	cargs.enabled = enabled;
-	g_bridge(CHIMERA_GL_OP_glDebugMessageControlARB, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glDebugMessageControlKHR(GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint * ids, GLboolean enabled)
-{
-	struct ChimeraGlArgs_glDebugMessageControlKHR cargs;
-	cargs.source = source;
-	cargs.type = type;
-	cargs.severity = severity;
-	cargs.count = count;
-	cargs.ids = ids;
-	cargs.enabled = enabled;
-	g_bridge(CHIMERA_GL_OP_glDebugMessageControlKHR, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glDebugMessageInsert(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar * buf)
-{
-	struct ChimeraGlArgs_glDebugMessageInsert cargs;
-	cargs.source = source;
-	cargs.type = type;
-	cargs.id = id;
-	cargs.severity = severity;
-	cargs.length = length;
-	cargs.buf = buf;
-	g_bridge(CHIMERA_GL_OP_glDebugMessageInsert, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glDebugMessageInsertARB(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar * buf)
-{
-	struct ChimeraGlArgs_glDebugMessageInsertARB cargs;
-	cargs.source = source;
-	cargs.type = type;
-	cargs.id = id;
-	cargs.severity = severity;
-	cargs.length = length;
-	cargs.buf = buf;
-	g_bridge(CHIMERA_GL_OP_glDebugMessageInsertARB, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glDebugMessageInsertKHR(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar * buf)
-{
-	struct ChimeraGlArgs_glDebugMessageInsertKHR cargs;
-	cargs.source = source;
-	cargs.type = type;
-	cargs.id = id;
-	cargs.severity = severity;
-	cargs.length = length;
-	cargs.buf = buf;
-	g_bridge(CHIMERA_GL_OP_glDebugMessageInsertKHR, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glDebugMessageControl chimera_a;
+	chimera_a.source = source;
+	chimera_a.type = type;
+	chimera_a.severity = severity;
+	chimera_a.count = count;
+	chimera_a.ids = ids;
+	chimera_a.enabled = enabled;
+	g_bridge(CHIMERA_GL_OP_glDebugMessageControl, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glDeleteBuffers(GLsizei n, const GLuint * buffers)
 {
-	struct ChimeraGlArgs_glDeleteBuffers cargs;
-	cargs.n = n;
-	cargs.buffers = buffers;
-	g_bridge(CHIMERA_GL_OP_glDeleteBuffers, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glDeleteBuffers chimera_a;
+	chimera_a.n = n;
+	chimera_a.buffers = buffers;
+	g_bridge(CHIMERA_GL_OP_glDeleteBuffers, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glDeleteFramebuffers(GLsizei n, const GLuint * framebuffers)
 {
-	struct ChimeraGlArgs_glDeleteFramebuffers cargs;
-	cargs.n = n;
-	cargs.framebuffers = framebuffers;
-	g_bridge(CHIMERA_GL_OP_glDeleteFramebuffers, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glDeleteFramebuffers chimera_a;
+	chimera_a.n = n;
+	chimera_a.framebuffers = framebuffers;
+	g_bridge(CHIMERA_GL_OP_glDeleteFramebuffers, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glDeleteProgram(GLuint program)
 {
-	struct ChimeraGlArgs_glDeleteProgram cargs;
-	cargs.program = program;
-	g_bridge(CHIMERA_GL_OP_glDeleteProgram, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glDeleteProgramPipelines(GLsizei n, const GLuint * pipelines)
-{
-	struct ChimeraGlArgs_glDeleteProgramPipelines cargs;
-	cargs.n = n;
-	cargs.pipelines = pipelines;
-	g_bridge(CHIMERA_GL_OP_glDeleteProgramPipelines, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glDeleteProgram chimera_a;
+	chimera_a.program = program;
+	g_bridge(CHIMERA_GL_OP_glDeleteProgram, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glDeleteQueries(GLsizei n, const GLuint * ids)
 {
-	struct ChimeraGlArgs_glDeleteQueries cargs;
-	cargs.n = n;
-	cargs.ids = ids;
-	g_bridge(CHIMERA_GL_OP_glDeleteQueries, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glDeleteQueriesEXT(GLsizei n, const GLuint * ids)
-{
-	struct ChimeraGlArgs_glDeleteQueriesEXT cargs;
-	cargs.n = n;
-	cargs.ids = ids;
-	g_bridge(CHIMERA_GL_OP_glDeleteQueriesEXT, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glDeleteQueries chimera_a;
+	chimera_a.n = n;
+	chimera_a.ids = ids;
+	g_bridge(CHIMERA_GL_OP_glDeleteQueries, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glDeleteRenderbuffers(GLsizei n, const GLuint * renderbuffers)
 {
-	struct ChimeraGlArgs_glDeleteRenderbuffers cargs;
-	cargs.n = n;
-	cargs.renderbuffers = renderbuffers;
-	g_bridge(CHIMERA_GL_OP_glDeleteRenderbuffers, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glDeleteRenderbuffers chimera_a;
+	chimera_a.n = n;
+	chimera_a.renderbuffers = renderbuffers;
+	g_bridge(CHIMERA_GL_OP_glDeleteRenderbuffers, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glDeleteSamplers(GLsizei count, const GLuint * samplers)
 {
-	struct ChimeraGlArgs_glDeleteSamplers cargs;
-	cargs.count = count;
-	cargs.samplers = samplers;
-	g_bridge(CHIMERA_GL_OP_glDeleteSamplers, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glDeleteSamplers chimera_a;
+	chimera_a.count = count;
+	chimera_a.samplers = samplers;
+	g_bridge(CHIMERA_GL_OP_glDeleteSamplers, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glDeleteShader(GLuint shader)
 {
-	struct ChimeraGlArgs_glDeleteShader cargs;
-	cargs.shader = shader;
-	g_bridge(CHIMERA_GL_OP_glDeleteShader, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glDeleteShader chimera_a;
+	chimera_a.shader = shader;
+	g_bridge(CHIMERA_GL_OP_glDeleteShader, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glDeleteSync(GLsync sync)
 {
-	struct ChimeraGlArgs_glDeleteSync cargs;
-	cargs.sync = sync;
-	g_bridge(CHIMERA_GL_OP_glDeleteSync, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glDeleteSync chimera_a;
+	chimera_a.sync = sync;
+	g_bridge(CHIMERA_GL_OP_glDeleteSync, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glDeleteTextures(GLsizei n, const GLuint * textures)
 {
-	struct ChimeraGlArgs_glDeleteTextures cargs;
-	cargs.n = n;
-	cargs.textures = textures;
-	g_bridge(CHIMERA_GL_OP_glDeleteTextures, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glDeleteTransformFeedbacks(GLsizei n, const GLuint * ids)
-{
-	struct ChimeraGlArgs_glDeleteTransformFeedbacks cargs;
-	cargs.n = n;
-	cargs.ids = ids;
-	g_bridge(CHIMERA_GL_OP_glDeleteTransformFeedbacks, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glDeleteTextures chimera_a;
+	chimera_a.n = n;
+	chimera_a.textures = textures;
+	g_bridge(CHIMERA_GL_OP_glDeleteTextures, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glDeleteVertexArrays(GLsizei n, const GLuint * arrays)
 {
-	struct ChimeraGlArgs_glDeleteVertexArrays cargs;
-	cargs.n = n;
-	cargs.arrays = arrays;
-	g_bridge(CHIMERA_GL_OP_glDeleteVertexArrays, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glDeleteVertexArraysAPPLE(GLsizei n, const GLuint * arrays)
-{
-	struct ChimeraGlArgs_glDeleteVertexArraysAPPLE cargs;
-	cargs.n = n;
-	cargs.arrays = arrays;
-	g_bridge(CHIMERA_GL_OP_glDeleteVertexArraysAPPLE, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glDeleteVertexArraysOES(GLsizei n, const GLuint * arrays)
-{
-	struct ChimeraGlArgs_glDeleteVertexArraysOES cargs;
-	cargs.n = n;
-	cargs.arrays = arrays;
-	g_bridge(CHIMERA_GL_OP_glDeleteVertexArraysOES, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glDeleteVertexArrays chimera_a;
+	chimera_a.n = n;
+	chimera_a.arrays = arrays;
+	g_bridge(CHIMERA_GL_OP_glDeleteVertexArrays, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glDepthFunc(GLenum func)
 {
-	struct ChimeraGlArgs_glDepthFunc cargs;
-	cargs.func = func;
-	g_bridge(CHIMERA_GL_OP_glDepthFunc, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glDepthFunc chimera_a;
+	chimera_a.func = func;
+	g_bridge(CHIMERA_GL_OP_glDepthFunc, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glDepthMask(GLboolean flag)
 {
-	struct ChimeraGlArgs_glDepthMask cargs;
-	cargs.flag = flag;
-	g_bridge(CHIMERA_GL_OP_glDepthMask, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glDepthRange(GLdouble n, GLdouble f)
-{
-	struct ChimeraGlArgs_glDepthRange cargs;
-	cargs.n = n;
-	cargs.f = f;
-	g_bridge(CHIMERA_GL_OP_glDepthRange, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glDepthRangeArrayv(GLuint first, GLsizei count, const GLdouble * v)
-{
-	struct ChimeraGlArgs_glDepthRangeArrayv cargs;
-	cargs.first = first;
-	cargs.count = count;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glDepthRangeArrayv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glDepthRangef(GLfloat n, GLfloat f)
-{
-	struct ChimeraGlArgs_glDepthRangef cargs;
-	cargs.n = n;
-	cargs.f = f;
-	g_bridge(CHIMERA_GL_OP_glDepthRangef, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glDepthRangeIndexed(GLuint index, GLdouble n, GLdouble f)
-{
-	struct ChimeraGlArgs_glDepthRangeIndexed cargs;
-	cargs.index = index;
-	cargs.n = n;
-	cargs.f = f;
-	g_bridge(CHIMERA_GL_OP_glDepthRangeIndexed, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glDepthMask chimera_a;
+	chimera_a.flag = flag;
+	g_bridge(CHIMERA_GL_OP_glDepthMask, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glDetachShader(GLuint program, GLuint shader)
 {
-	struct ChimeraGlArgs_glDetachShader cargs;
-	cargs.program = program;
-	cargs.shader = shader;
-	g_bridge(CHIMERA_GL_OP_glDetachShader, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glDetachShader chimera_a;
+	chimera_a.program = program;
+	chimera_a.shader = shader;
+	g_bridge(CHIMERA_GL_OP_glDetachShader, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glDisable(GLenum cap)
 {
-	struct ChimeraGlArgs_glDisable cargs;
-	cargs.cap = cap;
-	g_bridge(CHIMERA_GL_OP_glDisable, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glDisablei(GLenum target, GLuint index)
-{
-	struct ChimeraGlArgs_glDisablei cargs;
-	cargs.target = target;
-	cargs.index = index;
-	g_bridge(CHIMERA_GL_OP_glDisablei, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glDisableIndexedEXT(GLenum target, GLuint index)
-{
-	struct ChimeraGlArgs_glDisableIndexedEXT cargs;
-	cargs.target = target;
-	cargs.index = index;
-	g_bridge(CHIMERA_GL_OP_glDisableIndexedEXT, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glDisableVertexArrayAttrib(GLuint vaobj, GLuint index)
-{
-	struct ChimeraGlArgs_glDisableVertexArrayAttrib cargs;
-	cargs.vaobj = vaobj;
-	cargs.index = index;
-	g_bridge(CHIMERA_GL_OP_glDisableVertexArrayAttrib, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glDisable chimera_a;
+	chimera_a.cap = cap;
+	g_bridge(CHIMERA_GL_OP_glDisable, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glDisableVertexAttribArray(GLuint index)
 {
-	struct ChimeraGlArgs_glDisableVertexAttribArray cargs;
-	cargs.index = index;
-	g_bridge(CHIMERA_GL_OP_glDisableVertexAttribArray, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glDisableVertexAttribArray chimera_a;
+	chimera_a.index = index;
+	g_bridge(CHIMERA_GL_OP_glDisableVertexAttribArray, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glDispatchCompute(GLuint num_groups_x, GLuint num_groups_y, GLuint num_groups_z)
 {
-	struct ChimeraGlArgs_glDispatchCompute cargs;
-	cargs.num_groups_x = num_groups_x;
-	cargs.num_groups_y = num_groups_y;
-	cargs.num_groups_z = num_groups_z;
-	g_bridge(CHIMERA_GL_OP_glDispatchCompute, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glDispatchComputeIndirect(GLintptr indirect)
-{
-	struct ChimeraGlArgs_glDispatchComputeIndirect cargs;
-	cargs.indirect = indirect;
-	g_bridge(CHIMERA_GL_OP_glDispatchComputeIndirect, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glDispatchCompute chimera_a;
+	chimera_a.num_groups_x = num_groups_x;
+	chimera_a.num_groups_y = num_groups_y;
+	chimera_a.num_groups_z = num_groups_z;
+	g_bridge(CHIMERA_GL_OP_glDispatchCompute, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glDrawArrays(GLenum mode, GLint first, GLsizei count)
 {
-	struct ChimeraGlArgs_glDrawArrays cargs;
-	cargs.mode = mode;
-	cargs.first = first;
-	cargs.count = count;
-	g_bridge(CHIMERA_GL_OP_glDrawArrays, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glDrawArraysIndirect(GLenum mode, const void * indirect)
-{
-	struct ChimeraGlArgs_glDrawArraysIndirect cargs;
-	cargs.mode = mode;
-	cargs.indirect = indirect;
-	g_bridge(CHIMERA_GL_OP_glDrawArraysIndirect, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glDrawArraysInstanced(GLenum mode, GLint first, GLsizei count, GLsizei instancecount)
-{
-	struct ChimeraGlArgs_glDrawArraysInstanced cargs;
-	cargs.mode = mode;
-	cargs.first = first;
-	cargs.count = count;
-	cargs.instancecount = instancecount;
-	g_bridge(CHIMERA_GL_OP_glDrawArraysInstanced, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glDrawArraysInstancedARB(GLenum mode, GLint first, GLsizei count, GLsizei primcount)
-{
-	struct ChimeraGlArgs_glDrawArraysInstancedARB cargs;
-	cargs.mode = mode;
-	cargs.first = first;
-	cargs.count = count;
-	cargs.primcount = primcount;
-	g_bridge(CHIMERA_GL_OP_glDrawArraysInstancedARB, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glDrawArraysInstancedBaseInstance(GLenum mode, GLint first, GLsizei count, GLsizei instancecount, GLuint baseinstance)
-{
-	struct ChimeraGlArgs_glDrawArraysInstancedBaseInstance cargs;
-	cargs.mode = mode;
-	cargs.first = first;
-	cargs.count = count;
-	cargs.instancecount = instancecount;
-	cargs.baseinstance = baseinstance;
-	g_bridge(CHIMERA_GL_OP_glDrawArraysInstancedBaseInstance, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glDrawBuffer(GLenum buf)
-{
-	struct ChimeraGlArgs_glDrawBuffer cargs;
-	cargs.buf = buf;
-	g_bridge(CHIMERA_GL_OP_glDrawBuffer, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glDrawArrays chimera_a;
+	chimera_a.mode = mode;
+	chimera_a.first = first;
+	chimera_a.count = count;
+	g_bridge(CHIMERA_GL_OP_glDrawArrays, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glDrawBuffers(GLsizei n, const GLenum * bufs)
 {
-	struct ChimeraGlArgs_glDrawBuffers cargs;
-	cargs.n = n;
-	cargs.bufs = bufs;
-	g_bridge(CHIMERA_GL_OP_glDrawBuffers, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glDrawBuffers chimera_a;
+	chimera_a.n = n;
+	chimera_a.bufs = bufs;
+	g_bridge(CHIMERA_GL_OP_glDrawBuffers, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glDrawElements(GLenum mode, GLsizei count, GLenum type, const void * indices)
 {
-	struct ChimeraGlArgs_glDrawElements cargs;
-	cargs.mode = mode;
-	cargs.count = count;
-	cargs.type = type;
-	cargs.indices = indices;
-	g_bridge(CHIMERA_GL_OP_glDrawElements, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glDrawElements chimera_a;
+	chimera_a.mode = mode;
+	chimera_a.count = count;
+	chimera_a.type = type;
+	chimera_a.indices = indices;
+	g_bridge(CHIMERA_GL_OP_glDrawElements, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glDrawElementsBaseVertex(GLenum mode, GLsizei count, GLenum type, const void * indices, GLint basevertex)
 {
-	struct ChimeraGlArgs_glDrawElementsBaseVertex cargs;
-	cargs.mode = mode;
-	cargs.count = count;
-	cargs.type = type;
-	cargs.indices = indices;
-	cargs.basevertex = basevertex;
-	g_bridge(CHIMERA_GL_OP_glDrawElementsBaseVertex, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glDrawElementsIndirect(GLenum mode, GLenum type, const void * indirect)
-{
-	struct ChimeraGlArgs_glDrawElementsIndirect cargs;
-	cargs.mode = mode;
-	cargs.type = type;
-	cargs.indirect = indirect;
-	g_bridge(CHIMERA_GL_OP_glDrawElementsIndirect, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glDrawElementsInstanced(GLenum mode, GLsizei count, GLenum type, const void * indices, GLsizei instancecount)
-{
-	struct ChimeraGlArgs_glDrawElementsInstanced cargs;
-	cargs.mode = mode;
-	cargs.count = count;
-	cargs.type = type;
-	cargs.indices = indices;
-	cargs.instancecount = instancecount;
-	g_bridge(CHIMERA_GL_OP_glDrawElementsInstanced, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glDrawElementsInstancedARB(GLenum mode, GLsizei count, GLenum type, const void * indices, GLsizei primcount)
-{
-	struct ChimeraGlArgs_glDrawElementsInstancedARB cargs;
-	cargs.mode = mode;
-	cargs.count = count;
-	cargs.type = type;
-	cargs.indices = indices;
-	cargs.primcount = primcount;
-	g_bridge(CHIMERA_GL_OP_glDrawElementsInstancedARB, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glDrawElementsInstancedBaseInstance(GLenum mode, GLsizei count, GLenum type, const void * indices, GLsizei instancecount, GLuint baseinstance)
-{
-	struct ChimeraGlArgs_glDrawElementsInstancedBaseInstance cargs;
-	cargs.mode = mode;
-	cargs.count = count;
-	cargs.type = type;
-	cargs.indices = indices;
-	cargs.instancecount = instancecount;
-	cargs.baseinstance = baseinstance;
-	g_bridge(CHIMERA_GL_OP_glDrawElementsInstancedBaseInstance, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glDrawElementsInstancedBaseVertex(GLenum mode, GLsizei count, GLenum type, const void * indices, GLsizei instancecount, GLint basevertex)
-{
-	struct ChimeraGlArgs_glDrawElementsInstancedBaseVertex cargs;
-	cargs.mode = mode;
-	cargs.count = count;
-	cargs.type = type;
-	cargs.indices = indices;
-	cargs.instancecount = instancecount;
-	cargs.basevertex = basevertex;
-	g_bridge(CHIMERA_GL_OP_glDrawElementsInstancedBaseVertex, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glDrawElementsInstancedBaseVertexBaseInstance(GLenum mode, GLsizei count, GLenum type, const void * indices, GLsizei instancecount, GLint basevertex, GLuint baseinstance)
-{
-	struct ChimeraGlArgs_glDrawElementsInstancedBaseVertexBaseInstance cargs;
-	cargs.mode = mode;
-	cargs.count = count;
-	cargs.type = type;
-	cargs.indices = indices;
-	cargs.instancecount = instancecount;
-	cargs.basevertex = basevertex;
-	cargs.baseinstance = baseinstance;
-	g_bridge(CHIMERA_GL_OP_glDrawElementsInstancedBaseVertexBaseInstance, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glDrawRangeElements(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void * indices)
-{
-	struct ChimeraGlArgs_glDrawRangeElements cargs;
-	cargs.mode = mode;
-	cargs.start = start;
-	cargs.end = end;
-	cargs.count = count;
-	cargs.type = type;
-	cargs.indices = indices;
-	g_bridge(CHIMERA_GL_OP_glDrawRangeElements, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glDrawRangeElementsBaseVertex(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void * indices, GLint basevertex)
-{
-	struct ChimeraGlArgs_glDrawRangeElementsBaseVertex cargs;
-	cargs.mode = mode;
-	cargs.start = start;
-	cargs.end = end;
-	cargs.count = count;
-	cargs.type = type;
-	cargs.indices = indices;
-	cargs.basevertex = basevertex;
-	g_bridge(CHIMERA_GL_OP_glDrawRangeElementsBaseVertex, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glDrawTransformFeedback(GLenum mode, GLuint id)
-{
-	struct ChimeraGlArgs_glDrawTransformFeedback cargs;
-	cargs.mode = mode;
-	cargs.id = id;
-	g_bridge(CHIMERA_GL_OP_glDrawTransformFeedback, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glDrawTransformFeedbackInstanced(GLenum mode, GLuint id, GLsizei instancecount)
-{
-	struct ChimeraGlArgs_glDrawTransformFeedbackInstanced cargs;
-	cargs.mode = mode;
-	cargs.id = id;
-	cargs.instancecount = instancecount;
-	g_bridge(CHIMERA_GL_OP_glDrawTransformFeedbackInstanced, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glDrawTransformFeedbackStream(GLenum mode, GLuint id, GLuint stream)
-{
-	struct ChimeraGlArgs_glDrawTransformFeedbackStream cargs;
-	cargs.mode = mode;
-	cargs.id = id;
-	cargs.stream = stream;
-	g_bridge(CHIMERA_GL_OP_glDrawTransformFeedbackStream, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glDrawTransformFeedbackStreamInstanced(GLenum mode, GLuint id, GLuint stream, GLsizei instancecount)
-{
-	struct ChimeraGlArgs_glDrawTransformFeedbackStreamInstanced cargs;
-	cargs.mode = mode;
-	cargs.id = id;
-	cargs.stream = stream;
-	cargs.instancecount = instancecount;
-	g_bridge(CHIMERA_GL_OP_glDrawTransformFeedbackStreamInstanced, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glDrawElementsBaseVertex chimera_a;
+	chimera_a.mode = mode;
+	chimera_a.count = count;
+	chimera_a.type = type;
+	chimera_a.indices = indices;
+	chimera_a.basevertex = basevertex;
+	g_bridge(CHIMERA_GL_OP_glDrawElementsBaseVertex, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glEnable(GLenum cap)
 {
-	struct ChimeraGlArgs_glEnable cargs;
-	cargs.cap = cap;
-	g_bridge(CHIMERA_GL_OP_glEnable, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glEnablei(GLenum target, GLuint index)
-{
-	struct ChimeraGlArgs_glEnablei cargs;
-	cargs.target = target;
-	cargs.index = index;
-	g_bridge(CHIMERA_GL_OP_glEnablei, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glEnableIndexedEXT(GLenum target, GLuint index)
-{
-	struct ChimeraGlArgs_glEnableIndexedEXT cargs;
-	cargs.target = target;
-	cargs.index = index;
-	g_bridge(CHIMERA_GL_OP_glEnableIndexedEXT, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glEnableVertexArrayAttrib(GLuint vaobj, GLuint index)
-{
-	struct ChimeraGlArgs_glEnableVertexArrayAttrib cargs;
-	cargs.vaobj = vaobj;
-	cargs.index = index;
-	g_bridge(CHIMERA_GL_OP_glEnableVertexArrayAttrib, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glEnable chimera_a;
+	chimera_a.cap = cap;
+	g_bridge(CHIMERA_GL_OP_glEnable, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glEnableVertexAttribArray(GLuint index)
 {
-	struct ChimeraGlArgs_glEnableVertexAttribArray cargs;
-	cargs.index = index;
-	g_bridge(CHIMERA_GL_OP_glEnableVertexAttribArray, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glEnableVertexAttribArray chimera_a;
+	chimera_a.index = index;
+	g_bridge(CHIMERA_GL_OP_glEnableVertexAttribArray, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glEndQuery(GLenum target)
+{
+	struct ChimeraGlArgs_glEndQuery chimera_a;
+	chimera_a.target = target;
+	g_bridge(CHIMERA_GL_OP_glEndQuery, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static GLsync GLAD_API_PTR w_glFenceSync(GLenum condition, GLbitfield flags)
+{
+	struct ChimeraGlArgs_glFenceSync chimera_a;
+	chimera_a.condition = condition;
+	chimera_a.flags = flags;
+	return (GLsync)g_bridge(CHIMERA_GL_OP_glFenceSync, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glFlushMappedBufferRange(GLenum target, GLintptr offset, GLsizeiptr length)
+{
+	struct ChimeraGlArgs_glFlushMappedBufferRange chimera_a;
+	chimera_a.target = target;
+	chimera_a.offset = offset;
+	chimera_a.length = length;
+	g_bridge(CHIMERA_GL_OP_glFlushMappedBufferRange, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glFramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer)
+{
+	struct ChimeraGlArgs_glFramebufferRenderbuffer chimera_a;
+	chimera_a.target = target;
+	chimera_a.attachment = attachment;
+	chimera_a.renderbuffertarget = renderbuffertarget;
+	chimera_a.renderbuffer = renderbuffer;
+	g_bridge(CHIMERA_GL_OP_glFramebufferRenderbuffer, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level)
+{
+	struct ChimeraGlArgs_glFramebufferTexture2D chimera_a;
+	chimera_a.target = target;
+	chimera_a.attachment = attachment;
+	chimera_a.textarget = textarget;
+	chimera_a.texture = texture;
+	chimera_a.level = level;
+	g_bridge(CHIMERA_GL_OP_glFramebufferTexture2D, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGenBuffers(GLsizei n, GLuint * buffers)
+{
+	struct ChimeraGlArgs_glGenBuffers chimera_a;
+	chimera_a.n = n;
+	chimera_a.buffers = buffers;
+	g_bridge(CHIMERA_GL_OP_glGenBuffers, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGenerateMipmap(GLenum target)
+{
+	struct ChimeraGlArgs_glGenerateMipmap chimera_a;
+	chimera_a.target = target;
+	g_bridge(CHIMERA_GL_OP_glGenerateMipmap, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGenerateTextureMipmap(GLuint texture)
+{
+	struct ChimeraGlArgs_glGenerateTextureMipmap chimera_a;
+	chimera_a.texture = texture;
+	g_bridge(CHIMERA_GL_OP_glGenerateTextureMipmap, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGenFramebuffers(GLsizei n, GLuint * framebuffers)
+{
+	struct ChimeraGlArgs_glGenFramebuffers chimera_a;
+	chimera_a.n = n;
+	chimera_a.framebuffers = framebuffers;
+	g_bridge(CHIMERA_GL_OP_glGenFramebuffers, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGenQueries(GLsizei n, GLuint * ids)
+{
+	struct ChimeraGlArgs_glGenQueries chimera_a;
+	chimera_a.n = n;
+	chimera_a.ids = ids;
+	g_bridge(CHIMERA_GL_OP_glGenQueries, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGenRenderbuffers(GLsizei n, GLuint * renderbuffers)
+{
+	struct ChimeraGlArgs_glGenRenderbuffers chimera_a;
+	chimera_a.n = n;
+	chimera_a.renderbuffers = renderbuffers;
+	g_bridge(CHIMERA_GL_OP_glGenRenderbuffers, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGenSamplers(GLsizei count, GLuint * samplers)
+{
+	struct ChimeraGlArgs_glGenSamplers chimera_a;
+	chimera_a.count = count;
+	chimera_a.samplers = samplers;
+	g_bridge(CHIMERA_GL_OP_glGenSamplers, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGenTextures(GLsizei n, GLuint * textures)
+{
+	struct ChimeraGlArgs_glGenTextures chimera_a;
+	chimera_a.n = n;
+	chimera_a.textures = textures;
+	g_bridge(CHIMERA_GL_OP_glGenTextures, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGenVertexArrays(GLsizei n, GLuint * arrays)
+{
+	struct ChimeraGlArgs_glGenVertexArrays chimera_a;
+	chimera_a.n = n;
+	chimera_a.arrays = arrays;
+	g_bridge(CHIMERA_GL_OP_glGenVertexArrays, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static GLenum GLAD_API_PTR w_glGetError(void)
+{
+	return (GLenum)g_bridge(CHIMERA_GL_OP_glGetError, 0, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetFloatv(GLenum pname, GLfloat * data)
+{
+	struct ChimeraGlArgs_glGetFloatv chimera_a;
+	chimera_a.pname = pname;
+	chimera_a.data = data;
+	g_bridge(CHIMERA_GL_OP_glGetFloatv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetIntegerv(GLenum pname, GLint * data)
+{
+	struct ChimeraGlArgs_glGetIntegerv chimera_a;
+	chimera_a.pname = pname;
+	chimera_a.data = data;
+	g_bridge(CHIMERA_GL_OP_glGetIntegerv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetProgramBinary(GLuint program, GLsizei bufSize, GLsizei * length, GLenum * binaryFormat, void * binary)
+{
+	struct ChimeraGlArgs_glGetProgramBinary chimera_a;
+	chimera_a.program = program;
+	chimera_a.bufSize = bufSize;
+	chimera_a.length = length;
+	chimera_a.binaryFormat = binaryFormat;
+	chimera_a.binary = binary;
+	g_bridge(CHIMERA_GL_OP_glGetProgramBinary, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetProgramInfoLog(GLuint program, GLsizei bufSize, GLsizei * length, GLchar * infoLog)
+{
+	struct ChimeraGlArgs_glGetProgramInfoLog chimera_a;
+	chimera_a.program = program;
+	chimera_a.bufSize = bufSize;
+	chimera_a.length = length;
+	chimera_a.infoLog = infoLog;
+	g_bridge(CHIMERA_GL_OP_glGetProgramInfoLog, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetProgramiv(GLuint program, GLenum pname, GLint * params)
+{
+	struct ChimeraGlArgs_glGetProgramiv chimera_a;
+	chimera_a.program = program;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetProgramiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetQueryObjectiv(GLuint id, GLenum pname, GLint * params)
+{
+	struct ChimeraGlArgs_glGetQueryObjectiv chimera_a;
+	chimera_a.id = id;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetQueryObjectiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetQueryObjectui64v(GLuint id, GLenum pname, GLuint64 * params)
+{
+	struct ChimeraGlArgs_glGetQueryObjectui64v chimera_a;
+	chimera_a.id = id;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetQueryObjectui64v, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetShaderInfoLog(GLuint shader, GLsizei bufSize, GLsizei * length, GLchar * infoLog)
+{
+	struct ChimeraGlArgs_glGetShaderInfoLog chimera_a;
+	chimera_a.shader = shader;
+	chimera_a.bufSize = bufSize;
+	chimera_a.length = length;
+	chimera_a.infoLog = infoLog;
+	g_bridge(CHIMERA_GL_OP_glGetShaderInfoLog, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetShaderiv(GLuint shader, GLenum pname, GLint * params)
+{
+	struct ChimeraGlArgs_glGetShaderiv chimera_a;
+	chimera_a.shader = shader;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetShaderiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetShaderPrecisionFormat(GLenum shadertype, GLenum precisiontype, GLint * range, GLint * precision)
+{
+	struct ChimeraGlArgs_glGetShaderPrecisionFormat chimera_a;
+	chimera_a.shadertype = shadertype;
+	chimera_a.precisiontype = precisiontype;
+	chimera_a.range = range;
+	chimera_a.precision = precision;
+	g_bridge(CHIMERA_GL_OP_glGetShaderPrecisionFormat, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static const GLubyte *GLAD_API_PTR w_glGetString(GLenum name)
+{
+	static char buffer[4096];
+	struct ChimeraGlArgs_glGetString chimera_a;
+	chimera_a.name = name;
+	g_bridge(CHIMERA_GL_OP_glGetString, (uint64_t)(uintptr_t)&chimera_a,
+		(uint64_t)(uintptr_t)buffer, sizeof buffer, 0, 0);
+	return buffer[0] ? (const GLubyte *)buffer : NULL;
+}
+
+static const GLubyte *GLAD_API_PTR w_glGetStringi(GLenum name, GLuint index)
+{
+	static char buffer[4096];
+	struct ChimeraGlArgs_glGetStringi chimera_a;
+	chimera_a.name = name;
+	chimera_a.index = index;
+	g_bridge(CHIMERA_GL_OP_glGetStringi, (uint64_t)(uintptr_t)&chimera_a,
+		(uint64_t)(uintptr_t)buffer, sizeof buffer, 0, 0);
+	return buffer[0] ? (const GLubyte *)buffer : NULL;
+}
+
+static void GLAD_API_PTR w_glGetTexImage(GLenum target, GLint level, GLenum format, GLenum type, void * pixels)
+{
+	struct ChimeraGlArgs_glGetTexImage chimera_a;
+	chimera_a.target = target;
+	chimera_a.level = level;
+	chimera_a.format = format;
+	chimera_a.type = type;
+	chimera_a.pixels = pixels;
+	g_bridge(CHIMERA_GL_OP_glGetTexImage, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetTextureImage(GLuint texture, GLint level, GLenum format, GLenum type, GLsizei bufSize, void * pixels)
+{
+	struct ChimeraGlArgs_glGetTextureImage chimera_a;
+	chimera_a.texture = texture;
+	chimera_a.level = level;
+	chimera_a.format = format;
+	chimera_a.type = type;
+	chimera_a.bufSize = bufSize;
+	chimera_a.pixels = pixels;
+	g_bridge(CHIMERA_GL_OP_glGetTextureImage, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static GLuint GLAD_API_PTR w_glGetUniformBlockIndex(GLuint program, const GLchar * uniformBlockName)
+{
+	struct ChimeraGlArgs_glGetUniformBlockIndex chimera_a;
+	chimera_a.program = program;
+	chimera_a.uniformBlockName = uniformBlockName;
+	return (GLuint)g_bridge(CHIMERA_GL_OP_glGetUniformBlockIndex, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static GLint GLAD_API_PTR w_glGetUniformLocation(GLuint program, const GLchar * name)
+{
+	struct ChimeraGlArgs_glGetUniformLocation chimera_a;
+	chimera_a.program = program;
+	chimera_a.name = name;
+	return (GLint)g_bridge(CHIMERA_GL_OP_glGetUniformLocation, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glHint(GLenum target, GLenum mode)
+{
+	struct ChimeraGlArgs_glHint chimera_a;
+	chimera_a.target = target;
+	chimera_a.mode = mode;
+	g_bridge(CHIMERA_GL_OP_glHint, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glInvalidateFramebuffer(GLenum target, GLsizei numAttachments, const GLenum * attachments)
+{
+	struct ChimeraGlArgs_glInvalidateFramebuffer chimera_a;
+	chimera_a.target = target;
+	chimera_a.numAttachments = numAttachments;
+	chimera_a.attachments = attachments;
+	g_bridge(CHIMERA_GL_OP_glInvalidateFramebuffer, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glLineWidth(GLfloat width)
+{
+	struct ChimeraGlArgs_glLineWidth chimera_a;
+	chimera_a.width = width;
+	g_bridge(CHIMERA_GL_OP_glLineWidth, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glLinkProgram(GLuint program)
+{
+	struct ChimeraGlArgs_glLinkProgram chimera_a;
+	chimera_a.program = program;
+	g_bridge(CHIMERA_GL_OP_glLinkProgram, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void * GLAD_API_PTR w_glMapBufferRange(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access)
+{
+	struct ChimeraGlArgs_glMapBufferRange chimera_a;
+	chimera_a.target = target;
+	chimera_a.offset = offset;
+	chimera_a.length = length;
+	chimera_a.access = access;
+	return (void *)g_bridge(CHIMERA_GL_OP_glMapBufferRange, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glMemoryBarrier(GLbitfield barriers)
+{
+	struct ChimeraGlArgs_glMemoryBarrier chimera_a;
+	chimera_a.barriers = barriers;
+	g_bridge(CHIMERA_GL_OP_glMemoryBarrier, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glPixelStorei(GLenum pname, GLint param)
+{
+	struct ChimeraGlArgs_glPixelStorei chimera_a;
+	chimera_a.pname = pname;
+	chimera_a.param = param;
+	g_bridge(CHIMERA_GL_OP_glPixelStorei, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glPolygonMode(GLenum face, GLenum mode)
+{
+	struct ChimeraGlArgs_glPolygonMode chimera_a;
+	chimera_a.face = face;
+	chimera_a.mode = mode;
+	g_bridge(CHIMERA_GL_OP_glPolygonMode, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glPrimitiveRestartIndex(GLuint index)
+{
+	struct ChimeraGlArgs_glPrimitiveRestartIndex chimera_a;
+	chimera_a.index = index;
+	g_bridge(CHIMERA_GL_OP_glPrimitiveRestartIndex, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glProgramBinary(GLuint program, GLenum binaryFormat, const void * binary, GLsizei length)
+{
+	struct ChimeraGlArgs_glProgramBinary chimera_a;
+	chimera_a.program = program;
+	chimera_a.binaryFormat = binaryFormat;
+	chimera_a.binary = binary;
+	chimera_a.length = length;
+	g_bridge(CHIMERA_GL_OP_glProgramBinary, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glProgramParameteri(GLuint program, GLenum pname, GLint value)
+{
+	struct ChimeraGlArgs_glProgramParameteri chimera_a;
+	chimera_a.program = program;
+	chimera_a.pname = pname;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glProgramParameteri, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glReadBuffer(GLenum src)
+{
+	struct ChimeraGlArgs_glReadBuffer chimera_a;
+	chimera_a.src = src;
+	g_bridge(CHIMERA_GL_OP_glReadBuffer, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, void * pixels)
+{
+	struct ChimeraGlArgs_glReadPixels chimera_a;
+	chimera_a.x = x;
+	chimera_a.y = y;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	chimera_a.format = format;
+	chimera_a.type = type;
+	chimera_a.pixels = pixels;
+	g_bridge(CHIMERA_GL_OP_glReadPixels, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glRenderbufferStorage(GLenum target, GLenum internalformat, GLsizei width, GLsizei height)
+{
+	struct ChimeraGlArgs_glRenderbufferStorage chimera_a;
+	chimera_a.target = target;
+	chimera_a.internalformat = internalformat;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	g_bridge(CHIMERA_GL_OP_glRenderbufferStorage, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glSamplerParameterf(GLuint sampler, GLenum pname, GLfloat param)
+{
+	struct ChimeraGlArgs_glSamplerParameterf chimera_a;
+	chimera_a.sampler = sampler;
+	chimera_a.pname = pname;
+	chimera_a.param = param;
+	g_bridge(CHIMERA_GL_OP_glSamplerParameterf, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glSamplerParameteri(GLuint sampler, GLenum pname, GLint param)
+{
+	struct ChimeraGlArgs_glSamplerParameteri chimera_a;
+	chimera_a.sampler = sampler;
+	chimera_a.pname = pname;
+	chimera_a.param = param;
+	g_bridge(CHIMERA_GL_OP_glSamplerParameteri, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glScissor(GLint x, GLint y, GLsizei width, GLsizei height)
+{
+	struct ChimeraGlArgs_glScissor chimera_a;
+	chimera_a.x = x;
+	chimera_a.y = y;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	g_bridge(CHIMERA_GL_OP_glScissor, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glScissorIndexed(GLuint index, GLint left, GLint bottom, GLsizei width, GLsizei height)
+{
+	struct ChimeraGlArgs_glScissorIndexed chimera_a;
+	chimera_a.index = index;
+	chimera_a.left = left;
+	chimera_a.bottom = bottom;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	g_bridge(CHIMERA_GL_OP_glScissorIndexed, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glShaderSource(GLuint shader, GLsizei count, const GLchar *const* string, const GLint * length)
+{
+	struct ChimeraGlArgs_glShaderSource chimera_a;
+	chimera_a.shader = shader;
+	chimera_a.count = count;
+	chimera_a.string = string;
+	chimera_a.length = length;
+	g_bridge(CHIMERA_GL_OP_glShaderSource, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glStencilFunc(GLenum func, GLint ref, GLuint mask)
+{
+	struct ChimeraGlArgs_glStencilFunc chimera_a;
+	chimera_a.func = func;
+	chimera_a.ref = ref;
+	chimera_a.mask = mask;
+	g_bridge(CHIMERA_GL_OP_glStencilFunc, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glStencilMask(GLuint mask)
+{
+	struct ChimeraGlArgs_glStencilMask chimera_a;
+	chimera_a.mask = mask;
+	g_bridge(CHIMERA_GL_OP_glStencilMask, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glStencilOp(GLenum fail, GLenum zfail, GLenum zpass)
+{
+	struct ChimeraGlArgs_glStencilOp chimera_a;
+	chimera_a.fail = fail;
+	chimera_a.zfail = zfail;
+	chimera_a.zpass = zpass;
+	g_bridge(CHIMERA_GL_OP_glStencilOp, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void * pixels)
+{
+	struct ChimeraGlArgs_glTexImage2D chimera_a;
+	chimera_a.target = target;
+	chimera_a.level = level;
+	chimera_a.internalformat = internalformat;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	chimera_a.border = border;
+	chimera_a.format = format;
+	chimera_a.type = type;
+	chimera_a.pixels = pixels;
+	g_bridge(CHIMERA_GL_OP_glTexImage2D, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTexParameterf(GLenum target, GLenum pname, GLfloat param)
+{
+	struct ChimeraGlArgs_glTexParameterf chimera_a;
+	chimera_a.target = target;
+	chimera_a.pname = pname;
+	chimera_a.param = param;
+	g_bridge(CHIMERA_GL_OP_glTexParameterf, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTexParameterfv(GLenum target, GLenum pname, const GLfloat * params)
+{
+	struct ChimeraGlArgs_glTexParameterfv chimera_a;
+	chimera_a.target = target;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glTexParameterfv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTexParameteri(GLenum target, GLenum pname, GLint param)
+{
+	struct ChimeraGlArgs_glTexParameteri chimera_a;
+	chimera_a.target = target;
+	chimera_a.pname = pname;
+	chimera_a.param = param;
+	g_bridge(CHIMERA_GL_OP_glTexParameteri, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTexStorage2D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height)
+{
+	struct ChimeraGlArgs_glTexStorage2D chimera_a;
+	chimera_a.target = target;
+	chimera_a.levels = levels;
+	chimera_a.internalformat = internalformat;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	g_bridge(CHIMERA_GL_OP_glTexStorage2D, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void * pixels)
+{
+	struct ChimeraGlArgs_glTexSubImage2D chimera_a;
+	chimera_a.target = target;
+	chimera_a.level = level;
+	chimera_a.xoffset = xoffset;
+	chimera_a.yoffset = yoffset;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	chimera_a.format = format;
+	chimera_a.type = type;
+	chimera_a.pixels = pixels;
+	g_bridge(CHIMERA_GL_OP_glTexSubImage2D, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTextureBarrier(void)
+{
+	g_bridge(CHIMERA_GL_OP_glTextureBarrier, 0, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTextureParameteri(GLuint texture, GLenum pname, GLint param)
+{
+	struct ChimeraGlArgs_glTextureParameteri chimera_a;
+	chimera_a.texture = texture;
+	chimera_a.pname = pname;
+	chimera_a.param = param;
+	g_bridge(CHIMERA_GL_OP_glTextureParameteri, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTextureStorage2D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height)
+{
+	struct ChimeraGlArgs_glTextureStorage2D chimera_a;
+	chimera_a.texture = texture;
+	chimera_a.levels = levels;
+	chimera_a.internalformat = internalformat;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	g_bridge(CHIMERA_GL_OP_glTextureStorage2D, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void * pixels)
+{
+	struct ChimeraGlArgs_glTextureSubImage2D chimera_a;
+	chimera_a.texture = texture;
+	chimera_a.level = level;
+	chimera_a.xoffset = xoffset;
+	chimera_a.yoffset = yoffset;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	chimera_a.format = format;
+	chimera_a.type = type;
+	chimera_a.pixels = pixels;
+	g_bridge(CHIMERA_GL_OP_glTextureSubImage2D, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glUniform1f(GLint location, GLfloat v0)
+{
+	struct ChimeraGlArgs_glUniform1f chimera_a;
+	chimera_a.location = location;
+	chimera_a.v0 = v0;
+	g_bridge(CHIMERA_GL_OP_glUniform1f, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glUniform1i(GLint location, GLint v0)
+{
+	struct ChimeraGlArgs_glUniform1i chimera_a;
+	chimera_a.location = location;
+	chimera_a.v0 = v0;
+	g_bridge(CHIMERA_GL_OP_glUniform1i, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glUniform1ui(GLint location, GLuint v0)
+{
+	struct ChimeraGlArgs_glUniform1ui chimera_a;
+	chimera_a.location = location;
+	chimera_a.v0 = v0;
+	g_bridge(CHIMERA_GL_OP_glUniform1ui, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glUniform2f(GLint location, GLfloat v0, GLfloat v1)
+{
+	struct ChimeraGlArgs_glUniform2f chimera_a;
+	chimera_a.location = location;
+	chimera_a.v0 = v0;
+	chimera_a.v1 = v1;
+	g_bridge(CHIMERA_GL_OP_glUniform2f, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glUniform2fv(GLint location, GLsizei count, const GLfloat * value)
+{
+	struct ChimeraGlArgs_glUniform2fv chimera_a;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glUniform2fv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glUniform2i(GLint location, GLint v0, GLint v1)
+{
+	struct ChimeraGlArgs_glUniform2i chimera_a;
+	chimera_a.location = location;
+	chimera_a.v0 = v0;
+	chimera_a.v1 = v1;
+	g_bridge(CHIMERA_GL_OP_glUniform2i, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glUniform2iv(GLint location, GLsizei count, const GLint * value)
+{
+	struct ChimeraGlArgs_glUniform2iv chimera_a;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glUniform2iv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glUniform2ui(GLint location, GLuint v0, GLuint v1)
+{
+	struct ChimeraGlArgs_glUniform2ui chimera_a;
+	chimera_a.location = location;
+	chimera_a.v0 = v0;
+	chimera_a.v1 = v1;
+	g_bridge(CHIMERA_GL_OP_glUniform2ui, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glUniform2uiv(GLint location, GLsizei count, const GLuint * value)
+{
+	struct ChimeraGlArgs_glUniform2uiv chimera_a;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glUniform2uiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glUniform3f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2)
+{
+	struct ChimeraGlArgs_glUniform3f chimera_a;
+	chimera_a.location = location;
+	chimera_a.v0 = v0;
+	chimera_a.v1 = v1;
+	chimera_a.v2 = v2;
+	g_bridge(CHIMERA_GL_OP_glUniform3f, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glUniform3fv(GLint location, GLsizei count, const GLfloat * value)
+{
+	struct ChimeraGlArgs_glUniform3fv chimera_a;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glUniform3fv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glUniform3i(GLint location, GLint v0, GLint v1, GLint v2)
+{
+	struct ChimeraGlArgs_glUniform3i chimera_a;
+	chimera_a.location = location;
+	chimera_a.v0 = v0;
+	chimera_a.v1 = v1;
+	chimera_a.v2 = v2;
+	g_bridge(CHIMERA_GL_OP_glUniform3i, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glUniform3iv(GLint location, GLsizei count, const GLint * value)
+{
+	struct ChimeraGlArgs_glUniform3iv chimera_a;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glUniform3iv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glUniform3ui(GLint location, GLuint v0, GLuint v1, GLuint v2)
+{
+	struct ChimeraGlArgs_glUniform3ui chimera_a;
+	chimera_a.location = location;
+	chimera_a.v0 = v0;
+	chimera_a.v1 = v1;
+	chimera_a.v2 = v2;
+	g_bridge(CHIMERA_GL_OP_glUniform3ui, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glUniform3uiv(GLint location, GLsizei count, const GLuint * value)
+{
+	struct ChimeraGlArgs_glUniform3uiv chimera_a;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glUniform3uiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glUniform4f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3)
+{
+	struct ChimeraGlArgs_glUniform4f chimera_a;
+	chimera_a.location = location;
+	chimera_a.v0 = v0;
+	chimera_a.v1 = v1;
+	chimera_a.v2 = v2;
+	chimera_a.v3 = v3;
+	g_bridge(CHIMERA_GL_OP_glUniform4f, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glUniform4fv(GLint location, GLsizei count, const GLfloat * value)
+{
+	struct ChimeraGlArgs_glUniform4fv chimera_a;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glUniform4fv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glUniform4i(GLint location, GLint v0, GLint v1, GLint v2, GLint v3)
+{
+	struct ChimeraGlArgs_glUniform4i chimera_a;
+	chimera_a.location = location;
+	chimera_a.v0 = v0;
+	chimera_a.v1 = v1;
+	chimera_a.v2 = v2;
+	chimera_a.v3 = v3;
+	g_bridge(CHIMERA_GL_OP_glUniform4i, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glUniform4iv(GLint location, GLsizei count, const GLint * value)
+{
+	struct ChimeraGlArgs_glUniform4iv chimera_a;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glUniform4iv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glUniform4ui(GLint location, GLuint v0, GLuint v1, GLuint v2, GLuint v3)
+{
+	struct ChimeraGlArgs_glUniform4ui chimera_a;
+	chimera_a.location = location;
+	chimera_a.v0 = v0;
+	chimera_a.v1 = v1;
+	chimera_a.v2 = v2;
+	chimera_a.v3 = v3;
+	g_bridge(CHIMERA_GL_OP_glUniform4ui, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glUniform4uiv(GLint location, GLsizei count, const GLuint * value)
+{
+	struct ChimeraGlArgs_glUniform4uiv chimera_a;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glUniform4uiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glUniformBlockBinding(GLuint program, GLuint uniformBlockIndex, GLuint uniformBlockBinding)
+{
+	struct ChimeraGlArgs_glUniformBlockBinding chimera_a;
+	chimera_a.program = program;
+	chimera_a.uniformBlockIndex = uniformBlockIndex;
+	chimera_a.uniformBlockBinding = uniformBlockBinding;
+	g_bridge(CHIMERA_GL_OP_glUniformBlockBinding, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glUniformMatrix2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat * value)
+{
+	struct ChimeraGlArgs_glUniformMatrix2fv chimera_a;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.transpose = transpose;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glUniformMatrix2fv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glUniformMatrix3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat * value)
+{
+	struct ChimeraGlArgs_glUniformMatrix3fv chimera_a;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.transpose = transpose;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glUniformMatrix3fv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glUniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat * value)
+{
+	struct ChimeraGlArgs_glUniformMatrix4fv chimera_a;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.transpose = transpose;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glUniformMatrix4fv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static GLboolean GLAD_API_PTR w_glUnmapBuffer(GLenum target)
+{
+	struct ChimeraGlArgs_glUnmapBuffer chimera_a;
+	chimera_a.target = target;
+	return (GLboolean)g_bridge(CHIMERA_GL_OP_glUnmapBuffer, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glUseProgram(GLuint program)
+{
+	struct ChimeraGlArgs_glUseProgram chimera_a;
+	chimera_a.program = program;
+	g_bridge(CHIMERA_GL_OP_glUseProgram, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttribIPointer(GLuint index, GLint size, GLenum type, GLsizei stride, const void * pointer)
+{
+	struct ChimeraGlArgs_glVertexAttribIPointer chimera_a;
+	chimera_a.index = index;
+	chimera_a.size = size;
+	chimera_a.type = type;
+	chimera_a.stride = stride;
+	chimera_a.pointer = pointer;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribIPointer, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void * pointer)
+{
+	struct ChimeraGlArgs_glVertexAttribPointer chimera_a;
+	chimera_a.index = index;
+	chimera_a.size = size;
+	chimera_a.type = type;
+	chimera_a.normalized = normalized;
+	chimera_a.stride = stride;
+	chimera_a.pointer = pointer;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribPointer, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glViewport(GLint x, GLint y, GLsizei width, GLsizei height)
+{
+	struct ChimeraGlArgs_glViewport chimera_a;
+	chimera_a.x = x;
+	chimera_a.y = y;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	g_bridge(CHIMERA_GL_OP_glViewport, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glViewportIndexedf(GLuint index, GLfloat x, GLfloat y, GLfloat w, GLfloat h)
+{
+	struct ChimeraGlArgs_glViewportIndexedf chimera_a;
+	chimera_a.index = index;
+	chimera_a.x = x;
+	chimera_a.y = y;
+	chimera_a.w = w;
+	chimera_a.h = h;
+	g_bridge(CHIMERA_GL_OP_glViewportIndexedf, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glBlendEquation(GLenum mode)
+{
+	struct ChimeraGlArgs_glBlendEquation chimera_a;
+	chimera_a.mode = mode;
+	g_bridge(CHIMERA_GL_OP_glBlendEquation, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glClearDepth(GLdouble depth)
+{
+	struct ChimeraGlArgs_glClearDepth chimera_a;
+	chimera_a.depth = depth;
+	g_bridge(CHIMERA_GL_OP_glClearDepth, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glDebugMessageInsert(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar * buf)
+{
+	struct ChimeraGlArgs_glDebugMessageInsert chimera_a;
+	chimera_a.source = source;
+	chimera_a.type = type;
+	chimera_a.id = id;
+	chimera_a.severity = severity;
+	chimera_a.length = length;
+	chimera_a.buf = buf;
+	g_bridge(CHIMERA_GL_OP_glDebugMessageInsert, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glFinish(void)
+{
+	g_bridge(CHIMERA_GL_OP_glFinish, 0, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glFrontFace(GLenum mode)
+{
+	struct ChimeraGlArgs_glFrontFace chimera_a;
+	chimera_a.mode = mode;
+	g_bridge(CHIMERA_GL_OP_glFrontFace, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetQueryObjectuiv(GLuint id, GLenum pname, GLuint * params)
+{
+	struct ChimeraGlArgs_glGetQueryObjectuiv chimera_a;
+	chimera_a.id = id;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetQueryObjectuiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glMultiDrawArrays(GLenum mode, const GLint * first, const GLsizei * count, GLsizei drawcount)
+{
+	struct ChimeraGlArgs_glMultiDrawArrays chimera_a;
+	chimera_a.mode = mode;
+	chimera_a.first = first;
+	chimera_a.count = count;
+	chimera_a.drawcount = drawcount;
+	g_bridge(CHIMERA_GL_OP_glMultiDrawArrays, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glObjectLabel(GLenum identifier, GLuint name, GLsizei length, const GLchar * label)
+{
+	struct ChimeraGlArgs_glObjectLabel chimera_a;
+	chimera_a.identifier = identifier;
+	chimera_a.name = name;
+	chimera_a.length = length;
+	chimera_a.label = label;
+	g_bridge(CHIMERA_GL_OP_glObjectLabel, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glPopDebugGroup(void)
+{
+	g_bridge(CHIMERA_GL_OP_glPopDebugGroup, 0, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glProgramUniform1i(GLuint program, GLint location, GLint v0)
+{
+	struct ChimeraGlArgs_glProgramUniform1i chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.v0 = v0;
+	g_bridge(CHIMERA_GL_OP_glProgramUniform1i, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glProgramUniform2f(GLuint program, GLint location, GLfloat v0, GLfloat v1)
+{
+	struct ChimeraGlArgs_glProgramUniform2f chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.v0 = v0;
+	chimera_a.v1 = v1;
+	g_bridge(CHIMERA_GL_OP_glProgramUniform2f, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glProvokingVertex(GLenum mode)
+{
+	struct ChimeraGlArgs_glProvokingVertex chimera_a;
+	chimera_a.mode = mode;
+	g_bridge(CHIMERA_GL_OP_glProvokingVertex, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glPushDebugGroup(GLenum source, GLuint id, GLsizei length, const GLchar * message)
+{
+	struct ChimeraGlArgs_glPushDebugGroup chimera_a;
+	chimera_a.source = source;
+	chimera_a.id = id;
+	chimera_a.length = length;
+	chimera_a.message = message;
+	g_bridge(CHIMERA_GL_OP_glPushDebugGroup, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTexImage3D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void * pixels)
+{
+	struct ChimeraGlArgs_glTexImage3D chimera_a;
+	chimera_a.target = target;
+	chimera_a.level = level;
+	chimera_a.internalformat = internalformat;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	chimera_a.depth = depth;
+	chimera_a.border = border;
+	chimera_a.format = format;
+	chimera_a.type = type;
+	chimera_a.pixels = pixels;
+	g_bridge(CHIMERA_GL_OP_glTexImage3D, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTexParameteriv(GLenum target, GLenum pname, const GLint * params)
+{
+	struct ChimeraGlArgs_glTexParameteriv chimera_a;
+	chimera_a.target = target;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glTexParameteriv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glUniform1fv(GLint location, GLsizei count, const GLfloat * value)
+{
+	struct ChimeraGlArgs_glUniform1fv chimera_a;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glUniform1fv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glUniform1iv(GLint location, GLsizei count, const GLint * value)
+{
+	struct ChimeraGlArgs_glUniform1iv chimera_a;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glUniform1iv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glUniform1uiv(GLint location, GLsizei count, const GLuint * value)
+{
+	struct ChimeraGlArgs_glUniform1uiv chimera_a;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glUniform1uiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glValidateProgram(GLuint program)
+{
+	struct ChimeraGlArgs_glValidateProgram chimera_a;
+	chimera_a.program = program;
+	g_bridge(CHIMERA_GL_OP_glValidateProgram, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttrib4fv(GLuint index, const GLfloat * v)
+{
+	struct ChimeraGlArgs_glVertexAttrib4fv chimera_a;
+	chimera_a.index = index;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glVertexAttrib4fv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glBeginConditionalRender(GLuint id, GLenum mode)
+{
+	struct ChimeraGlArgs_glBeginConditionalRender chimera_a;
+	chimera_a.id = id;
+	chimera_a.mode = mode;
+	g_bridge(CHIMERA_GL_OP_glBeginConditionalRender, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glBeginTransformFeedback(GLenum primitiveMode)
+{
+	struct ChimeraGlArgs_glBeginTransformFeedback chimera_a;
+	chimera_a.primitiveMode = primitiveMode;
+	g_bridge(CHIMERA_GL_OP_glBeginTransformFeedback, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glBindBufferBase(GLenum target, GLuint index, GLuint buffer)
+{
+	struct ChimeraGlArgs_glBindBufferBase chimera_a;
+	chimera_a.target = target;
+	chimera_a.index = index;
+	chimera_a.buffer = buffer;
+	g_bridge(CHIMERA_GL_OP_glBindBufferBase, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glBindBuffersBase(GLenum target, GLuint first, GLsizei count, const GLuint * buffers)
+{
+	struct ChimeraGlArgs_glBindBuffersBase chimera_a;
+	chimera_a.target = target;
+	chimera_a.first = first;
+	chimera_a.count = count;
+	chimera_a.buffers = buffers;
+	g_bridge(CHIMERA_GL_OP_glBindBuffersBase, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glBindBuffersRange(GLenum target, GLuint first, GLsizei count, const GLuint * buffers, const GLintptr * offsets, const GLsizeiptr * sizes)
+{
+	struct ChimeraGlArgs_glBindBuffersRange chimera_a;
+	chimera_a.target = target;
+	chimera_a.first = first;
+	chimera_a.count = count;
+	chimera_a.buffers = buffers;
+	chimera_a.offsets = offsets;
+	chimera_a.sizes = sizes;
+	g_bridge(CHIMERA_GL_OP_glBindBuffersRange, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glBindImageTextures(GLuint first, GLsizei count, const GLuint * textures)
+{
+	struct ChimeraGlArgs_glBindImageTextures chimera_a;
+	chimera_a.first = first;
+	chimera_a.count = count;
+	chimera_a.textures = textures;
+	g_bridge(CHIMERA_GL_OP_glBindImageTextures, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glBindSamplers(GLuint first, GLsizei count, const GLuint * samplers)
+{
+	struct ChimeraGlArgs_glBindSamplers chimera_a;
+	chimera_a.first = first;
+	chimera_a.count = count;
+	chimera_a.samplers = samplers;
+	g_bridge(CHIMERA_GL_OP_glBindSamplers, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glBindTextures(GLuint first, GLsizei count, const GLuint * textures)
+{
+	struct ChimeraGlArgs_glBindTextures chimera_a;
+	chimera_a.first = first;
+	chimera_a.count = count;
+	chimera_a.textures = textures;
+	g_bridge(CHIMERA_GL_OP_glBindTextures, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glBindVertexBuffer(GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride)
+{
+	struct ChimeraGlArgs_glBindVertexBuffer chimera_a;
+	chimera_a.bindingindex = bindingindex;
+	chimera_a.buffer = buffer;
+	chimera_a.offset = offset;
+	chimera_a.stride = stride;
+	g_bridge(CHIMERA_GL_OP_glBindVertexBuffer, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glBindVertexBuffers(GLuint first, GLsizei count, const GLuint * buffers, const GLintptr * offsets, const GLsizei * strides)
+{
+	struct ChimeraGlArgs_glBindVertexBuffers chimera_a;
+	chimera_a.first = first;
+	chimera_a.count = count;
+	chimera_a.buffers = buffers;
+	chimera_a.offsets = offsets;
+	chimera_a.strides = strides;
+	g_bridge(CHIMERA_GL_OP_glBindVertexBuffers, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glBlitNamedFramebuffer(GLuint readFramebuffer, GLuint drawFramebuffer, GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter)
+{
+	struct ChimeraGlArgs_glBlitNamedFramebuffer chimera_a;
+	chimera_a.readFramebuffer = readFramebuffer;
+	chimera_a.drawFramebuffer = drawFramebuffer;
+	chimera_a.srcX0 = srcX0;
+	chimera_a.srcY0 = srcY0;
+	chimera_a.srcX1 = srcX1;
+	chimera_a.srcY1 = srcY1;
+	chimera_a.dstX0 = dstX0;
+	chimera_a.dstY0 = dstY0;
+	chimera_a.dstX1 = dstX1;
+	chimera_a.dstY1 = dstY1;
+	chimera_a.mask = mask;
+	chimera_a.filter = filter;
+	g_bridge(CHIMERA_GL_OP_glBlitNamedFramebuffer, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static GLenum GLAD_API_PTR w_glCheckNamedFramebufferStatus(GLuint framebuffer, GLenum target)
+{
+	struct ChimeraGlArgs_glCheckNamedFramebufferStatus chimera_a;
+	chimera_a.framebuffer = framebuffer;
+	chimera_a.target = target;
+	return (GLenum)g_bridge(CHIMERA_GL_OP_glCheckNamedFramebufferStatus, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glClampColor(GLenum target, GLenum clamp)
+{
+	struct ChimeraGlArgs_glClampColor chimera_a;
+	chimera_a.target = target;
+	chimera_a.clamp = clamp;
+	g_bridge(CHIMERA_GL_OP_glClampColor, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glClearBufferData(GLenum target, GLenum internalformat, GLenum format, GLenum type, const void * data)
+{
+	struct ChimeraGlArgs_glClearBufferData chimera_a;
+	chimera_a.target = target;
+	chimera_a.internalformat = internalformat;
+	chimera_a.format = format;
+	chimera_a.type = type;
+	chimera_a.data = data;
+	g_bridge(CHIMERA_GL_OP_glClearBufferData, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glClearBufferfi(GLenum buffer, GLint drawbuffer, GLfloat depth, GLint stencil)
+{
+	struct ChimeraGlArgs_glClearBufferfi chimera_a;
+	chimera_a.buffer = buffer;
+	chimera_a.drawbuffer = drawbuffer;
+	chimera_a.depth = depth;
+	chimera_a.stencil = stencil;
+	g_bridge(CHIMERA_GL_OP_glClearBufferfi, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glClearBufferSubData(GLenum target, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void * data)
+{
+	struct ChimeraGlArgs_glClearBufferSubData chimera_a;
+	chimera_a.target = target;
+	chimera_a.internalformat = internalformat;
+	chimera_a.offset = offset;
+	chimera_a.size = size;
+	chimera_a.format = format;
+	chimera_a.type = type;
+	chimera_a.data = data;
+	g_bridge(CHIMERA_GL_OP_glClearBufferSubData, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glClearNamedBufferData(GLuint buffer, GLenum internalformat, GLenum format, GLenum type, const void * data)
+{
+	struct ChimeraGlArgs_glClearNamedBufferData chimera_a;
+	chimera_a.buffer = buffer;
+	chimera_a.internalformat = internalformat;
+	chimera_a.format = format;
+	chimera_a.type = type;
+	chimera_a.data = data;
+	g_bridge(CHIMERA_GL_OP_glClearNamedBufferData, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glClearNamedBufferSubData(GLuint buffer, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void * data)
+{
+	struct ChimeraGlArgs_glClearNamedBufferSubData chimera_a;
+	chimera_a.buffer = buffer;
+	chimera_a.internalformat = internalformat;
+	chimera_a.offset = offset;
+	chimera_a.size = size;
+	chimera_a.format = format;
+	chimera_a.type = type;
+	chimera_a.data = data;
+	g_bridge(CHIMERA_GL_OP_glClearNamedBufferSubData, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glClearNamedFramebufferfi(GLuint framebuffer, GLenum buffer, GLint drawbuffer, GLfloat depth, GLint stencil)
+{
+	struct ChimeraGlArgs_glClearNamedFramebufferfi chimera_a;
+	chimera_a.framebuffer = framebuffer;
+	chimera_a.buffer = buffer;
+	chimera_a.drawbuffer = drawbuffer;
+	chimera_a.depth = depth;
+	chimera_a.stencil = stencil;
+	g_bridge(CHIMERA_GL_OP_glClearNamedFramebufferfi, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glClearNamedFramebufferfv(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLfloat * value)
+{
+	struct ChimeraGlArgs_glClearNamedFramebufferfv chimera_a;
+	chimera_a.framebuffer = framebuffer;
+	chimera_a.buffer = buffer;
+	chimera_a.drawbuffer = drawbuffer;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glClearNamedFramebufferfv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glClearNamedFramebufferiv(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLint * value)
+{
+	struct ChimeraGlArgs_glClearNamedFramebufferiv chimera_a;
+	chimera_a.framebuffer = framebuffer;
+	chimera_a.buffer = buffer;
+	chimera_a.drawbuffer = drawbuffer;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glClearNamedFramebufferiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glClearNamedFramebufferuiv(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLuint * value)
+{
+	struct ChimeraGlArgs_glClearNamedFramebufferuiv chimera_a;
+	chimera_a.framebuffer = framebuffer;
+	chimera_a.buffer = buffer;
+	chimera_a.drawbuffer = drawbuffer;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glClearNamedFramebufferuiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glClearTexImage(GLuint texture, GLint level, GLenum format, GLenum type, const void * data)
+{
+	struct ChimeraGlArgs_glClearTexImage chimera_a;
+	chimera_a.texture = texture;
+	chimera_a.level = level;
+	chimera_a.format = format;
+	chimera_a.type = type;
+	chimera_a.data = data;
+	g_bridge(CHIMERA_GL_OP_glClearTexImage, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glClearTexSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void * data)
+{
+	struct ChimeraGlArgs_glClearTexSubImage chimera_a;
+	chimera_a.texture = texture;
+	chimera_a.level = level;
+	chimera_a.xoffset = xoffset;
+	chimera_a.yoffset = yoffset;
+	chimera_a.zoffset = zoffset;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	chimera_a.depth = depth;
+	chimera_a.format = format;
+	chimera_a.type = type;
+	chimera_a.data = data;
+	g_bridge(CHIMERA_GL_OP_glClearTexSubImage, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glCompressedTexImage1D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLint border, GLsizei imageSize, const void * data)
+{
+	struct ChimeraGlArgs_glCompressedTexImage1D chimera_a;
+	chimera_a.target = target;
+	chimera_a.level = level;
+	chimera_a.internalformat = internalformat;
+	chimera_a.width = width;
+	chimera_a.border = border;
+	chimera_a.imageSize = imageSize;
+	chimera_a.data = data;
+	g_bridge(CHIMERA_GL_OP_glCompressedTexImage1D, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glCompressedTexImage2D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const void * data)
+{
+	struct ChimeraGlArgs_glCompressedTexImage2D chimera_a;
+	chimera_a.target = target;
+	chimera_a.level = level;
+	chimera_a.internalformat = internalformat;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	chimera_a.border = border;
+	chimera_a.imageSize = imageSize;
+	chimera_a.data = data;
+	g_bridge(CHIMERA_GL_OP_glCompressedTexImage2D, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glCompressedTexImage3D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLsizei imageSize, const void * data)
+{
+	struct ChimeraGlArgs_glCompressedTexImage3D chimera_a;
+	chimera_a.target = target;
+	chimera_a.level = level;
+	chimera_a.internalformat = internalformat;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	chimera_a.depth = depth;
+	chimera_a.border = border;
+	chimera_a.imageSize = imageSize;
+	chimera_a.data = data;
+	g_bridge(CHIMERA_GL_OP_glCompressedTexImage3D, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glCompressedTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void * data)
+{
+	struct ChimeraGlArgs_glCompressedTexSubImage1D chimera_a;
+	chimera_a.target = target;
+	chimera_a.level = level;
+	chimera_a.xoffset = xoffset;
+	chimera_a.width = width;
+	chimera_a.format = format;
+	chimera_a.imageSize = imageSize;
+	chimera_a.data = data;
+	g_bridge(CHIMERA_GL_OP_glCompressedTexSubImage1D, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glCompressedTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void * data)
+{
+	struct ChimeraGlArgs_glCompressedTexSubImage3D chimera_a;
+	chimera_a.target = target;
+	chimera_a.level = level;
+	chimera_a.xoffset = xoffset;
+	chimera_a.yoffset = yoffset;
+	chimera_a.zoffset = zoffset;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	chimera_a.depth = depth;
+	chimera_a.format = format;
+	chimera_a.imageSize = imageSize;
+	chimera_a.data = data;
+	g_bridge(CHIMERA_GL_OP_glCompressedTexSubImage3D, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glCompressedTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void * data)
+{
+	struct ChimeraGlArgs_glCompressedTextureSubImage1D chimera_a;
+	chimera_a.texture = texture;
+	chimera_a.level = level;
+	chimera_a.xoffset = xoffset;
+	chimera_a.width = width;
+	chimera_a.format = format;
+	chimera_a.imageSize = imageSize;
+	chimera_a.data = data;
+	g_bridge(CHIMERA_GL_OP_glCompressedTextureSubImage1D, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glCompressedTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void * data)
+{
+	struct ChimeraGlArgs_glCompressedTextureSubImage3D chimera_a;
+	chimera_a.texture = texture;
+	chimera_a.level = level;
+	chimera_a.xoffset = xoffset;
+	chimera_a.yoffset = yoffset;
+	chimera_a.zoffset = zoffset;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	chimera_a.depth = depth;
+	chimera_a.format = format;
+	chimera_a.imageSize = imageSize;
+	chimera_a.data = data;
+	g_bridge(CHIMERA_GL_OP_glCompressedTextureSubImage3D, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glCopyNamedBufferSubData(GLuint readBuffer, GLuint writeBuffer, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size)
+{
+	struct ChimeraGlArgs_glCopyNamedBufferSubData chimera_a;
+	chimera_a.readBuffer = readBuffer;
+	chimera_a.writeBuffer = writeBuffer;
+	chimera_a.readOffset = readOffset;
+	chimera_a.writeOffset = writeOffset;
+	chimera_a.size = size;
+	g_bridge(CHIMERA_GL_OP_glCopyNamedBufferSubData, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glCopyTexImage1D(GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLint border)
+{
+	struct ChimeraGlArgs_glCopyTexImage1D chimera_a;
+	chimera_a.target = target;
+	chimera_a.level = level;
+	chimera_a.internalformat = internalformat;
+	chimera_a.x = x;
+	chimera_a.y = y;
+	chimera_a.width = width;
+	chimera_a.border = border;
+	g_bridge(CHIMERA_GL_OP_glCopyTexImage1D, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glCopyTexImage2D(GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height, GLint border)
+{
+	struct ChimeraGlArgs_glCopyTexImage2D chimera_a;
+	chimera_a.target = target;
+	chimera_a.level = level;
+	chimera_a.internalformat = internalformat;
+	chimera_a.x = x;
+	chimera_a.y = y;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	chimera_a.border = border;
+	g_bridge(CHIMERA_GL_OP_glCopyTexImage2D, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glCopyTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width)
+{
+	struct ChimeraGlArgs_glCopyTexSubImage1D chimera_a;
+	chimera_a.target = target;
+	chimera_a.level = level;
+	chimera_a.xoffset = xoffset;
+	chimera_a.x = x;
+	chimera_a.y = y;
+	chimera_a.width = width;
+	g_bridge(CHIMERA_GL_OP_glCopyTexSubImage1D, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glCopyTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height)
+{
+	struct ChimeraGlArgs_glCopyTexSubImage3D chimera_a;
+	chimera_a.target = target;
+	chimera_a.level = level;
+	chimera_a.xoffset = xoffset;
+	chimera_a.yoffset = yoffset;
+	chimera_a.zoffset = zoffset;
+	chimera_a.x = x;
+	chimera_a.y = y;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	g_bridge(CHIMERA_GL_OP_glCopyTexSubImage3D, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glCopyTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width)
+{
+	struct ChimeraGlArgs_glCopyTextureSubImage1D chimera_a;
+	chimera_a.texture = texture;
+	chimera_a.level = level;
+	chimera_a.xoffset = xoffset;
+	chimera_a.x = x;
+	chimera_a.y = y;
+	chimera_a.width = width;
+	g_bridge(CHIMERA_GL_OP_glCopyTextureSubImage1D, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glCopyTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height)
+{
+	struct ChimeraGlArgs_glCopyTextureSubImage3D chimera_a;
+	chimera_a.texture = texture;
+	chimera_a.level = level;
+	chimera_a.xoffset = xoffset;
+	chimera_a.yoffset = yoffset;
+	chimera_a.zoffset = zoffset;
+	chimera_a.x = x;
+	chimera_a.y = y;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	g_bridge(CHIMERA_GL_OP_glCopyTextureSubImage3D, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glCreateBuffers(GLsizei n, GLuint * buffers)
+{
+	struct ChimeraGlArgs_glCreateBuffers chimera_a;
+	chimera_a.n = n;
+	chimera_a.buffers = buffers;
+	g_bridge(CHIMERA_GL_OP_glCreateBuffers, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glCreateFramebuffers(GLsizei n, GLuint * framebuffers)
+{
+	struct ChimeraGlArgs_glCreateFramebuffers chimera_a;
+	chimera_a.n = n;
+	chimera_a.framebuffers = framebuffers;
+	g_bridge(CHIMERA_GL_OP_glCreateFramebuffers, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glCreateProgramPipelines(GLsizei n, GLuint * pipelines)
+{
+	struct ChimeraGlArgs_glCreateProgramPipelines chimera_a;
+	chimera_a.n = n;
+	chimera_a.pipelines = pipelines;
+	g_bridge(CHIMERA_GL_OP_glCreateProgramPipelines, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glCreateQueries(GLenum target, GLsizei n, GLuint * ids)
+{
+	struct ChimeraGlArgs_glCreateQueries chimera_a;
+	chimera_a.target = target;
+	chimera_a.n = n;
+	chimera_a.ids = ids;
+	g_bridge(CHIMERA_GL_OP_glCreateQueries, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glCreateRenderbuffers(GLsizei n, GLuint * renderbuffers)
+{
+	struct ChimeraGlArgs_glCreateRenderbuffers chimera_a;
+	chimera_a.n = n;
+	chimera_a.renderbuffers = renderbuffers;
+	g_bridge(CHIMERA_GL_OP_glCreateRenderbuffers, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glCreateTransformFeedbacks(GLsizei n, GLuint * ids)
+{
+	struct ChimeraGlArgs_glCreateTransformFeedbacks chimera_a;
+	chimera_a.n = n;
+	chimera_a.ids = ids;
+	g_bridge(CHIMERA_GL_OP_glCreateTransformFeedbacks, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glCreateVertexArrays(GLsizei n, GLuint * arrays)
+{
+	struct ChimeraGlArgs_glCreateVertexArrays chimera_a;
+	chimera_a.n = n;
+	chimera_a.arrays = arrays;
+	g_bridge(CHIMERA_GL_OP_glCreateVertexArrays, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glDebugMessageCallbackARB(GLDEBUGPROCARB callback, const void * userParam)
+{
+	struct ChimeraGlArgs_glDebugMessageCallbackARB chimera_a;
+	chimera_a.callback = callback;
+	chimera_a.userParam = userParam;
+	g_bridge(CHIMERA_GL_OP_glDebugMessageCallbackARB, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glDebugMessageControlARB(GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint * ids, GLboolean enabled)
+{
+	struct ChimeraGlArgs_glDebugMessageControlARB chimera_a;
+	chimera_a.source = source;
+	chimera_a.type = type;
+	chimera_a.severity = severity;
+	chimera_a.count = count;
+	chimera_a.ids = ids;
+	chimera_a.enabled = enabled;
+	g_bridge(CHIMERA_GL_OP_glDebugMessageControlARB, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glDebugMessageInsertARB(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar * buf)
+{
+	struct ChimeraGlArgs_glDebugMessageInsertARB chimera_a;
+	chimera_a.source = source;
+	chimera_a.type = type;
+	chimera_a.id = id;
+	chimera_a.severity = severity;
+	chimera_a.length = length;
+	chimera_a.buf = buf;
+	g_bridge(CHIMERA_GL_OP_glDebugMessageInsertARB, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glDepthRange(GLdouble n, GLdouble f)
+{
+	struct ChimeraGlArgs_glDepthRange chimera_a;
+	chimera_a.n = n;
+	chimera_a.f = f;
+	g_bridge(CHIMERA_GL_OP_glDepthRange, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glDepthRangeArrayv(GLuint first, GLsizei count, const GLdouble * v)
+{
+	struct ChimeraGlArgs_glDepthRangeArrayv chimera_a;
+	chimera_a.first = first;
+	chimera_a.count = count;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glDepthRangeArrayv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glDepthRangef(GLfloat n, GLfloat f)
+{
+	struct ChimeraGlArgs_glDepthRangef chimera_a;
+	chimera_a.n = n;
+	chimera_a.f = f;
+	g_bridge(CHIMERA_GL_OP_glDepthRangef, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glDepthRangeIndexed(GLuint index, GLdouble n, GLdouble f)
+{
+	struct ChimeraGlArgs_glDepthRangeIndexed chimera_a;
+	chimera_a.index = index;
+	chimera_a.n = n;
+	chimera_a.f = f;
+	g_bridge(CHIMERA_GL_OP_glDepthRangeIndexed, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glDisablei(GLenum target, GLuint index)
+{
+	struct ChimeraGlArgs_glDisablei chimera_a;
+	chimera_a.target = target;
+	chimera_a.index = index;
+	g_bridge(CHIMERA_GL_OP_glDisablei, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glDisableVertexArrayAttrib(GLuint vaobj, GLuint index)
+{
+	struct ChimeraGlArgs_glDisableVertexArrayAttrib chimera_a;
+	chimera_a.vaobj = vaobj;
+	chimera_a.index = index;
+	g_bridge(CHIMERA_GL_OP_glDisableVertexArrayAttrib, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glDispatchComputeIndirect(GLintptr indirect)
+{
+	struct ChimeraGlArgs_glDispatchComputeIndirect chimera_a;
+	chimera_a.indirect = indirect;
+	g_bridge(CHIMERA_GL_OP_glDispatchComputeIndirect, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glDrawArraysInstanced(GLenum mode, GLint first, GLsizei count, GLsizei instancecount)
+{
+	struct ChimeraGlArgs_glDrawArraysInstanced chimera_a;
+	chimera_a.mode = mode;
+	chimera_a.first = first;
+	chimera_a.count = count;
+	chimera_a.instancecount = instancecount;
+	g_bridge(CHIMERA_GL_OP_glDrawArraysInstanced, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glDrawArraysInstancedBaseInstance(GLenum mode, GLint first, GLsizei count, GLsizei instancecount, GLuint baseinstance)
+{
+	struct ChimeraGlArgs_glDrawArraysInstancedBaseInstance chimera_a;
+	chimera_a.mode = mode;
+	chimera_a.first = first;
+	chimera_a.count = count;
+	chimera_a.instancecount = instancecount;
+	chimera_a.baseinstance = baseinstance;
+	g_bridge(CHIMERA_GL_OP_glDrawArraysInstancedBaseInstance, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glDrawBuffer(GLenum buf)
+{
+	struct ChimeraGlArgs_glDrawBuffer chimera_a;
+	chimera_a.buf = buf;
+	g_bridge(CHIMERA_GL_OP_glDrawBuffer, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glDrawElementsInstanced(GLenum mode, GLsizei count, GLenum type, const void * indices, GLsizei instancecount)
+{
+	struct ChimeraGlArgs_glDrawElementsInstanced chimera_a;
+	chimera_a.mode = mode;
+	chimera_a.count = count;
+	chimera_a.type = type;
+	chimera_a.indices = indices;
+	chimera_a.instancecount = instancecount;
+	g_bridge(CHIMERA_GL_OP_glDrawElementsInstanced, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glDrawElementsInstancedBaseInstance(GLenum mode, GLsizei count, GLenum type, const void * indices, GLsizei instancecount, GLuint baseinstance)
+{
+	struct ChimeraGlArgs_glDrawElementsInstancedBaseInstance chimera_a;
+	chimera_a.mode = mode;
+	chimera_a.count = count;
+	chimera_a.type = type;
+	chimera_a.indices = indices;
+	chimera_a.instancecount = instancecount;
+	chimera_a.baseinstance = baseinstance;
+	g_bridge(CHIMERA_GL_OP_glDrawElementsInstancedBaseInstance, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glDrawElementsInstancedBaseVertex(GLenum mode, GLsizei count, GLenum type, const void * indices, GLsizei instancecount, GLint basevertex)
+{
+	struct ChimeraGlArgs_glDrawElementsInstancedBaseVertex chimera_a;
+	chimera_a.mode = mode;
+	chimera_a.count = count;
+	chimera_a.type = type;
+	chimera_a.indices = indices;
+	chimera_a.instancecount = instancecount;
+	chimera_a.basevertex = basevertex;
+	g_bridge(CHIMERA_GL_OP_glDrawElementsInstancedBaseVertex, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glDrawElementsInstancedBaseVertexBaseInstance(GLenum mode, GLsizei count, GLenum type, const void * indices, GLsizei instancecount, GLint basevertex, GLuint baseinstance)
+{
+	struct ChimeraGlArgs_glDrawElementsInstancedBaseVertexBaseInstance chimera_a;
+	chimera_a.mode = mode;
+	chimera_a.count = count;
+	chimera_a.type = type;
+	chimera_a.indices = indices;
+	chimera_a.instancecount = instancecount;
+	chimera_a.basevertex = basevertex;
+	chimera_a.baseinstance = baseinstance;
+	g_bridge(CHIMERA_GL_OP_glDrawElementsInstancedBaseVertexBaseInstance, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glDrawRangeElements(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void * indices)
+{
+	struct ChimeraGlArgs_glDrawRangeElements chimera_a;
+	chimera_a.mode = mode;
+	chimera_a.start = start;
+	chimera_a.end = end;
+	chimera_a.count = count;
+	chimera_a.type = type;
+	chimera_a.indices = indices;
+	g_bridge(CHIMERA_GL_OP_glDrawRangeElements, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glDrawRangeElementsBaseVertex(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void * indices, GLint basevertex)
+{
+	struct ChimeraGlArgs_glDrawRangeElementsBaseVertex chimera_a;
+	chimera_a.mode = mode;
+	chimera_a.start = start;
+	chimera_a.end = end;
+	chimera_a.count = count;
+	chimera_a.type = type;
+	chimera_a.indices = indices;
+	chimera_a.basevertex = basevertex;
+	g_bridge(CHIMERA_GL_OP_glDrawRangeElementsBaseVertex, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glDrawTransformFeedbackInstanced(GLenum mode, GLuint id, GLsizei instancecount)
+{
+	struct ChimeraGlArgs_glDrawTransformFeedbackInstanced chimera_a;
+	chimera_a.mode = mode;
+	chimera_a.id = id;
+	chimera_a.instancecount = instancecount;
+	g_bridge(CHIMERA_GL_OP_glDrawTransformFeedbackInstanced, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glDrawTransformFeedbackStreamInstanced(GLenum mode, GLuint id, GLuint stream, GLsizei instancecount)
+{
+	struct ChimeraGlArgs_glDrawTransformFeedbackStreamInstanced chimera_a;
+	chimera_a.mode = mode;
+	chimera_a.id = id;
+	chimera_a.stream = stream;
+	chimera_a.instancecount = instancecount;
+	g_bridge(CHIMERA_GL_OP_glDrawTransformFeedbackStreamInstanced, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glEnablei(GLenum target, GLuint index)
+{
+	struct ChimeraGlArgs_glEnablei chimera_a;
+	chimera_a.target = target;
+	chimera_a.index = index;
+	g_bridge(CHIMERA_GL_OP_glEnablei, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glEnableVertexArrayAttrib(GLuint vaobj, GLuint index)
+{
+	struct ChimeraGlArgs_glEnableVertexArrayAttrib chimera_a;
+	chimera_a.vaobj = vaobj;
+	chimera_a.index = index;
+	g_bridge(CHIMERA_GL_OP_glEnableVertexArrayAttrib, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glEndConditionalRender(void)
@@ -1706,44 +2433,9 @@ static void GLAD_API_PTR w_glEndConditionalRender(void)
 	g_bridge(CHIMERA_GL_OP_glEndConditionalRender, 0, 0, 0, 0, 0);
 }
 
-static void GLAD_API_PTR w_glEndQuery(GLenum target)
-{
-	struct ChimeraGlArgs_glEndQuery cargs;
-	cargs.target = target;
-	g_bridge(CHIMERA_GL_OP_glEndQuery, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glEndQueryEXT(GLenum target)
-{
-	struct ChimeraGlArgs_glEndQueryEXT cargs;
-	cargs.target = target;
-	g_bridge(CHIMERA_GL_OP_glEndQueryEXT, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glEndQueryIndexed(GLenum target, GLuint index)
-{
-	struct ChimeraGlArgs_glEndQueryIndexed cargs;
-	cargs.target = target;
-	cargs.index = index;
-	g_bridge(CHIMERA_GL_OP_glEndQueryIndexed, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
 static void GLAD_API_PTR w_glEndTransformFeedback(void)
 {
 	g_bridge(CHIMERA_GL_OP_glEndTransformFeedback, 0, 0, 0, 0, 0);
-}
-
-static GLsync GLAD_API_PTR w_glFenceSync(GLenum condition, GLbitfield flags)
-{
-	struct ChimeraGlArgs_glFenceSync cargs;
-	cargs.condition = condition;
-	cargs.flags = flags;
-	return (GLsync)g_bridge(CHIMERA_GL_OP_glFenceSync, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glFinish(void)
-{
-	g_bridge(CHIMERA_GL_OP_glFinish, 0, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glFlush(void)
@@ -1753,551 +2445,312 @@ static void GLAD_API_PTR w_glFlush(void)
 
 static void GLAD_API_PTR w_glFlushMappedNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length)
 {
-	struct ChimeraGlArgs_glFlushMappedNamedBufferRange cargs;
-	cargs.buffer = buffer;
-	cargs.offset = offset;
-	cargs.length = length;
-	g_bridge(CHIMERA_GL_OP_glFlushMappedNamedBufferRange, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glFlushMappedNamedBufferRange chimera_a;
+	chimera_a.buffer = buffer;
+	chimera_a.offset = offset;
+	chimera_a.length = length;
+	g_bridge(CHIMERA_GL_OP_glFlushMappedNamedBufferRange, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glFramebufferParameteri(GLenum target, GLenum pname, GLint param)
 {
-	struct ChimeraGlArgs_glFramebufferParameteri cargs;
-	cargs.target = target;
-	cargs.pname = pname;
-	cargs.param = param;
-	g_bridge(CHIMERA_GL_OP_glFramebufferParameteri, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glFramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer)
-{
-	struct ChimeraGlArgs_glFramebufferRenderbuffer cargs;
-	cargs.target = target;
-	cargs.attachment = attachment;
-	cargs.renderbuffertarget = renderbuffertarget;
-	cargs.renderbuffer = renderbuffer;
-	g_bridge(CHIMERA_GL_OP_glFramebufferRenderbuffer, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glFramebufferParameteri chimera_a;
+	chimera_a.target = target;
+	chimera_a.pname = pname;
+	chimera_a.param = param;
+	g_bridge(CHIMERA_GL_OP_glFramebufferParameteri, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLint level)
 {
-	struct ChimeraGlArgs_glFramebufferTexture cargs;
-	cargs.target = target;
-	cargs.attachment = attachment;
-	cargs.texture = texture;
-	cargs.level = level;
-	g_bridge(CHIMERA_GL_OP_glFramebufferTexture, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glFramebufferTexture chimera_a;
+	chimera_a.target = target;
+	chimera_a.attachment = attachment;
+	chimera_a.texture = texture;
+	chimera_a.level = level;
+	g_bridge(CHIMERA_GL_OP_glFramebufferTexture, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glFramebufferTexture1D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level)
 {
-	struct ChimeraGlArgs_glFramebufferTexture1D cargs;
-	cargs.target = target;
-	cargs.attachment = attachment;
-	cargs.textarget = textarget;
-	cargs.texture = texture;
-	cargs.level = level;
-	g_bridge(CHIMERA_GL_OP_glFramebufferTexture1D, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level)
-{
-	struct ChimeraGlArgs_glFramebufferTexture2D cargs;
-	cargs.target = target;
-	cargs.attachment = attachment;
-	cargs.textarget = textarget;
-	cargs.texture = texture;
-	cargs.level = level;
-	g_bridge(CHIMERA_GL_OP_glFramebufferTexture2D, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glFramebufferTexture2DMultisampleEXT(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLsizei samples)
-{
-	struct ChimeraGlArgs_glFramebufferTexture2DMultisampleEXT cargs;
-	cargs.target = target;
-	cargs.attachment = attachment;
-	cargs.textarget = textarget;
-	cargs.texture = texture;
-	cargs.level = level;
-	cargs.samples = samples;
-	g_bridge(CHIMERA_GL_OP_glFramebufferTexture2DMultisampleEXT, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glFramebufferTexture1D chimera_a;
+	chimera_a.target = target;
+	chimera_a.attachment = attachment;
+	chimera_a.textarget = textarget;
+	chimera_a.texture = texture;
+	chimera_a.level = level;
+	g_bridge(CHIMERA_GL_OP_glFramebufferTexture1D, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glFramebufferTexture3D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLint zoffset)
 {
-	struct ChimeraGlArgs_glFramebufferTexture3D cargs;
-	cargs.target = target;
-	cargs.attachment = attachment;
-	cargs.textarget = textarget;
-	cargs.texture = texture;
-	cargs.level = level;
-	cargs.zoffset = zoffset;
-	g_bridge(CHIMERA_GL_OP_glFramebufferTexture3D, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glFramebufferTexture3D chimera_a;
+	chimera_a.target = target;
+	chimera_a.attachment = attachment;
+	chimera_a.textarget = textarget;
+	chimera_a.texture = texture;
+	chimera_a.level = level;
+	chimera_a.zoffset = zoffset;
+	g_bridge(CHIMERA_GL_OP_glFramebufferTexture3D, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glFramebufferTextureLayer(GLenum target, GLenum attachment, GLuint texture, GLint level, GLint layer)
 {
-	struct ChimeraGlArgs_glFramebufferTextureLayer cargs;
-	cargs.target = target;
-	cargs.attachment = attachment;
-	cargs.texture = texture;
-	cargs.level = level;
-	cargs.layer = layer;
-	g_bridge(CHIMERA_GL_OP_glFramebufferTextureLayer, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glFrontFace(GLenum mode)
-{
-	struct ChimeraGlArgs_glFrontFace cargs;
-	cargs.mode = mode;
-	g_bridge(CHIMERA_GL_OP_glFrontFace, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGenBuffers(GLsizei n, GLuint * buffers)
-{
-	struct ChimeraGlArgs_glGenBuffers cargs;
-	cargs.n = n;
-	cargs.buffers = buffers;
-	g_bridge(CHIMERA_GL_OP_glGenBuffers, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGenerateMipmap(GLenum target)
-{
-	struct ChimeraGlArgs_glGenerateMipmap cargs;
-	cargs.target = target;
-	g_bridge(CHIMERA_GL_OP_glGenerateMipmap, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGenerateTextureMipmap(GLuint texture)
-{
-	struct ChimeraGlArgs_glGenerateTextureMipmap cargs;
-	cargs.texture = texture;
-	g_bridge(CHIMERA_GL_OP_glGenerateTextureMipmap, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGenFramebuffers(GLsizei n, GLuint * framebuffers)
-{
-	struct ChimeraGlArgs_glGenFramebuffers cargs;
-	cargs.n = n;
-	cargs.framebuffers = framebuffers;
-	g_bridge(CHIMERA_GL_OP_glGenFramebuffers, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGenProgramPipelines(GLsizei n, GLuint * pipelines)
-{
-	struct ChimeraGlArgs_glGenProgramPipelines cargs;
-	cargs.n = n;
-	cargs.pipelines = pipelines;
-	g_bridge(CHIMERA_GL_OP_glGenProgramPipelines, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGenQueries(GLsizei n, GLuint * ids)
-{
-	struct ChimeraGlArgs_glGenQueries cargs;
-	cargs.n = n;
-	cargs.ids = ids;
-	g_bridge(CHIMERA_GL_OP_glGenQueries, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGenQueriesEXT(GLsizei n, GLuint * ids)
-{
-	struct ChimeraGlArgs_glGenQueriesEXT cargs;
-	cargs.n = n;
-	cargs.ids = ids;
-	g_bridge(CHIMERA_GL_OP_glGenQueriesEXT, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGenRenderbuffers(GLsizei n, GLuint * renderbuffers)
-{
-	struct ChimeraGlArgs_glGenRenderbuffers cargs;
-	cargs.n = n;
-	cargs.renderbuffers = renderbuffers;
-	g_bridge(CHIMERA_GL_OP_glGenRenderbuffers, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGenSamplers(GLsizei count, GLuint * samplers)
-{
-	struct ChimeraGlArgs_glGenSamplers cargs;
-	cargs.count = count;
-	cargs.samplers = samplers;
-	g_bridge(CHIMERA_GL_OP_glGenSamplers, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGenTextures(GLsizei n, GLuint * textures)
-{
-	struct ChimeraGlArgs_glGenTextures cargs;
-	cargs.n = n;
-	cargs.textures = textures;
-	g_bridge(CHIMERA_GL_OP_glGenTextures, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGenTransformFeedbacks(GLsizei n, GLuint * ids)
-{
-	struct ChimeraGlArgs_glGenTransformFeedbacks cargs;
-	cargs.n = n;
-	cargs.ids = ids;
-	g_bridge(CHIMERA_GL_OP_glGenTransformFeedbacks, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGenVertexArrays(GLsizei n, GLuint * arrays)
-{
-	struct ChimeraGlArgs_glGenVertexArrays cargs;
-	cargs.n = n;
-	cargs.arrays = arrays;
-	g_bridge(CHIMERA_GL_OP_glGenVertexArrays, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGenVertexArraysAPPLE(GLsizei n, GLuint * arrays)
-{
-	struct ChimeraGlArgs_glGenVertexArraysAPPLE cargs;
-	cargs.n = n;
-	cargs.arrays = arrays;
-	g_bridge(CHIMERA_GL_OP_glGenVertexArraysAPPLE, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGenVertexArraysOES(GLsizei n, GLuint * arrays)
-{
-	struct ChimeraGlArgs_glGenVertexArraysOES cargs;
-	cargs.n = n;
-	cargs.arrays = arrays;
-	g_bridge(CHIMERA_GL_OP_glGenVertexArraysOES, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glFramebufferTextureLayer chimera_a;
+	chimera_a.target = target;
+	chimera_a.attachment = attachment;
+	chimera_a.texture = texture;
+	chimera_a.level = level;
+	chimera_a.layer = layer;
+	g_bridge(CHIMERA_GL_OP_glFramebufferTextureLayer, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetActiveAtomicCounterBufferiv(GLuint program, GLuint bufferIndex, GLenum pname, GLint * params)
 {
-	struct ChimeraGlArgs_glGetActiveAtomicCounterBufferiv cargs;
-	cargs.program = program;
-	cargs.bufferIndex = bufferIndex;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetActiveAtomicCounterBufferiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetActiveAtomicCounterBufferiv chimera_a;
+	chimera_a.program = program;
+	chimera_a.bufferIndex = bufferIndex;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetActiveAtomicCounterBufferiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetActiveAttrib(GLuint program, GLuint index, GLsizei bufSize, GLsizei * length, GLint * size, GLenum * type, GLchar * name)
 {
-	struct ChimeraGlArgs_glGetActiveAttrib cargs;
-	cargs.program = program;
-	cargs.index = index;
-	cargs.bufSize = bufSize;
-	cargs.length = length;
-	cargs.size = size;
-	cargs.type = type;
-	cargs.name = name;
-	g_bridge(CHIMERA_GL_OP_glGetActiveAttrib, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGetActiveSubroutineName(GLuint program, GLenum shadertype, GLuint index, GLsizei bufSize, GLsizei * length, GLchar * name)
-{
-	struct ChimeraGlArgs_glGetActiveSubroutineName cargs;
-	cargs.program = program;
-	cargs.shadertype = shadertype;
-	cargs.index = index;
-	cargs.bufSize = bufSize;
-	cargs.length = length;
-	cargs.name = name;
-	g_bridge(CHIMERA_GL_OP_glGetActiveSubroutineName, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGetActiveSubroutineUniformiv(GLuint program, GLenum shadertype, GLuint index, GLenum pname, GLint * values)
-{
-	struct ChimeraGlArgs_glGetActiveSubroutineUniformiv cargs;
-	cargs.program = program;
-	cargs.shadertype = shadertype;
-	cargs.index = index;
-	cargs.pname = pname;
-	cargs.values = values;
-	g_bridge(CHIMERA_GL_OP_glGetActiveSubroutineUniformiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGetActiveSubroutineUniformName(GLuint program, GLenum shadertype, GLuint index, GLsizei bufSize, GLsizei * length, GLchar * name)
-{
-	struct ChimeraGlArgs_glGetActiveSubroutineUniformName cargs;
-	cargs.program = program;
-	cargs.shadertype = shadertype;
-	cargs.index = index;
-	cargs.bufSize = bufSize;
-	cargs.length = length;
-	cargs.name = name;
-	g_bridge(CHIMERA_GL_OP_glGetActiveSubroutineUniformName, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetActiveAttrib chimera_a;
+	chimera_a.program = program;
+	chimera_a.index = index;
+	chimera_a.bufSize = bufSize;
+	chimera_a.length = length;
+	chimera_a.size = size;
+	chimera_a.type = type;
+	chimera_a.name = name;
+	g_bridge(CHIMERA_GL_OP_glGetActiveAttrib, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetActiveUniform(GLuint program, GLuint index, GLsizei bufSize, GLsizei * length, GLint * size, GLenum * type, GLchar * name)
 {
-	struct ChimeraGlArgs_glGetActiveUniform cargs;
-	cargs.program = program;
-	cargs.index = index;
-	cargs.bufSize = bufSize;
-	cargs.length = length;
-	cargs.size = size;
-	cargs.type = type;
-	cargs.name = name;
-	g_bridge(CHIMERA_GL_OP_glGetActiveUniform, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetActiveUniform chimera_a;
+	chimera_a.program = program;
+	chimera_a.index = index;
+	chimera_a.bufSize = bufSize;
+	chimera_a.length = length;
+	chimera_a.size = size;
+	chimera_a.type = type;
+	chimera_a.name = name;
+	g_bridge(CHIMERA_GL_OP_glGetActiveUniform, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetActiveUniformBlockiv(GLuint program, GLuint uniformBlockIndex, GLenum pname, GLint * params)
 {
-	struct ChimeraGlArgs_glGetActiveUniformBlockiv cargs;
-	cargs.program = program;
-	cargs.uniformBlockIndex = uniformBlockIndex;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetActiveUniformBlockiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetActiveUniformBlockiv chimera_a;
+	chimera_a.program = program;
+	chimera_a.uniformBlockIndex = uniformBlockIndex;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetActiveUniformBlockiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetActiveUniformBlockName(GLuint program, GLuint uniformBlockIndex, GLsizei bufSize, GLsizei * length, GLchar * uniformBlockName)
 {
-	struct ChimeraGlArgs_glGetActiveUniformBlockName cargs;
-	cargs.program = program;
-	cargs.uniformBlockIndex = uniformBlockIndex;
-	cargs.bufSize = bufSize;
-	cargs.length = length;
-	cargs.uniformBlockName = uniformBlockName;
-	g_bridge(CHIMERA_GL_OP_glGetActiveUniformBlockName, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetActiveUniformBlockName chimera_a;
+	chimera_a.program = program;
+	chimera_a.uniformBlockIndex = uniformBlockIndex;
+	chimera_a.bufSize = bufSize;
+	chimera_a.length = length;
+	chimera_a.uniformBlockName = uniformBlockName;
+	g_bridge(CHIMERA_GL_OP_glGetActiveUniformBlockName, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetActiveUniformName(GLuint program, GLuint uniformIndex, GLsizei bufSize, GLsizei * length, GLchar * uniformName)
 {
-	struct ChimeraGlArgs_glGetActiveUniformName cargs;
-	cargs.program = program;
-	cargs.uniformIndex = uniformIndex;
-	cargs.bufSize = bufSize;
-	cargs.length = length;
-	cargs.uniformName = uniformName;
-	g_bridge(CHIMERA_GL_OP_glGetActiveUniformName, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetActiveUniformName chimera_a;
+	chimera_a.program = program;
+	chimera_a.uniformIndex = uniformIndex;
+	chimera_a.bufSize = bufSize;
+	chimera_a.length = length;
+	chimera_a.uniformName = uniformName;
+	g_bridge(CHIMERA_GL_OP_glGetActiveUniformName, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetActiveUniformsiv(GLuint program, GLsizei uniformCount, const GLuint * uniformIndices, GLenum pname, GLint * params)
 {
-	struct ChimeraGlArgs_glGetActiveUniformsiv cargs;
-	cargs.program = program;
-	cargs.uniformCount = uniformCount;
-	cargs.uniformIndices = uniformIndices;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetActiveUniformsiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetActiveUniformsiv chimera_a;
+	chimera_a.program = program;
+	chimera_a.uniformCount = uniformCount;
+	chimera_a.uniformIndices = uniformIndices;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetActiveUniformsiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetAttachedShaders(GLuint program, GLsizei maxCount, GLsizei * count, GLuint * shaders)
 {
-	struct ChimeraGlArgs_glGetAttachedShaders cargs;
-	cargs.program = program;
-	cargs.maxCount = maxCount;
-	cargs.count = count;
-	cargs.shaders = shaders;
-	g_bridge(CHIMERA_GL_OP_glGetAttachedShaders, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetAttachedShaders chimera_a;
+	chimera_a.program = program;
+	chimera_a.maxCount = maxCount;
+	chimera_a.count = count;
+	chimera_a.shaders = shaders;
+	g_bridge(CHIMERA_GL_OP_glGetAttachedShaders, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static GLint GLAD_API_PTR w_glGetAttribLocation(GLuint program, const GLchar * name)
 {
-	struct ChimeraGlArgs_glGetAttribLocation cargs;
-	cargs.program = program;
-	cargs.name = name;
-	return (GLint)g_bridge(CHIMERA_GL_OP_glGetAttribLocation, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGetBooleanIndexedvEXT(GLenum target, GLuint index, GLboolean * data)
-{
-	struct ChimeraGlArgs_glGetBooleanIndexedvEXT cargs;
-	cargs.target = target;
-	cargs.index = index;
-	cargs.data = data;
-	g_bridge(CHIMERA_GL_OP_glGetBooleanIndexedvEXT, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGetBooleani_v(GLenum target, GLuint index, GLboolean * data)
-{
-	struct ChimeraGlArgs_glGetBooleani_v cargs;
-	cargs.target = target;
-	cargs.index = index;
-	cargs.data = data;
-	g_bridge(CHIMERA_GL_OP_glGetBooleani_v, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetAttribLocation chimera_a;
+	chimera_a.program = program;
+	chimera_a.name = name;
+	return (GLint)g_bridge(CHIMERA_GL_OP_glGetAttribLocation, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetBooleanv(GLenum pname, GLboolean * data)
 {
-	struct ChimeraGlArgs_glGetBooleanv cargs;
-	cargs.pname = pname;
-	cargs.data = data;
-	g_bridge(CHIMERA_GL_OP_glGetBooleanv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetBooleanv chimera_a;
+	chimera_a.pname = pname;
+	chimera_a.data = data;
+	g_bridge(CHIMERA_GL_OP_glGetBooleanv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetBufferParameteri64v(GLenum target, GLenum pname, GLint64 * params)
 {
-	struct ChimeraGlArgs_glGetBufferParameteri64v cargs;
-	cargs.target = target;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetBufferParameteri64v, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetBufferParameteri64v chimera_a;
+	chimera_a.target = target;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetBufferParameteri64v, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetBufferParameteriv(GLenum target, GLenum pname, GLint * params)
 {
-	struct ChimeraGlArgs_glGetBufferParameteriv cargs;
-	cargs.target = target;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetBufferParameteriv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetBufferParameteriv chimera_a;
+	chimera_a.target = target;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetBufferParameteriv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetBufferPointerv(GLenum target, GLenum pname, void ** params)
+{
+	struct ChimeraGlArgs_glGetBufferPointerv chimera_a;
+	chimera_a.target = target;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetBufferPointerv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, void * data)
 {
-	struct ChimeraGlArgs_glGetBufferSubData cargs;
-	cargs.target = target;
-	cargs.offset = offset;
-	cargs.size = size;
-	cargs.data = data;
-	g_bridge(CHIMERA_GL_OP_glGetBufferSubData, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetBufferSubData chimera_a;
+	chimera_a.target = target;
+	chimera_a.offset = offset;
+	chimera_a.size = size;
+	chimera_a.data = data;
+	g_bridge(CHIMERA_GL_OP_glGetBufferSubData, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetCompressedTexImage(GLenum target, GLint level, void * img)
 {
-	struct ChimeraGlArgs_glGetCompressedTexImage cargs;
-	cargs.target = target;
-	cargs.level = level;
-	cargs.img = img;
-	g_bridge(CHIMERA_GL_OP_glGetCompressedTexImage, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetCompressedTexImage chimera_a;
+	chimera_a.target = target;
+	chimera_a.level = level;
+	chimera_a.img = img;
+	g_bridge(CHIMERA_GL_OP_glGetCompressedTexImage, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetCompressedTextureImage(GLuint texture, GLint level, GLsizei bufSize, void * pixels)
 {
-	struct ChimeraGlArgs_glGetCompressedTextureImage cargs;
-	cargs.texture = texture;
-	cargs.level = level;
-	cargs.bufSize = bufSize;
-	cargs.pixels = pixels;
-	g_bridge(CHIMERA_GL_OP_glGetCompressedTextureImage, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetCompressedTextureImage chimera_a;
+	chimera_a.texture = texture;
+	chimera_a.level = level;
+	chimera_a.bufSize = bufSize;
+	chimera_a.pixels = pixels;
+	g_bridge(CHIMERA_GL_OP_glGetCompressedTextureImage, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetCompressedTextureSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLsizei bufSize, void * pixels)
 {
-	struct ChimeraGlArgs_glGetCompressedTextureSubImage cargs;
-	cargs.texture = texture;
-	cargs.level = level;
-	cargs.xoffset = xoffset;
-	cargs.yoffset = yoffset;
-	cargs.zoffset = zoffset;
-	cargs.width = width;
-	cargs.height = height;
-	cargs.depth = depth;
-	cargs.bufSize = bufSize;
-	cargs.pixels = pixels;
-	g_bridge(CHIMERA_GL_OP_glGetCompressedTextureSubImage, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetCompressedTextureSubImage chimera_a;
+	chimera_a.texture = texture;
+	chimera_a.level = level;
+	chimera_a.xoffset = xoffset;
+	chimera_a.yoffset = yoffset;
+	chimera_a.zoffset = zoffset;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	chimera_a.depth = depth;
+	chimera_a.bufSize = bufSize;
+	chimera_a.pixels = pixels;
+	g_bridge(CHIMERA_GL_OP_glGetCompressedTextureSubImage, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static GLuint GLAD_API_PTR w_glGetDebugMessageLog(GLuint count, GLsizei bufSize, GLenum * sources, GLenum * types, GLuint * ids, GLenum * severities, GLsizei * lengths, GLchar * messageLog)
 {
-	struct ChimeraGlArgs_glGetDebugMessageLog cargs;
-	cargs.count = count;
-	cargs.bufSize = bufSize;
-	cargs.sources = sources;
-	cargs.types = types;
-	cargs.ids = ids;
-	cargs.severities = severities;
-	cargs.lengths = lengths;
-	cargs.messageLog = messageLog;
-	return (GLuint)g_bridge(CHIMERA_GL_OP_glGetDebugMessageLog, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetDebugMessageLog chimera_a;
+	chimera_a.count = count;
+	chimera_a.bufSize = bufSize;
+	chimera_a.sources = sources;
+	chimera_a.types = types;
+	chimera_a.ids = ids;
+	chimera_a.severities = severities;
+	chimera_a.lengths = lengths;
+	chimera_a.messageLog = messageLog;
+	return (GLuint)g_bridge(CHIMERA_GL_OP_glGetDebugMessageLog, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static GLuint GLAD_API_PTR w_glGetDebugMessageLogARB(GLuint count, GLsizei bufSize, GLenum * sources, GLenum * types, GLuint * ids, GLenum * severities, GLsizei * lengths, GLchar * messageLog)
 {
-	struct ChimeraGlArgs_glGetDebugMessageLogARB cargs;
-	cargs.count = count;
-	cargs.bufSize = bufSize;
-	cargs.sources = sources;
-	cargs.types = types;
-	cargs.ids = ids;
-	cargs.severities = severities;
-	cargs.lengths = lengths;
-	cargs.messageLog = messageLog;
-	return (GLuint)g_bridge(CHIMERA_GL_OP_glGetDebugMessageLogARB, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static GLuint GLAD_API_PTR w_glGetDebugMessageLogKHR(GLuint count, GLsizei bufSize, GLenum * sources, GLenum * types, GLuint * ids, GLenum * severities, GLsizei * lengths, GLchar * messageLog)
-{
-	struct ChimeraGlArgs_glGetDebugMessageLogKHR cargs;
-	cargs.count = count;
-	cargs.bufSize = bufSize;
-	cargs.sources = sources;
-	cargs.types = types;
-	cargs.ids = ids;
-	cargs.severities = severities;
-	cargs.lengths = lengths;
-	cargs.messageLog = messageLog;
-	return (GLuint)g_bridge(CHIMERA_GL_OP_glGetDebugMessageLogKHR, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGetDoublei_v(GLenum target, GLuint index, GLdouble * data)
-{
-	struct ChimeraGlArgs_glGetDoublei_v cargs;
-	cargs.target = target;
-	cargs.index = index;
-	cargs.data = data;
-	g_bridge(CHIMERA_GL_OP_glGetDoublei_v, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetDebugMessageLogARB chimera_a;
+	chimera_a.count = count;
+	chimera_a.bufSize = bufSize;
+	chimera_a.sources = sources;
+	chimera_a.types = types;
+	chimera_a.ids = ids;
+	chimera_a.severities = severities;
+	chimera_a.lengths = lengths;
+	chimera_a.messageLog = messageLog;
+	return (GLuint)g_bridge(CHIMERA_GL_OP_glGetDebugMessageLogARB, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetDoublev(GLenum pname, GLdouble * data)
 {
-	struct ChimeraGlArgs_glGetDoublev cargs;
-	cargs.pname = pname;
-	cargs.data = data;
-	g_bridge(CHIMERA_GL_OP_glGetDoublev, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static GLenum GLAD_API_PTR w_glGetError(void)
-{
-	return (GLenum)g_bridge(CHIMERA_GL_OP_glGetError, 0, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGetFloati_v(GLenum target, GLuint index, GLfloat * data)
-{
-	struct ChimeraGlArgs_glGetFloati_v cargs;
-	cargs.target = target;
-	cargs.index = index;
-	cargs.data = data;
-	g_bridge(CHIMERA_GL_OP_glGetFloati_v, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGetFloatv(GLenum pname, GLfloat * data)
-{
-	struct ChimeraGlArgs_glGetFloatv cargs;
-	cargs.pname = pname;
-	cargs.data = data;
-	g_bridge(CHIMERA_GL_OP_glGetFloatv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetDoublev chimera_a;
+	chimera_a.pname = pname;
+	chimera_a.data = data;
+	g_bridge(CHIMERA_GL_OP_glGetDoublev, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static GLint GLAD_API_PTR w_glGetFragDataIndex(GLuint program, const GLchar * name)
 {
-	struct ChimeraGlArgs_glGetFragDataIndex cargs;
-	cargs.program = program;
-	cargs.name = name;
-	return (GLint)g_bridge(CHIMERA_GL_OP_glGetFragDataIndex, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetFragDataIndex chimera_a;
+	chimera_a.program = program;
+	chimera_a.name = name;
+	return (GLint)g_bridge(CHIMERA_GL_OP_glGetFragDataIndex, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static GLint GLAD_API_PTR w_glGetFragDataLocation(GLuint program, const GLchar * name)
 {
-	struct ChimeraGlArgs_glGetFragDataLocation cargs;
-	cargs.program = program;
-	cargs.name = name;
-	return (GLint)g_bridge(CHIMERA_GL_OP_glGetFragDataLocation, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetFragDataLocation chimera_a;
+	chimera_a.program = program;
+	chimera_a.name = name;
+	return (GLint)g_bridge(CHIMERA_GL_OP_glGetFragDataLocation, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenum pname, GLint * params)
 {
-	struct ChimeraGlArgs_glGetFramebufferAttachmentParameteriv cargs;
-	cargs.target = target;
-	cargs.attachment = attachment;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetFramebufferAttachmentParameteriv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetFramebufferAttachmentParameteriv chimera_a;
+	chimera_a.target = target;
+	chimera_a.attachment = attachment;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetFramebufferAttachmentParameteriv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetFramebufferParameteriv(GLenum target, GLenum pname, GLint * params)
 {
-	struct ChimeraGlArgs_glGetFramebufferParameteriv cargs;
-	cargs.target = target;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetFramebufferParameteriv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetFramebufferParameteriv chimera_a;
+	chimera_a.target = target;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetFramebufferParameteriv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static GLenum GLAD_API_PTR w_glGetGraphicsResetStatus(void)
@@ -2305,1564 +2758,3126 @@ static GLenum GLAD_API_PTR w_glGetGraphicsResetStatus(void)
 	return (GLenum)g_bridge(CHIMERA_GL_OP_glGetGraphicsResetStatus, 0, 0, 0, 0, 0);
 }
 
-static void GLAD_API_PTR w_glGetInteger64i_v(GLenum target, GLuint index, GLint64 * data)
-{
-	struct ChimeraGlArgs_glGetInteger64i_v cargs;
-	cargs.target = target;
-	cargs.index = index;
-	cargs.data = data;
-	g_bridge(CHIMERA_GL_OP_glGetInteger64i_v, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
 static void GLAD_API_PTR w_glGetInteger64v(GLenum pname, GLint64 * data)
 {
-	struct ChimeraGlArgs_glGetInteger64v cargs;
-	cargs.pname = pname;
-	cargs.data = data;
-	g_bridge(CHIMERA_GL_OP_glGetInteger64v, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGetInteger64vEXT(GLenum pname, GLint64 * data)
-{
-	struct ChimeraGlArgs_glGetInteger64vEXT cargs;
-	cargs.pname = pname;
-	cargs.data = data;
-	g_bridge(CHIMERA_GL_OP_glGetInteger64vEXT, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGetIntegerIndexedvEXT(GLenum target, GLuint index, GLint * data)
-{
-	struct ChimeraGlArgs_glGetIntegerIndexedvEXT cargs;
-	cargs.target = target;
-	cargs.index = index;
-	cargs.data = data;
-	g_bridge(CHIMERA_GL_OP_glGetIntegerIndexedvEXT, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGetIntegeri_v(GLenum target, GLuint index, GLint * data)
-{
-	struct ChimeraGlArgs_glGetIntegeri_v cargs;
-	cargs.target = target;
-	cargs.index = index;
-	cargs.data = data;
-	g_bridge(CHIMERA_GL_OP_glGetIntegeri_v, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGetIntegerv(GLenum pname, GLint * data)
-{
-	struct ChimeraGlArgs_glGetIntegerv cargs;
-	cargs.pname = pname;
-	cargs.data = data;
-	g_bridge(CHIMERA_GL_OP_glGetIntegerv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetInteger64v chimera_a;
+	chimera_a.pname = pname;
+	chimera_a.data = data;
+	g_bridge(CHIMERA_GL_OP_glGetInteger64v, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetInternalformati64v(GLenum target, GLenum internalformat, GLenum pname, GLsizei count, GLint64 * params)
 {
-	struct ChimeraGlArgs_glGetInternalformati64v cargs;
-	cargs.target = target;
-	cargs.internalformat = internalformat;
-	cargs.pname = pname;
-	cargs.count = count;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetInternalformati64v, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetInternalformati64v chimera_a;
+	chimera_a.target = target;
+	chimera_a.internalformat = internalformat;
+	chimera_a.pname = pname;
+	chimera_a.count = count;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetInternalformati64v, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetInternalformativ(GLenum target, GLenum internalformat, GLenum pname, GLsizei count, GLint * params)
 {
-	struct ChimeraGlArgs_glGetInternalformativ cargs;
-	cargs.target = target;
-	cargs.internalformat = internalformat;
-	cargs.pname = pname;
-	cargs.count = count;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetInternalformativ, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetInternalformativ chimera_a;
+	chimera_a.target = target;
+	chimera_a.internalformat = internalformat;
+	chimera_a.pname = pname;
+	chimera_a.count = count;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetInternalformativ, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetMultisamplefv(GLenum pname, GLuint index, GLfloat * val)
 {
-	struct ChimeraGlArgs_glGetMultisamplefv cargs;
-	cargs.pname = pname;
-	cargs.index = index;
-	cargs.val = val;
-	g_bridge(CHIMERA_GL_OP_glGetMultisamplefv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetMultisamplefv chimera_a;
+	chimera_a.pname = pname;
+	chimera_a.index = index;
+	chimera_a.val = val;
+	g_bridge(CHIMERA_GL_OP_glGetMultisamplefv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetNamedBufferParameteri64v(GLuint buffer, GLenum pname, GLint64 * params)
 {
-	struct ChimeraGlArgs_glGetNamedBufferParameteri64v cargs;
-	cargs.buffer = buffer;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetNamedBufferParameteri64v, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetNamedBufferParameteri64v chimera_a;
+	chimera_a.buffer = buffer;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetNamedBufferParameteri64v, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetNamedBufferParameteriv(GLuint buffer, GLenum pname, GLint * params)
 {
-	struct ChimeraGlArgs_glGetNamedBufferParameteriv cargs;
-	cargs.buffer = buffer;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetNamedBufferParameteriv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetNamedBufferParameteriv chimera_a;
+	chimera_a.buffer = buffer;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetNamedBufferParameteriv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetNamedBufferPointerv(GLuint buffer, GLenum pname, void ** params)
 {
-	struct ChimeraGlArgs_glGetNamedBufferPointerv cargs;
-	cargs.buffer = buffer;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetNamedBufferPointerv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetNamedBufferPointerv chimera_a;
+	chimera_a.buffer = buffer;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetNamedBufferPointerv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, void * data)
 {
-	struct ChimeraGlArgs_glGetNamedBufferSubData cargs;
-	cargs.buffer = buffer;
-	cargs.offset = offset;
-	cargs.size = size;
-	cargs.data = data;
-	g_bridge(CHIMERA_GL_OP_glGetNamedBufferSubData, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetNamedBufferSubData chimera_a;
+	chimera_a.buffer = buffer;
+	chimera_a.offset = offset;
+	chimera_a.size = size;
+	chimera_a.data = data;
+	g_bridge(CHIMERA_GL_OP_glGetNamedBufferSubData, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetNamedFramebufferAttachmentParameteriv(GLuint framebuffer, GLenum attachment, GLenum pname, GLint * params)
 {
-	struct ChimeraGlArgs_glGetNamedFramebufferAttachmentParameteriv cargs;
-	cargs.framebuffer = framebuffer;
-	cargs.attachment = attachment;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetNamedFramebufferAttachmentParameteriv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetNamedFramebufferAttachmentParameteriv chimera_a;
+	chimera_a.framebuffer = framebuffer;
+	chimera_a.attachment = attachment;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetNamedFramebufferAttachmentParameteriv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetNamedFramebufferParameteriv(GLuint framebuffer, GLenum pname, GLint * param)
 {
-	struct ChimeraGlArgs_glGetNamedFramebufferParameteriv cargs;
-	cargs.framebuffer = framebuffer;
-	cargs.pname = pname;
-	cargs.param = param;
-	g_bridge(CHIMERA_GL_OP_glGetNamedFramebufferParameteriv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetNamedFramebufferParameteriv chimera_a;
+	chimera_a.framebuffer = framebuffer;
+	chimera_a.pname = pname;
+	chimera_a.param = param;
+	g_bridge(CHIMERA_GL_OP_glGetNamedFramebufferParameteriv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetNamedRenderbufferParameteriv(GLuint renderbuffer, GLenum pname, GLint * params)
 {
-	struct ChimeraGlArgs_glGetNamedRenderbufferParameteriv cargs;
-	cargs.renderbuffer = renderbuffer;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetNamedRenderbufferParameteriv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetNamedRenderbufferParameteriv chimera_a;
+	chimera_a.renderbuffer = renderbuffer;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetNamedRenderbufferParameteriv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetnCompressedTexImage(GLenum target, GLint lod, GLsizei bufSize, void * pixels)
 {
-	struct ChimeraGlArgs_glGetnCompressedTexImage cargs;
-	cargs.target = target;
-	cargs.lod = lod;
-	cargs.bufSize = bufSize;
-	cargs.pixels = pixels;
-	g_bridge(CHIMERA_GL_OP_glGetnCompressedTexImage, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetnCompressedTexImage chimera_a;
+	chimera_a.target = target;
+	chimera_a.lod = lod;
+	chimera_a.bufSize = bufSize;
+	chimera_a.pixels = pixels;
+	g_bridge(CHIMERA_GL_OP_glGetnCompressedTexImage, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetnTexImage(GLenum target, GLint level, GLenum format, GLenum type, GLsizei bufSize, void * pixels)
 {
-	struct ChimeraGlArgs_glGetnTexImage cargs;
-	cargs.target = target;
-	cargs.level = level;
-	cargs.format = format;
-	cargs.type = type;
-	cargs.bufSize = bufSize;
-	cargs.pixels = pixels;
-	g_bridge(CHIMERA_GL_OP_glGetnTexImage, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetnTexImage chimera_a;
+	chimera_a.target = target;
+	chimera_a.level = level;
+	chimera_a.format = format;
+	chimera_a.type = type;
+	chimera_a.bufSize = bufSize;
+	chimera_a.pixels = pixels;
+	g_bridge(CHIMERA_GL_OP_glGetnTexImage, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetnUniformdv(GLuint program, GLint location, GLsizei bufSize, GLdouble * params)
 {
-	struct ChimeraGlArgs_glGetnUniformdv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.bufSize = bufSize;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetnUniformdv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetnUniformdv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.bufSize = bufSize;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetnUniformdv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetnUniformfv(GLuint program, GLint location, GLsizei bufSize, GLfloat * params)
 {
-	struct ChimeraGlArgs_glGetnUniformfv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.bufSize = bufSize;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetnUniformfv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetnUniformfv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.bufSize = bufSize;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetnUniformfv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetnUniformiv(GLuint program, GLint location, GLsizei bufSize, GLint * params)
 {
-	struct ChimeraGlArgs_glGetnUniformiv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.bufSize = bufSize;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetnUniformiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetnUniformiv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.bufSize = bufSize;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetnUniformiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetnUniformuiv(GLuint program, GLint location, GLsizei bufSize, GLuint * params)
 {
-	struct ChimeraGlArgs_glGetnUniformuiv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.bufSize = bufSize;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetnUniformuiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetnUniformuiv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.bufSize = bufSize;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetnUniformuiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetObjectLabel(GLenum identifier, GLuint name, GLsizei bufSize, GLsizei * length, GLchar * label)
 {
-	struct ChimeraGlArgs_glGetObjectLabel cargs;
-	cargs.identifier = identifier;
-	cargs.name = name;
-	cargs.bufSize = bufSize;
-	cargs.length = length;
-	cargs.label = label;
-	g_bridge(CHIMERA_GL_OP_glGetObjectLabel, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGetObjectLabelKHR(GLenum identifier, GLuint name, GLsizei bufSize, GLsizei * length, GLchar * label)
-{
-	struct ChimeraGlArgs_glGetObjectLabelKHR cargs;
-	cargs.identifier = identifier;
-	cargs.name = name;
-	cargs.bufSize = bufSize;
-	cargs.length = length;
-	cargs.label = label;
-	g_bridge(CHIMERA_GL_OP_glGetObjectLabelKHR, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetObjectLabel chimera_a;
+	chimera_a.identifier = identifier;
+	chimera_a.name = name;
+	chimera_a.bufSize = bufSize;
+	chimera_a.length = length;
+	chimera_a.label = label;
+	g_bridge(CHIMERA_GL_OP_glGetObjectLabel, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetObjectPtrLabel(const void * ptr, GLsizei bufSize, GLsizei * length, GLchar * label)
 {
-	struct ChimeraGlArgs_glGetObjectPtrLabel cargs;
-	cargs.ptr = ptr;
-	cargs.bufSize = bufSize;
-	cargs.length = length;
-	cargs.label = label;
-	g_bridge(CHIMERA_GL_OP_glGetObjectPtrLabel, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGetObjectPtrLabelKHR(const void * ptr, GLsizei bufSize, GLsizei * length, GLchar * label)
-{
-	struct ChimeraGlArgs_glGetObjectPtrLabelKHR cargs;
-	cargs.ptr = ptr;
-	cargs.bufSize = bufSize;
-	cargs.length = length;
-	cargs.label = label;
-	g_bridge(CHIMERA_GL_OP_glGetObjectPtrLabelKHR, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetObjectPtrLabel chimera_a;
+	chimera_a.ptr = ptr;
+	chimera_a.bufSize = bufSize;
+	chimera_a.length = length;
+	chimera_a.label = label;
+	g_bridge(CHIMERA_GL_OP_glGetObjectPtrLabel, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetPointerv(GLenum pname, void ** params)
 {
-	struct ChimeraGlArgs_glGetPointerv cargs;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetPointerv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGetPointervKHR(GLenum pname, void ** params)
-{
-	struct ChimeraGlArgs_glGetPointervKHR cargs;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetPointervKHR, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGetProgramBinary(GLuint program, GLsizei bufSize, GLsizei * length, GLenum * binaryFormat, void * binary)
-{
-	struct ChimeraGlArgs_glGetProgramBinary cargs;
-	cargs.program = program;
-	cargs.bufSize = bufSize;
-	cargs.length = length;
-	cargs.binaryFormat = binaryFormat;
-	cargs.binary = binary;
-	g_bridge(CHIMERA_GL_OP_glGetProgramBinary, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGetProgramInfoLog(GLuint program, GLsizei bufSize, GLsizei * length, GLchar * infoLog)
-{
-	struct ChimeraGlArgs_glGetProgramInfoLog cargs;
-	cargs.program = program;
-	cargs.bufSize = bufSize;
-	cargs.length = length;
-	cargs.infoLog = infoLog;
-	g_bridge(CHIMERA_GL_OP_glGetProgramInfoLog, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetPointerv chimera_a;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetPointerv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetProgramInterfaceiv(GLuint program, GLenum programInterface, GLenum pname, GLint * params)
 {
-	struct ChimeraGlArgs_glGetProgramInterfaceiv cargs;
-	cargs.program = program;
-	cargs.programInterface = programInterface;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetProgramInterfaceiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGetProgramiv(GLuint program, GLenum pname, GLint * params)
-{
-	struct ChimeraGlArgs_glGetProgramiv cargs;
-	cargs.program = program;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetProgramiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGetProgramPipelineInfoLog(GLuint pipeline, GLsizei bufSize, GLsizei * length, GLchar * infoLog)
-{
-	struct ChimeraGlArgs_glGetProgramPipelineInfoLog cargs;
-	cargs.pipeline = pipeline;
-	cargs.bufSize = bufSize;
-	cargs.length = length;
-	cargs.infoLog = infoLog;
-	g_bridge(CHIMERA_GL_OP_glGetProgramPipelineInfoLog, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGetProgramPipelineiv(GLuint pipeline, GLenum pname, GLint * params)
-{
-	struct ChimeraGlArgs_glGetProgramPipelineiv cargs;
-	cargs.pipeline = pipeline;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetProgramPipelineiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetProgramInterfaceiv chimera_a;
+	chimera_a.program = program;
+	chimera_a.programInterface = programInterface;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetProgramInterfaceiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static GLuint GLAD_API_PTR w_glGetProgramResourceIndex(GLuint program, GLenum programInterface, const GLchar * name)
 {
-	struct ChimeraGlArgs_glGetProgramResourceIndex cargs;
-	cargs.program = program;
-	cargs.programInterface = programInterface;
-	cargs.name = name;
-	return (GLuint)g_bridge(CHIMERA_GL_OP_glGetProgramResourceIndex, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetProgramResourceIndex chimera_a;
+	chimera_a.program = program;
+	chimera_a.programInterface = programInterface;
+	chimera_a.name = name;
+	return (GLuint)g_bridge(CHIMERA_GL_OP_glGetProgramResourceIndex, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetProgramResourceiv(GLuint program, GLenum programInterface, GLuint index, GLsizei propCount, const GLenum * props, GLsizei count, GLsizei * length, GLint * params)
 {
-	struct ChimeraGlArgs_glGetProgramResourceiv cargs;
-	cargs.program = program;
-	cargs.programInterface = programInterface;
-	cargs.index = index;
-	cargs.propCount = propCount;
-	cargs.props = props;
-	cargs.count = count;
-	cargs.length = length;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetProgramResourceiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetProgramResourceiv chimera_a;
+	chimera_a.program = program;
+	chimera_a.programInterface = programInterface;
+	chimera_a.index = index;
+	chimera_a.propCount = propCount;
+	chimera_a.props = props;
+	chimera_a.count = count;
+	chimera_a.length = length;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetProgramResourceiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static GLint GLAD_API_PTR w_glGetProgramResourceLocation(GLuint program, GLenum programInterface, const GLchar * name)
 {
-	struct ChimeraGlArgs_glGetProgramResourceLocation cargs;
-	cargs.program = program;
-	cargs.programInterface = programInterface;
-	cargs.name = name;
-	return (GLint)g_bridge(CHIMERA_GL_OP_glGetProgramResourceLocation, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetProgramResourceLocation chimera_a;
+	chimera_a.program = program;
+	chimera_a.programInterface = programInterface;
+	chimera_a.name = name;
+	return (GLint)g_bridge(CHIMERA_GL_OP_glGetProgramResourceLocation, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static GLint GLAD_API_PTR w_glGetProgramResourceLocationIndex(GLuint program, GLenum programInterface, const GLchar * name)
 {
-	struct ChimeraGlArgs_glGetProgramResourceLocationIndex cargs;
-	cargs.program = program;
-	cargs.programInterface = programInterface;
-	cargs.name = name;
-	return (GLint)g_bridge(CHIMERA_GL_OP_glGetProgramResourceLocationIndex, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetProgramResourceLocationIndex chimera_a;
+	chimera_a.program = program;
+	chimera_a.programInterface = programInterface;
+	chimera_a.name = name;
+	return (GLint)g_bridge(CHIMERA_GL_OP_glGetProgramResourceLocationIndex, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetProgramResourceName(GLuint program, GLenum programInterface, GLuint index, GLsizei bufSize, GLsizei * length, GLchar * name)
 {
-	struct ChimeraGlArgs_glGetProgramResourceName cargs;
-	cargs.program = program;
-	cargs.programInterface = programInterface;
-	cargs.index = index;
-	cargs.bufSize = bufSize;
-	cargs.length = length;
-	cargs.name = name;
-	g_bridge(CHIMERA_GL_OP_glGetProgramResourceName, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGetProgramStageiv(GLuint program, GLenum shadertype, GLenum pname, GLint * values)
-{
-	struct ChimeraGlArgs_glGetProgramStageiv cargs;
-	cargs.program = program;
-	cargs.shadertype = shadertype;
-	cargs.pname = pname;
-	cargs.values = values;
-	g_bridge(CHIMERA_GL_OP_glGetProgramStageiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetProgramResourceName chimera_a;
+	chimera_a.program = program;
+	chimera_a.programInterface = programInterface;
+	chimera_a.index = index;
+	chimera_a.bufSize = bufSize;
+	chimera_a.length = length;
+	chimera_a.name = name;
+	g_bridge(CHIMERA_GL_OP_glGetProgramResourceName, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetQueryBufferObjecti64v(GLuint id, GLuint buffer, GLenum pname, GLintptr offset)
 {
-	struct ChimeraGlArgs_glGetQueryBufferObjecti64v cargs;
-	cargs.id = id;
-	cargs.buffer = buffer;
-	cargs.pname = pname;
-	cargs.offset = offset;
-	g_bridge(CHIMERA_GL_OP_glGetQueryBufferObjecti64v, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetQueryBufferObjecti64v chimera_a;
+	chimera_a.id = id;
+	chimera_a.buffer = buffer;
+	chimera_a.pname = pname;
+	chimera_a.offset = offset;
+	g_bridge(CHIMERA_GL_OP_glGetQueryBufferObjecti64v, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetQueryBufferObjectiv(GLuint id, GLuint buffer, GLenum pname, GLintptr offset)
 {
-	struct ChimeraGlArgs_glGetQueryBufferObjectiv cargs;
-	cargs.id = id;
-	cargs.buffer = buffer;
-	cargs.pname = pname;
-	cargs.offset = offset;
-	g_bridge(CHIMERA_GL_OP_glGetQueryBufferObjectiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetQueryBufferObjectiv chimera_a;
+	chimera_a.id = id;
+	chimera_a.buffer = buffer;
+	chimera_a.pname = pname;
+	chimera_a.offset = offset;
+	g_bridge(CHIMERA_GL_OP_glGetQueryBufferObjectiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetQueryBufferObjectui64v(GLuint id, GLuint buffer, GLenum pname, GLintptr offset)
 {
-	struct ChimeraGlArgs_glGetQueryBufferObjectui64v cargs;
-	cargs.id = id;
-	cargs.buffer = buffer;
-	cargs.pname = pname;
-	cargs.offset = offset;
-	g_bridge(CHIMERA_GL_OP_glGetQueryBufferObjectui64v, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetQueryBufferObjectui64v chimera_a;
+	chimera_a.id = id;
+	chimera_a.buffer = buffer;
+	chimera_a.pname = pname;
+	chimera_a.offset = offset;
+	g_bridge(CHIMERA_GL_OP_glGetQueryBufferObjectui64v, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetQueryBufferObjectuiv(GLuint id, GLuint buffer, GLenum pname, GLintptr offset)
 {
-	struct ChimeraGlArgs_glGetQueryBufferObjectuiv cargs;
-	cargs.id = id;
-	cargs.buffer = buffer;
-	cargs.pname = pname;
-	cargs.offset = offset;
-	g_bridge(CHIMERA_GL_OP_glGetQueryBufferObjectuiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGetQueryIndexediv(GLenum target, GLuint index, GLenum pname, GLint * params)
-{
-	struct ChimeraGlArgs_glGetQueryIndexediv cargs;
-	cargs.target = target;
-	cargs.index = index;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetQueryIndexediv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetQueryBufferObjectuiv chimera_a;
+	chimera_a.id = id;
+	chimera_a.buffer = buffer;
+	chimera_a.pname = pname;
+	chimera_a.offset = offset;
+	g_bridge(CHIMERA_GL_OP_glGetQueryBufferObjectuiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetQueryiv(GLenum target, GLenum pname, GLint * params)
 {
-	struct ChimeraGlArgs_glGetQueryiv cargs;
-	cargs.target = target;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetQueryiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGetQueryivEXT(GLenum target, GLenum pname, GLint * params)
-{
-	struct ChimeraGlArgs_glGetQueryivEXT cargs;
-	cargs.target = target;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetQueryivEXT, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGetQueryObjecti64v(GLuint id, GLenum pname, GLint64 * params)
-{
-	struct ChimeraGlArgs_glGetQueryObjecti64v cargs;
-	cargs.id = id;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetQueryObjecti64v, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGetQueryObjecti64vEXT(GLuint id, GLenum pname, GLint64 * params)
-{
-	struct ChimeraGlArgs_glGetQueryObjecti64vEXT cargs;
-	cargs.id = id;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetQueryObjecti64vEXT, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGetQueryObjectiv(GLuint id, GLenum pname, GLint * params)
-{
-	struct ChimeraGlArgs_glGetQueryObjectiv cargs;
-	cargs.id = id;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetQueryObjectiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGetQueryObjectivEXT(GLuint id, GLenum pname, GLint * params)
-{
-	struct ChimeraGlArgs_glGetQueryObjectivEXT cargs;
-	cargs.id = id;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetQueryObjectivEXT, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGetQueryObjectui64v(GLuint id, GLenum pname, GLuint64 * params)
-{
-	struct ChimeraGlArgs_glGetQueryObjectui64v cargs;
-	cargs.id = id;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetQueryObjectui64v, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGetQueryObjectui64vEXT(GLuint id, GLenum pname, GLuint64 * params)
-{
-	struct ChimeraGlArgs_glGetQueryObjectui64vEXT cargs;
-	cargs.id = id;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetQueryObjectui64vEXT, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGetQueryObjectuiv(GLuint id, GLenum pname, GLuint * params)
-{
-	struct ChimeraGlArgs_glGetQueryObjectuiv cargs;
-	cargs.id = id;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetQueryObjectuiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGetQueryObjectuivEXT(GLuint id, GLenum pname, GLuint * params)
-{
-	struct ChimeraGlArgs_glGetQueryObjectuivEXT cargs;
-	cargs.id = id;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetQueryObjectuivEXT, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetQueryiv chimera_a;
+	chimera_a.target = target;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetQueryiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetRenderbufferParameteriv(GLenum target, GLenum pname, GLint * params)
 {
-	struct ChimeraGlArgs_glGetRenderbufferParameteriv cargs;
-	cargs.target = target;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetRenderbufferParameteriv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetRenderbufferParameteriv chimera_a;
+	chimera_a.target = target;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetRenderbufferParameteriv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetSamplerParameterfv(GLuint sampler, GLenum pname, GLfloat * params)
 {
-	struct ChimeraGlArgs_glGetSamplerParameterfv cargs;
-	cargs.sampler = sampler;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetSamplerParameterfv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetSamplerParameterfv chimera_a;
+	chimera_a.sampler = sampler;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetSamplerParameterfv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetSamplerParameterIiv(GLuint sampler, GLenum pname, GLint * params)
 {
-	struct ChimeraGlArgs_glGetSamplerParameterIiv cargs;
-	cargs.sampler = sampler;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetSamplerParameterIiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetSamplerParameterIiv chimera_a;
+	chimera_a.sampler = sampler;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetSamplerParameterIiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetSamplerParameterIuiv(GLuint sampler, GLenum pname, GLuint * params)
 {
-	struct ChimeraGlArgs_glGetSamplerParameterIuiv cargs;
-	cargs.sampler = sampler;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetSamplerParameterIuiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetSamplerParameterIuiv chimera_a;
+	chimera_a.sampler = sampler;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetSamplerParameterIuiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetSamplerParameteriv(GLuint sampler, GLenum pname, GLint * params)
 {
-	struct ChimeraGlArgs_glGetSamplerParameteriv cargs;
-	cargs.sampler = sampler;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetSamplerParameteriv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGetShaderInfoLog(GLuint shader, GLsizei bufSize, GLsizei * length, GLchar * infoLog)
-{
-	struct ChimeraGlArgs_glGetShaderInfoLog cargs;
-	cargs.shader = shader;
-	cargs.bufSize = bufSize;
-	cargs.length = length;
-	cargs.infoLog = infoLog;
-	g_bridge(CHIMERA_GL_OP_glGetShaderInfoLog, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGetShaderiv(GLuint shader, GLenum pname, GLint * params)
-{
-	struct ChimeraGlArgs_glGetShaderiv cargs;
-	cargs.shader = shader;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetShaderiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGetShaderPrecisionFormat(GLenum shadertype, GLenum precisiontype, GLint * range, GLint * precision)
-{
-	struct ChimeraGlArgs_glGetShaderPrecisionFormat cargs;
-	cargs.shadertype = shadertype;
-	cargs.precisiontype = precisiontype;
-	cargs.range = range;
-	cargs.precision = precision;
-	g_bridge(CHIMERA_GL_OP_glGetShaderPrecisionFormat, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetSamplerParameteriv chimera_a;
+	chimera_a.sampler = sampler;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetSamplerParameteriv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetShaderSource(GLuint shader, GLsizei bufSize, GLsizei * length, GLchar * source)
 {
-	struct ChimeraGlArgs_glGetShaderSource cargs;
-	cargs.shader = shader;
-	cargs.bufSize = bufSize;
-	cargs.length = length;
-	cargs.source = source;
-	g_bridge(CHIMERA_GL_OP_glGetShaderSource, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static const GLubyte *GLAD_API_PTR w_glGetString(GLenum name)
-{
-	static char buffer[4096];
-	struct ChimeraGlArgs_glGetString cargs;
-	cargs.name = name;
-	g_bridge(CHIMERA_GL_OP_glGetString, (uint64_t)(uintptr_t)&cargs,
-		(uint64_t)(uintptr_t)buffer, sizeof buffer, 0, 0);
-	return buffer[0] ? (const GLubyte *)buffer : NULL;
-}
-
-static const GLubyte *GLAD_API_PTR w_glGetStringi(GLenum name, GLuint index)
-{
-	static char buffer[4096];
-	struct ChimeraGlArgs_glGetStringi cargs;
-	cargs.name = name;
-	cargs.index = index;
-	g_bridge(CHIMERA_GL_OP_glGetStringi, (uint64_t)(uintptr_t)&cargs,
-		(uint64_t)(uintptr_t)buffer, sizeof buffer, 0, 0);
-	return buffer[0] ? (const GLubyte *)buffer : NULL;
-}
-
-static GLuint GLAD_API_PTR w_glGetSubroutineIndex(GLuint program, GLenum shadertype, const GLchar * name)
-{
-	struct ChimeraGlArgs_glGetSubroutineIndex cargs;
-	cargs.program = program;
-	cargs.shadertype = shadertype;
-	cargs.name = name;
-	return (GLuint)g_bridge(CHIMERA_GL_OP_glGetSubroutineIndex, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static GLint GLAD_API_PTR w_glGetSubroutineUniformLocation(GLuint program, GLenum shadertype, const GLchar * name)
-{
-	struct ChimeraGlArgs_glGetSubroutineUniformLocation cargs;
-	cargs.program = program;
-	cargs.shadertype = shadertype;
-	cargs.name = name;
-	return (GLint)g_bridge(CHIMERA_GL_OP_glGetSubroutineUniformLocation, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetShaderSource chimera_a;
+	chimera_a.shader = shader;
+	chimera_a.bufSize = bufSize;
+	chimera_a.length = length;
+	chimera_a.source = source;
+	g_bridge(CHIMERA_GL_OP_glGetShaderSource, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetSynciv(GLsync sync, GLenum pname, GLsizei count, GLsizei * length, GLint * values)
 {
-	struct ChimeraGlArgs_glGetSynciv cargs;
-	cargs.sync = sync;
-	cargs.pname = pname;
-	cargs.count = count;
-	cargs.length = length;
-	cargs.values = values;
-	g_bridge(CHIMERA_GL_OP_glGetSynciv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGetTexImage(GLenum target, GLint level, GLenum format, GLenum type, void * pixels)
-{
-	struct ChimeraGlArgs_glGetTexImage cargs;
-	cargs.target = target;
-	cargs.level = level;
-	cargs.format = format;
-	cargs.type = type;
-	cargs.pixels = pixels;
-	g_bridge(CHIMERA_GL_OP_glGetTexImage, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetSynciv chimera_a;
+	chimera_a.sync = sync;
+	chimera_a.pname = pname;
+	chimera_a.count = count;
+	chimera_a.length = length;
+	chimera_a.values = values;
+	g_bridge(CHIMERA_GL_OP_glGetSynciv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetTexLevelParameterfv(GLenum target, GLint level, GLenum pname, GLfloat * params)
 {
-	struct ChimeraGlArgs_glGetTexLevelParameterfv cargs;
-	cargs.target = target;
-	cargs.level = level;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetTexLevelParameterfv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetTexLevelParameterfv chimera_a;
+	chimera_a.target = target;
+	chimera_a.level = level;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetTexLevelParameterfv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetTexLevelParameteriv(GLenum target, GLint level, GLenum pname, GLint * params)
 {
-	struct ChimeraGlArgs_glGetTexLevelParameteriv cargs;
-	cargs.target = target;
-	cargs.level = level;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetTexLevelParameteriv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetTexLevelParameteriv chimera_a;
+	chimera_a.target = target;
+	chimera_a.level = level;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetTexLevelParameteriv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetTexParameterfv(GLenum target, GLenum pname, GLfloat * params)
 {
-	struct ChimeraGlArgs_glGetTexParameterfv cargs;
-	cargs.target = target;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetTexParameterfv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetTexParameterfv chimera_a;
+	chimera_a.target = target;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetTexParameterfv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetTexParameterIiv(GLenum target, GLenum pname, GLint * params)
 {
-	struct ChimeraGlArgs_glGetTexParameterIiv cargs;
-	cargs.target = target;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetTexParameterIiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetTexParameterIiv chimera_a;
+	chimera_a.target = target;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetTexParameterIiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetTexParameterIuiv(GLenum target, GLenum pname, GLuint * params)
 {
-	struct ChimeraGlArgs_glGetTexParameterIuiv cargs;
-	cargs.target = target;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetTexParameterIuiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetTexParameterIuiv chimera_a;
+	chimera_a.target = target;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetTexParameterIuiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetTexParameteriv(GLenum target, GLenum pname, GLint * params)
 {
-	struct ChimeraGlArgs_glGetTexParameteriv cargs;
-	cargs.target = target;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetTexParameteriv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGetTextureImage(GLuint texture, GLint level, GLenum format, GLenum type, GLsizei bufSize, void * pixels)
-{
-	struct ChimeraGlArgs_glGetTextureImage cargs;
-	cargs.texture = texture;
-	cargs.level = level;
-	cargs.format = format;
-	cargs.type = type;
-	cargs.bufSize = bufSize;
-	cargs.pixels = pixels;
-	g_bridge(CHIMERA_GL_OP_glGetTextureImage, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetTexParameteriv chimera_a;
+	chimera_a.target = target;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetTexParameteriv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetTextureLevelParameterfv(GLuint texture, GLint level, GLenum pname, GLfloat * params)
 {
-	struct ChimeraGlArgs_glGetTextureLevelParameterfv cargs;
-	cargs.texture = texture;
-	cargs.level = level;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetTextureLevelParameterfv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetTextureLevelParameterfv chimera_a;
+	chimera_a.texture = texture;
+	chimera_a.level = level;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetTextureLevelParameterfv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetTextureLevelParameteriv(GLuint texture, GLint level, GLenum pname, GLint * params)
 {
-	struct ChimeraGlArgs_glGetTextureLevelParameteriv cargs;
-	cargs.texture = texture;
-	cargs.level = level;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetTextureLevelParameteriv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetTextureLevelParameteriv chimera_a;
+	chimera_a.texture = texture;
+	chimera_a.level = level;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetTextureLevelParameteriv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetTextureParameterfv(GLuint texture, GLenum pname, GLfloat * params)
 {
-	struct ChimeraGlArgs_glGetTextureParameterfv cargs;
-	cargs.texture = texture;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetTextureParameterfv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetTextureParameterfv chimera_a;
+	chimera_a.texture = texture;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetTextureParameterfv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetTextureParameterIiv(GLuint texture, GLenum pname, GLint * params)
 {
-	struct ChimeraGlArgs_glGetTextureParameterIiv cargs;
-	cargs.texture = texture;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetTextureParameterIiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetTextureParameterIiv chimera_a;
+	chimera_a.texture = texture;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetTextureParameterIiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetTextureParameterIuiv(GLuint texture, GLenum pname, GLuint * params)
 {
-	struct ChimeraGlArgs_glGetTextureParameterIuiv cargs;
-	cargs.texture = texture;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetTextureParameterIuiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetTextureParameterIuiv chimera_a;
+	chimera_a.texture = texture;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetTextureParameterIuiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetTextureParameteriv(GLuint texture, GLenum pname, GLint * params)
 {
-	struct ChimeraGlArgs_glGetTextureParameteriv cargs;
-	cargs.texture = texture;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetTextureParameteriv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetTextureParameteriv chimera_a;
+	chimera_a.texture = texture;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetTextureParameteriv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetTextureSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLsizei bufSize, void * pixels)
 {
-	struct ChimeraGlArgs_glGetTextureSubImage cargs;
-	cargs.texture = texture;
-	cargs.level = level;
-	cargs.xoffset = xoffset;
-	cargs.yoffset = yoffset;
-	cargs.zoffset = zoffset;
-	cargs.width = width;
-	cargs.height = height;
-	cargs.depth = depth;
-	cargs.format = format;
-	cargs.type = type;
-	cargs.bufSize = bufSize;
-	cargs.pixels = pixels;
-	g_bridge(CHIMERA_GL_OP_glGetTextureSubImage, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGetTransformFeedbacki64_v(GLuint xfb, GLenum pname, GLuint index, GLint64 * param)
-{
-	struct ChimeraGlArgs_glGetTransformFeedbacki64_v cargs;
-	cargs.xfb = xfb;
-	cargs.pname = pname;
-	cargs.index = index;
-	cargs.param = param;
-	g_bridge(CHIMERA_GL_OP_glGetTransformFeedbacki64_v, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGetTransformFeedbacki_v(GLuint xfb, GLenum pname, GLuint index, GLint * param)
-{
-	struct ChimeraGlArgs_glGetTransformFeedbacki_v cargs;
-	cargs.xfb = xfb;
-	cargs.pname = pname;
-	cargs.index = index;
-	cargs.param = param;
-	g_bridge(CHIMERA_GL_OP_glGetTransformFeedbacki_v, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetTextureSubImage chimera_a;
+	chimera_a.texture = texture;
+	chimera_a.level = level;
+	chimera_a.xoffset = xoffset;
+	chimera_a.yoffset = yoffset;
+	chimera_a.zoffset = zoffset;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	chimera_a.depth = depth;
+	chimera_a.format = format;
+	chimera_a.type = type;
+	chimera_a.bufSize = bufSize;
+	chimera_a.pixels = pixels;
+	g_bridge(CHIMERA_GL_OP_glGetTextureSubImage, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetTransformFeedbackiv(GLuint xfb, GLenum pname, GLint * param)
 {
-	struct ChimeraGlArgs_glGetTransformFeedbackiv cargs;
-	cargs.xfb = xfb;
-	cargs.pname = pname;
-	cargs.param = param;
-	g_bridge(CHIMERA_GL_OP_glGetTransformFeedbackiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetTransformFeedbackiv chimera_a;
+	chimera_a.xfb = xfb;
+	chimera_a.pname = pname;
+	chimera_a.param = param;
+	g_bridge(CHIMERA_GL_OP_glGetTransformFeedbackiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetTransformFeedbackVarying(GLuint program, GLuint index, GLsizei bufSize, GLsizei * length, GLsizei * size, GLenum * type, GLchar * name)
 {
-	struct ChimeraGlArgs_glGetTransformFeedbackVarying cargs;
-	cargs.program = program;
-	cargs.index = index;
-	cargs.bufSize = bufSize;
-	cargs.length = length;
-	cargs.size = size;
-	cargs.type = type;
-	cargs.name = name;
-	g_bridge(CHIMERA_GL_OP_glGetTransformFeedbackVarying, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static GLuint GLAD_API_PTR w_glGetUniformBlockIndex(GLuint program, const GLchar * uniformBlockName)
-{
-	struct ChimeraGlArgs_glGetUniformBlockIndex cargs;
-	cargs.program = program;
-	cargs.uniformBlockName = uniformBlockName;
-	return (GLuint)g_bridge(CHIMERA_GL_OP_glGetUniformBlockIndex, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGetUniformdv(GLuint program, GLint location, GLdouble * params)
-{
-	struct ChimeraGlArgs_glGetUniformdv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetUniformdv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetTransformFeedbackVarying chimera_a;
+	chimera_a.program = program;
+	chimera_a.index = index;
+	chimera_a.bufSize = bufSize;
+	chimera_a.length = length;
+	chimera_a.size = size;
+	chimera_a.type = type;
+	chimera_a.name = name;
+	g_bridge(CHIMERA_GL_OP_glGetTransformFeedbackVarying, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetUniformfv(GLuint program, GLint location, GLfloat * params)
 {
-	struct ChimeraGlArgs_glGetUniformfv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetUniformfv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetUniformfv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetUniformfv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetUniformIndices(GLuint program, GLsizei uniformCount, const GLchar *const* uniformNames, GLuint * uniformIndices)
 {
-	struct ChimeraGlArgs_glGetUniformIndices cargs;
-	cargs.program = program;
-	cargs.uniformCount = uniformCount;
-	cargs.uniformNames = uniformNames;
-	cargs.uniformIndices = uniformIndices;
-	g_bridge(CHIMERA_GL_OP_glGetUniformIndices, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetUniformIndices chimera_a;
+	chimera_a.program = program;
+	chimera_a.uniformCount = uniformCount;
+	chimera_a.uniformNames = uniformNames;
+	chimera_a.uniformIndices = uniformIndices;
+	g_bridge(CHIMERA_GL_OP_glGetUniformIndices, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetUniformiv(GLuint program, GLint location, GLint * params)
 {
-	struct ChimeraGlArgs_glGetUniformiv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetUniformiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static GLint GLAD_API_PTR w_glGetUniformLocation(GLuint program, const GLchar * name)
-{
-	struct ChimeraGlArgs_glGetUniformLocation cargs;
-	cargs.program = program;
-	cargs.name = name;
-	return (GLint)g_bridge(CHIMERA_GL_OP_glGetUniformLocation, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGetUniformSubroutineuiv(GLenum shadertype, GLint location, GLuint * params)
-{
-	struct ChimeraGlArgs_glGetUniformSubroutineuiv cargs;
-	cargs.shadertype = shadertype;
-	cargs.location = location;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetUniformSubroutineuiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetUniformiv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetUniformiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetUniformuiv(GLuint program, GLint location, GLuint * params)
 {
-	struct ChimeraGlArgs_glGetUniformuiv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetUniformuiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetUniformuiv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetUniformuiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetVertexArrayIndexed64iv(GLuint vaobj, GLuint index, GLenum pname, GLint64 * param)
 {
-	struct ChimeraGlArgs_glGetVertexArrayIndexed64iv cargs;
-	cargs.vaobj = vaobj;
-	cargs.index = index;
-	cargs.pname = pname;
-	cargs.param = param;
-	g_bridge(CHIMERA_GL_OP_glGetVertexArrayIndexed64iv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetVertexArrayIndexed64iv chimera_a;
+	chimera_a.vaobj = vaobj;
+	chimera_a.index = index;
+	chimera_a.pname = pname;
+	chimera_a.param = param;
+	g_bridge(CHIMERA_GL_OP_glGetVertexArrayIndexed64iv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetVertexArrayIndexediv(GLuint vaobj, GLuint index, GLenum pname, GLint * param)
 {
-	struct ChimeraGlArgs_glGetVertexArrayIndexediv cargs;
-	cargs.vaobj = vaobj;
-	cargs.index = index;
-	cargs.pname = pname;
-	cargs.param = param;
-	g_bridge(CHIMERA_GL_OP_glGetVertexArrayIndexediv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetVertexArrayIndexediv chimera_a;
+	chimera_a.vaobj = vaobj;
+	chimera_a.index = index;
+	chimera_a.pname = pname;
+	chimera_a.param = param;
+	g_bridge(CHIMERA_GL_OP_glGetVertexArrayIndexediv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetVertexArrayiv(GLuint vaobj, GLenum pname, GLint * param)
 {
-	struct ChimeraGlArgs_glGetVertexArrayiv cargs;
-	cargs.vaobj = vaobj;
-	cargs.pname = pname;
-	cargs.param = param;
-	g_bridge(CHIMERA_GL_OP_glGetVertexArrayiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetVertexArrayiv chimera_a;
+	chimera_a.vaobj = vaobj;
+	chimera_a.pname = pname;
+	chimera_a.param = param;
+	g_bridge(CHIMERA_GL_OP_glGetVertexArrayiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetVertexAttribdv(GLuint index, GLenum pname, GLdouble * params)
 {
-	struct ChimeraGlArgs_glGetVertexAttribdv cargs;
-	cargs.index = index;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetVertexAttribdv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetVertexAttribdv chimera_a;
+	chimera_a.index = index;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetVertexAttribdv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetVertexAttribfv(GLuint index, GLenum pname, GLfloat * params)
 {
-	struct ChimeraGlArgs_glGetVertexAttribfv cargs;
-	cargs.index = index;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetVertexAttribfv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetVertexAttribfv chimera_a;
+	chimera_a.index = index;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetVertexAttribfv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetVertexAttribIiv(GLuint index, GLenum pname, GLint * params)
 {
-	struct ChimeraGlArgs_glGetVertexAttribIiv cargs;
-	cargs.index = index;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetVertexAttribIiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetVertexAttribIiv chimera_a;
+	chimera_a.index = index;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetVertexAttribIiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetVertexAttribIuiv(GLuint index, GLenum pname, GLuint * params)
 {
-	struct ChimeraGlArgs_glGetVertexAttribIuiv cargs;
-	cargs.index = index;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetVertexAttribIuiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetVertexAttribIuiv chimera_a;
+	chimera_a.index = index;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetVertexAttribIuiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetVertexAttribiv(GLuint index, GLenum pname, GLint * params)
 {
-	struct ChimeraGlArgs_glGetVertexAttribiv cargs;
-	cargs.index = index;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetVertexAttribiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glGetVertexAttribLdv(GLuint index, GLenum pname, GLdouble * params)
-{
-	struct ChimeraGlArgs_glGetVertexAttribLdv cargs;
-	cargs.index = index;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glGetVertexAttribLdv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetVertexAttribiv chimera_a;
+	chimera_a.index = index;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetVertexAttribiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glGetVertexAttribPointerv(GLuint index, GLenum pname, void ** pointer)
 {
-	struct ChimeraGlArgs_glGetVertexAttribPointerv cargs;
-	cargs.index = index;
-	cargs.pname = pname;
-	cargs.pointer = pointer;
-	g_bridge(CHIMERA_GL_OP_glGetVertexAttribPointerv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glHint(GLenum target, GLenum mode)
-{
-	struct ChimeraGlArgs_glHint cargs;
-	cargs.target = target;
-	cargs.mode = mode;
-	g_bridge(CHIMERA_GL_OP_glHint, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glGetVertexAttribPointerv chimera_a;
+	chimera_a.index = index;
+	chimera_a.pname = pname;
+	chimera_a.pointer = pointer;
+	g_bridge(CHIMERA_GL_OP_glGetVertexAttribPointerv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glInvalidateBufferData(GLuint buffer)
 {
-	struct ChimeraGlArgs_glInvalidateBufferData cargs;
-	cargs.buffer = buffer;
-	g_bridge(CHIMERA_GL_OP_glInvalidateBufferData, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glInvalidateBufferData chimera_a;
+	chimera_a.buffer = buffer;
+	g_bridge(CHIMERA_GL_OP_glInvalidateBufferData, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glInvalidateBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr length)
 {
-	struct ChimeraGlArgs_glInvalidateBufferSubData cargs;
-	cargs.buffer = buffer;
-	cargs.offset = offset;
-	cargs.length = length;
-	g_bridge(CHIMERA_GL_OP_glInvalidateBufferSubData, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glInvalidateFramebuffer(GLenum target, GLsizei numAttachments, const GLenum * attachments)
-{
-	struct ChimeraGlArgs_glInvalidateFramebuffer cargs;
-	cargs.target = target;
-	cargs.numAttachments = numAttachments;
-	cargs.attachments = attachments;
-	g_bridge(CHIMERA_GL_OP_glInvalidateFramebuffer, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glInvalidateBufferSubData chimera_a;
+	chimera_a.buffer = buffer;
+	chimera_a.offset = offset;
+	chimera_a.length = length;
+	g_bridge(CHIMERA_GL_OP_glInvalidateBufferSubData, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glInvalidateNamedFramebufferData(GLuint framebuffer, GLsizei numAttachments, const GLenum * attachments)
 {
-	struct ChimeraGlArgs_glInvalidateNamedFramebufferData cargs;
-	cargs.framebuffer = framebuffer;
-	cargs.numAttachments = numAttachments;
-	cargs.attachments = attachments;
-	g_bridge(CHIMERA_GL_OP_glInvalidateNamedFramebufferData, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glInvalidateNamedFramebufferData chimera_a;
+	chimera_a.framebuffer = framebuffer;
+	chimera_a.numAttachments = numAttachments;
+	chimera_a.attachments = attachments;
+	g_bridge(CHIMERA_GL_OP_glInvalidateNamedFramebufferData, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glInvalidateNamedFramebufferSubData(GLuint framebuffer, GLsizei numAttachments, const GLenum * attachments, GLint x, GLint y, GLsizei width, GLsizei height)
 {
-	struct ChimeraGlArgs_glInvalidateNamedFramebufferSubData cargs;
-	cargs.framebuffer = framebuffer;
-	cargs.numAttachments = numAttachments;
-	cargs.attachments = attachments;
-	cargs.x = x;
-	cargs.y = y;
-	cargs.width = width;
-	cargs.height = height;
-	g_bridge(CHIMERA_GL_OP_glInvalidateNamedFramebufferSubData, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glInvalidateNamedFramebufferSubData chimera_a;
+	chimera_a.framebuffer = framebuffer;
+	chimera_a.numAttachments = numAttachments;
+	chimera_a.attachments = attachments;
+	chimera_a.x = x;
+	chimera_a.y = y;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	g_bridge(CHIMERA_GL_OP_glInvalidateNamedFramebufferSubData, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glInvalidateSubFramebuffer(GLenum target, GLsizei numAttachments, const GLenum * attachments, GLint x, GLint y, GLsizei width, GLsizei height)
 {
-	struct ChimeraGlArgs_glInvalidateSubFramebuffer cargs;
-	cargs.target = target;
-	cargs.numAttachments = numAttachments;
-	cargs.attachments = attachments;
-	cargs.x = x;
-	cargs.y = y;
-	cargs.width = width;
-	cargs.height = height;
-	g_bridge(CHIMERA_GL_OP_glInvalidateSubFramebuffer, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glInvalidateSubFramebuffer chimera_a;
+	chimera_a.target = target;
+	chimera_a.numAttachments = numAttachments;
+	chimera_a.attachments = attachments;
+	chimera_a.x = x;
+	chimera_a.y = y;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	g_bridge(CHIMERA_GL_OP_glInvalidateSubFramebuffer, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glInvalidateTexImage(GLuint texture, GLint level)
 {
-	struct ChimeraGlArgs_glInvalidateTexImage cargs;
-	cargs.texture = texture;
-	cargs.level = level;
-	g_bridge(CHIMERA_GL_OP_glInvalidateTexImage, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glInvalidateTexImage chimera_a;
+	chimera_a.texture = texture;
+	chimera_a.level = level;
+	g_bridge(CHIMERA_GL_OP_glInvalidateTexImage, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glInvalidateTexSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth)
 {
-	struct ChimeraGlArgs_glInvalidateTexSubImage cargs;
-	cargs.texture = texture;
-	cargs.level = level;
-	cargs.xoffset = xoffset;
-	cargs.yoffset = yoffset;
-	cargs.zoffset = zoffset;
-	cargs.width = width;
-	cargs.height = height;
-	cargs.depth = depth;
-	g_bridge(CHIMERA_GL_OP_glInvalidateTexSubImage, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glInvalidateTexSubImage chimera_a;
+	chimera_a.texture = texture;
+	chimera_a.level = level;
+	chimera_a.xoffset = xoffset;
+	chimera_a.yoffset = yoffset;
+	chimera_a.zoffset = zoffset;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	chimera_a.depth = depth;
+	g_bridge(CHIMERA_GL_OP_glInvalidateTexSubImage, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static GLboolean GLAD_API_PTR w_glIsBuffer(GLuint buffer)
 {
-	struct ChimeraGlArgs_glIsBuffer cargs;
-	cargs.buffer = buffer;
-	return (GLboolean)g_bridge(CHIMERA_GL_OP_glIsBuffer, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glIsBuffer chimera_a;
+	chimera_a.buffer = buffer;
+	return (GLboolean)g_bridge(CHIMERA_GL_OP_glIsBuffer, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static GLboolean GLAD_API_PTR w_glIsEnabled(GLenum cap)
 {
-	struct ChimeraGlArgs_glIsEnabled cargs;
-	cargs.cap = cap;
-	return (GLboolean)g_bridge(CHIMERA_GL_OP_glIsEnabled, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glIsEnabled chimera_a;
+	chimera_a.cap = cap;
+	return (GLboolean)g_bridge(CHIMERA_GL_OP_glIsEnabled, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static GLboolean GLAD_API_PTR w_glIsEnabledi(GLenum target, GLuint index)
 {
-	struct ChimeraGlArgs_glIsEnabledi cargs;
-	cargs.target = target;
-	cargs.index = index;
-	return (GLboolean)g_bridge(CHIMERA_GL_OP_glIsEnabledi, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static GLboolean GLAD_API_PTR w_glIsEnabledIndexedEXT(GLenum target, GLuint index)
-{
-	struct ChimeraGlArgs_glIsEnabledIndexedEXT cargs;
-	cargs.target = target;
-	cargs.index = index;
-	return (GLboolean)g_bridge(CHIMERA_GL_OP_glIsEnabledIndexedEXT, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glIsEnabledi chimera_a;
+	chimera_a.target = target;
+	chimera_a.index = index;
+	return (GLboolean)g_bridge(CHIMERA_GL_OP_glIsEnabledi, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static GLboolean GLAD_API_PTR w_glIsFramebuffer(GLuint framebuffer)
 {
-	struct ChimeraGlArgs_glIsFramebuffer cargs;
-	cargs.framebuffer = framebuffer;
-	return (GLboolean)g_bridge(CHIMERA_GL_OP_glIsFramebuffer, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glIsFramebuffer chimera_a;
+	chimera_a.framebuffer = framebuffer;
+	return (GLboolean)g_bridge(CHIMERA_GL_OP_glIsFramebuffer, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static GLboolean GLAD_API_PTR w_glIsProgram(GLuint program)
 {
-	struct ChimeraGlArgs_glIsProgram cargs;
-	cargs.program = program;
-	return (GLboolean)g_bridge(CHIMERA_GL_OP_glIsProgram, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static GLboolean GLAD_API_PTR w_glIsProgramPipeline(GLuint pipeline)
-{
-	struct ChimeraGlArgs_glIsProgramPipeline cargs;
-	cargs.pipeline = pipeline;
-	return (GLboolean)g_bridge(CHIMERA_GL_OP_glIsProgramPipeline, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glIsProgram chimera_a;
+	chimera_a.program = program;
+	return (GLboolean)g_bridge(CHIMERA_GL_OP_glIsProgram, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static GLboolean GLAD_API_PTR w_glIsQuery(GLuint id)
 {
-	struct ChimeraGlArgs_glIsQuery cargs;
-	cargs.id = id;
-	return (GLboolean)g_bridge(CHIMERA_GL_OP_glIsQuery, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static GLboolean GLAD_API_PTR w_glIsQueryEXT(GLuint id)
-{
-	struct ChimeraGlArgs_glIsQueryEXT cargs;
-	cargs.id = id;
-	return (GLboolean)g_bridge(CHIMERA_GL_OP_glIsQueryEXT, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glIsQuery chimera_a;
+	chimera_a.id = id;
+	return (GLboolean)g_bridge(CHIMERA_GL_OP_glIsQuery, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static GLboolean GLAD_API_PTR w_glIsRenderbuffer(GLuint renderbuffer)
 {
-	struct ChimeraGlArgs_glIsRenderbuffer cargs;
-	cargs.renderbuffer = renderbuffer;
-	return (GLboolean)g_bridge(CHIMERA_GL_OP_glIsRenderbuffer, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glIsRenderbuffer chimera_a;
+	chimera_a.renderbuffer = renderbuffer;
+	return (GLboolean)g_bridge(CHIMERA_GL_OP_glIsRenderbuffer, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static GLboolean GLAD_API_PTR w_glIsSampler(GLuint sampler)
 {
-	struct ChimeraGlArgs_glIsSampler cargs;
-	cargs.sampler = sampler;
-	return (GLboolean)g_bridge(CHIMERA_GL_OP_glIsSampler, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glIsSampler chimera_a;
+	chimera_a.sampler = sampler;
+	return (GLboolean)g_bridge(CHIMERA_GL_OP_glIsSampler, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static GLboolean GLAD_API_PTR w_glIsShader(GLuint shader)
 {
-	struct ChimeraGlArgs_glIsShader cargs;
-	cargs.shader = shader;
-	return (GLboolean)g_bridge(CHIMERA_GL_OP_glIsShader, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glIsShader chimera_a;
+	chimera_a.shader = shader;
+	return (GLboolean)g_bridge(CHIMERA_GL_OP_glIsShader, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static GLboolean GLAD_API_PTR w_glIsSync(GLsync sync)
 {
-	struct ChimeraGlArgs_glIsSync cargs;
-	cargs.sync = sync;
-	return (GLboolean)g_bridge(CHIMERA_GL_OP_glIsSync, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glIsSync chimera_a;
+	chimera_a.sync = sync;
+	return (GLboolean)g_bridge(CHIMERA_GL_OP_glIsSync, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static GLboolean GLAD_API_PTR w_glIsTexture(GLuint texture)
 {
-	struct ChimeraGlArgs_glIsTexture cargs;
-	cargs.texture = texture;
-	return (GLboolean)g_bridge(CHIMERA_GL_OP_glIsTexture, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static GLboolean GLAD_API_PTR w_glIsTransformFeedback(GLuint id)
-{
-	struct ChimeraGlArgs_glIsTransformFeedback cargs;
-	cargs.id = id;
-	return (GLboolean)g_bridge(CHIMERA_GL_OP_glIsTransformFeedback, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glIsTexture chimera_a;
+	chimera_a.texture = texture;
+	return (GLboolean)g_bridge(CHIMERA_GL_OP_glIsTexture, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static GLboolean GLAD_API_PTR w_glIsVertexArray(GLuint array)
 {
-	struct ChimeraGlArgs_glIsVertexArray cargs;
-	cargs.array = array;
-	return (GLboolean)g_bridge(CHIMERA_GL_OP_glIsVertexArray, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static GLboolean GLAD_API_PTR w_glIsVertexArrayAPPLE(GLuint array)
-{
-	struct ChimeraGlArgs_glIsVertexArrayAPPLE cargs;
-	cargs.array = array;
-	return (GLboolean)g_bridge(CHIMERA_GL_OP_glIsVertexArrayAPPLE, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static GLboolean GLAD_API_PTR w_glIsVertexArrayOES(GLuint array)
-{
-	struct ChimeraGlArgs_glIsVertexArrayOES cargs;
-	cargs.array = array;
-	return (GLboolean)g_bridge(CHIMERA_GL_OP_glIsVertexArrayOES, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glLineWidth(GLfloat width)
-{
-	struct ChimeraGlArgs_glLineWidth cargs;
-	cargs.width = width;
-	g_bridge(CHIMERA_GL_OP_glLineWidth, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glLinkProgram(GLuint program)
-{
-	struct ChimeraGlArgs_glLinkProgram cargs;
-	cargs.program = program;
-	g_bridge(CHIMERA_GL_OP_glLinkProgram, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glIsVertexArray chimera_a;
+	chimera_a.array = array;
+	return (GLboolean)g_bridge(CHIMERA_GL_OP_glIsVertexArray, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glLogicOp(GLenum opcode)
 {
-	struct ChimeraGlArgs_glLogicOp cargs;
-	cargs.opcode = opcode;
-	g_bridge(CHIMERA_GL_OP_glLogicOp, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glLogicOp chimera_a;
+	chimera_a.opcode = opcode;
+	g_bridge(CHIMERA_GL_OP_glLogicOp, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void * GLAD_API_PTR w_glMapBuffer(GLenum target, GLenum access)
+{
+	struct ChimeraGlArgs_glMapBuffer chimera_a;
+	chimera_a.target = target;
+	chimera_a.access = access;
+	return (void *)g_bridge(CHIMERA_GL_OP_glMapBuffer, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void * GLAD_API_PTR w_glMapNamedBuffer(GLuint buffer, GLenum access)
 {
-	struct ChimeraGlArgs_glMapNamedBuffer cargs;
-	cargs.buffer = buffer;
-	cargs.access = access;
-	return (void *)g_bridge(CHIMERA_GL_OP_glMapNamedBuffer, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glMapNamedBuffer chimera_a;
+	chimera_a.buffer = buffer;
+	chimera_a.access = access;
+	return (void *)g_bridge(CHIMERA_GL_OP_glMapNamedBuffer, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void * GLAD_API_PTR w_glMapNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length, GLbitfield access)
 {
-	struct ChimeraGlArgs_glMapNamedBufferRange cargs;
-	cargs.buffer = buffer;
-	cargs.offset = offset;
-	cargs.length = length;
-	cargs.access = access;
-	return (void *)g_bridge(CHIMERA_GL_OP_glMapNamedBufferRange, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glMaxShaderCompilerThreadsARB(GLuint count)
-{
-	struct ChimeraGlArgs_glMaxShaderCompilerThreadsARB cargs;
-	cargs.count = count;
-	g_bridge(CHIMERA_GL_OP_glMaxShaderCompilerThreadsARB, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glMaxShaderCompilerThreadsKHR(GLuint count)
-{
-	struct ChimeraGlArgs_glMaxShaderCompilerThreadsKHR cargs;
-	cargs.count = count;
-	g_bridge(CHIMERA_GL_OP_glMaxShaderCompilerThreadsKHR, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glMemoryBarrier(GLbitfield barriers)
-{
-	struct ChimeraGlArgs_glMemoryBarrier cargs;
-	cargs.barriers = barriers;
-	g_bridge(CHIMERA_GL_OP_glMemoryBarrier, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glMapNamedBufferRange chimera_a;
+	chimera_a.buffer = buffer;
+	chimera_a.offset = offset;
+	chimera_a.length = length;
+	chimera_a.access = access;
+	return (void *)g_bridge(CHIMERA_GL_OP_glMapNamedBufferRange, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glMemoryBarrierByRegion(GLbitfield barriers)
 {
-	struct ChimeraGlArgs_glMemoryBarrierByRegion cargs;
-	cargs.barriers = barriers;
-	g_bridge(CHIMERA_GL_OP_glMemoryBarrierByRegion, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glMemoryBarrierByRegion chimera_a;
+	chimera_a.barriers = barriers;
+	g_bridge(CHIMERA_GL_OP_glMemoryBarrierByRegion, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glMinSampleShading(GLfloat value)
 {
-	struct ChimeraGlArgs_glMinSampleShading cargs;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glMinSampleShading, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glMultiDrawArrays(GLenum mode, const GLint * first, const GLsizei * count, GLsizei drawcount)
-{
-	struct ChimeraGlArgs_glMultiDrawArrays cargs;
-	cargs.mode = mode;
-	cargs.first = first;
-	cargs.count = count;
-	cargs.drawcount = drawcount;
-	g_bridge(CHIMERA_GL_OP_glMultiDrawArrays, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glMinSampleShading chimera_a;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glMinSampleShading, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glMultiDrawArraysIndirect(GLenum mode, const void * indirect, GLsizei drawcount, GLsizei stride)
 {
-	struct ChimeraGlArgs_glMultiDrawArraysIndirect cargs;
-	cargs.mode = mode;
-	cargs.indirect = indirect;
-	cargs.drawcount = drawcount;
-	cargs.stride = stride;
-	g_bridge(CHIMERA_GL_OP_glMultiDrawArraysIndirect, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glMultiDrawArraysIndirectCount(GLenum mode, const void * indirect, GLintptr drawcount, GLsizei maxdrawcount, GLsizei stride)
-{
-	struct ChimeraGlArgs_glMultiDrawArraysIndirectCount cargs;
-	cargs.mode = mode;
-	cargs.indirect = indirect;
-	cargs.drawcount = drawcount;
-	cargs.maxdrawcount = maxdrawcount;
-	cargs.stride = stride;
-	g_bridge(CHIMERA_GL_OP_glMultiDrawArraysIndirectCount, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glMultiDrawArraysIndirect chimera_a;
+	chimera_a.mode = mode;
+	chimera_a.indirect = indirect;
+	chimera_a.drawcount = drawcount;
+	chimera_a.stride = stride;
+	g_bridge(CHIMERA_GL_OP_glMultiDrawArraysIndirect, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glMultiDrawElements(GLenum mode, const GLsizei * count, GLenum type, const void *const* indices, GLsizei drawcount)
 {
-	struct ChimeraGlArgs_glMultiDrawElements cargs;
-	cargs.mode = mode;
-	cargs.count = count;
-	cargs.type = type;
-	cargs.indices = indices;
-	cargs.drawcount = drawcount;
-	g_bridge(CHIMERA_GL_OP_glMultiDrawElements, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glMultiDrawElements chimera_a;
+	chimera_a.mode = mode;
+	chimera_a.count = count;
+	chimera_a.type = type;
+	chimera_a.indices = indices;
+	chimera_a.drawcount = drawcount;
+	g_bridge(CHIMERA_GL_OP_glMultiDrawElements, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glMultiDrawElementsBaseVertex(GLenum mode, const GLsizei * count, GLenum type, const void *const* indices, GLsizei drawcount, const GLint * basevertex)
 {
-	struct ChimeraGlArgs_glMultiDrawElementsBaseVertex cargs;
-	cargs.mode = mode;
-	cargs.count = count;
-	cargs.type = type;
-	cargs.indices = indices;
-	cargs.drawcount = drawcount;
-	cargs.basevertex = basevertex;
-	g_bridge(CHIMERA_GL_OP_glMultiDrawElementsBaseVertex, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glMultiDrawElementsBaseVertex chimera_a;
+	chimera_a.mode = mode;
+	chimera_a.count = count;
+	chimera_a.type = type;
+	chimera_a.indices = indices;
+	chimera_a.drawcount = drawcount;
+	chimera_a.basevertex = basevertex;
+	g_bridge(CHIMERA_GL_OP_glMultiDrawElementsBaseVertex, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glMultiDrawElementsIndirect(GLenum mode, GLenum type, const void * indirect, GLsizei drawcount, GLsizei stride)
 {
-	struct ChimeraGlArgs_glMultiDrawElementsIndirect cargs;
-	cargs.mode = mode;
-	cargs.type = type;
-	cargs.indirect = indirect;
-	cargs.drawcount = drawcount;
-	cargs.stride = stride;
-	g_bridge(CHIMERA_GL_OP_glMultiDrawElementsIndirect, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glMultiDrawElementsIndirectCount(GLenum mode, GLenum type, const void * indirect, GLintptr drawcount, GLsizei maxdrawcount, GLsizei stride)
-{
-	struct ChimeraGlArgs_glMultiDrawElementsIndirectCount cargs;
-	cargs.mode = mode;
-	cargs.type = type;
-	cargs.indirect = indirect;
-	cargs.drawcount = drawcount;
-	cargs.maxdrawcount = maxdrawcount;
-	cargs.stride = stride;
-	g_bridge(CHIMERA_GL_OP_glMultiDrawElementsIndirectCount, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glMultiDrawElementsIndirect chimera_a;
+	chimera_a.mode = mode;
+	chimera_a.type = type;
+	chimera_a.indirect = indirect;
+	chimera_a.drawcount = drawcount;
+	chimera_a.stride = stride;
+	g_bridge(CHIMERA_GL_OP_glMultiDrawElementsIndirect, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glNamedBufferData(GLuint buffer, GLsizeiptr size, const void * data, GLenum usage)
 {
-	struct ChimeraGlArgs_glNamedBufferData cargs;
-	cargs.buffer = buffer;
-	cargs.size = size;
-	cargs.data = data;
-	cargs.usage = usage;
-	g_bridge(CHIMERA_GL_OP_glNamedBufferData, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glNamedBufferData chimera_a;
+	chimera_a.buffer = buffer;
+	chimera_a.size = size;
+	chimera_a.data = data;
+	chimera_a.usage = usage;
+	g_bridge(CHIMERA_GL_OP_glNamedBufferData, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glNamedBufferStorage(GLuint buffer, GLsizeiptr size, const void * data, GLbitfield flags)
 {
-	struct ChimeraGlArgs_glNamedBufferStorage cargs;
-	cargs.buffer = buffer;
-	cargs.size = size;
-	cargs.data = data;
-	cargs.flags = flags;
-	g_bridge(CHIMERA_GL_OP_glNamedBufferStorage, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glNamedBufferStorage chimera_a;
+	chimera_a.buffer = buffer;
+	chimera_a.size = size;
+	chimera_a.data = data;
+	chimera_a.flags = flags;
+	g_bridge(CHIMERA_GL_OP_glNamedBufferStorage, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, const void * data)
 {
-	struct ChimeraGlArgs_glNamedBufferSubData cargs;
-	cargs.buffer = buffer;
-	cargs.offset = offset;
-	cargs.size = size;
-	cargs.data = data;
-	g_bridge(CHIMERA_GL_OP_glNamedBufferSubData, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glNamedBufferSubData chimera_a;
+	chimera_a.buffer = buffer;
+	chimera_a.offset = offset;
+	chimera_a.size = size;
+	chimera_a.data = data;
+	g_bridge(CHIMERA_GL_OP_glNamedBufferSubData, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glNamedFramebufferDrawBuffer(GLuint framebuffer, GLenum buf)
 {
-	struct ChimeraGlArgs_glNamedFramebufferDrawBuffer cargs;
-	cargs.framebuffer = framebuffer;
-	cargs.buf = buf;
-	g_bridge(CHIMERA_GL_OP_glNamedFramebufferDrawBuffer, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glNamedFramebufferDrawBuffer chimera_a;
+	chimera_a.framebuffer = framebuffer;
+	chimera_a.buf = buf;
+	g_bridge(CHIMERA_GL_OP_glNamedFramebufferDrawBuffer, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glNamedFramebufferDrawBuffers(GLuint framebuffer, GLsizei n, const GLenum * bufs)
 {
-	struct ChimeraGlArgs_glNamedFramebufferDrawBuffers cargs;
-	cargs.framebuffer = framebuffer;
-	cargs.n = n;
-	cargs.bufs = bufs;
-	g_bridge(CHIMERA_GL_OP_glNamedFramebufferDrawBuffers, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glNamedFramebufferDrawBuffers chimera_a;
+	chimera_a.framebuffer = framebuffer;
+	chimera_a.n = n;
+	chimera_a.bufs = bufs;
+	g_bridge(CHIMERA_GL_OP_glNamedFramebufferDrawBuffers, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glNamedFramebufferParameteri(GLuint framebuffer, GLenum pname, GLint param)
 {
-	struct ChimeraGlArgs_glNamedFramebufferParameteri cargs;
-	cargs.framebuffer = framebuffer;
-	cargs.pname = pname;
-	cargs.param = param;
-	g_bridge(CHIMERA_GL_OP_glNamedFramebufferParameteri, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glNamedFramebufferParameteri chimera_a;
+	chimera_a.framebuffer = framebuffer;
+	chimera_a.pname = pname;
+	chimera_a.param = param;
+	g_bridge(CHIMERA_GL_OP_glNamedFramebufferParameteri, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glNamedFramebufferReadBuffer(GLuint framebuffer, GLenum src)
 {
-	struct ChimeraGlArgs_glNamedFramebufferReadBuffer cargs;
-	cargs.framebuffer = framebuffer;
-	cargs.src = src;
-	g_bridge(CHIMERA_GL_OP_glNamedFramebufferReadBuffer, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glNamedFramebufferReadBuffer chimera_a;
+	chimera_a.framebuffer = framebuffer;
+	chimera_a.src = src;
+	g_bridge(CHIMERA_GL_OP_glNamedFramebufferReadBuffer, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glNamedFramebufferRenderbuffer(GLuint framebuffer, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer)
 {
-	struct ChimeraGlArgs_glNamedFramebufferRenderbuffer cargs;
-	cargs.framebuffer = framebuffer;
-	cargs.attachment = attachment;
-	cargs.renderbuffertarget = renderbuffertarget;
-	cargs.renderbuffer = renderbuffer;
-	g_bridge(CHIMERA_GL_OP_glNamedFramebufferRenderbuffer, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glNamedFramebufferRenderbuffer chimera_a;
+	chimera_a.framebuffer = framebuffer;
+	chimera_a.attachment = attachment;
+	chimera_a.renderbuffertarget = renderbuffertarget;
+	chimera_a.renderbuffer = renderbuffer;
+	g_bridge(CHIMERA_GL_OP_glNamedFramebufferRenderbuffer, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level)
 {
-	struct ChimeraGlArgs_glNamedFramebufferTexture cargs;
-	cargs.framebuffer = framebuffer;
-	cargs.attachment = attachment;
-	cargs.texture = texture;
-	cargs.level = level;
-	g_bridge(CHIMERA_GL_OP_glNamedFramebufferTexture, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glNamedFramebufferTexture chimera_a;
+	chimera_a.framebuffer = framebuffer;
+	chimera_a.attachment = attachment;
+	chimera_a.texture = texture;
+	chimera_a.level = level;
+	g_bridge(CHIMERA_GL_OP_glNamedFramebufferTexture, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glNamedFramebufferTextureLayer(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLint layer)
 {
-	struct ChimeraGlArgs_glNamedFramebufferTextureLayer cargs;
-	cargs.framebuffer = framebuffer;
-	cargs.attachment = attachment;
-	cargs.texture = texture;
-	cargs.level = level;
-	cargs.layer = layer;
-	g_bridge(CHIMERA_GL_OP_glNamedFramebufferTextureLayer, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glNamedFramebufferTextureLayer chimera_a;
+	chimera_a.framebuffer = framebuffer;
+	chimera_a.attachment = attachment;
+	chimera_a.texture = texture;
+	chimera_a.level = level;
+	chimera_a.layer = layer;
+	g_bridge(CHIMERA_GL_OP_glNamedFramebufferTextureLayer, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glNamedRenderbufferStorage(GLuint renderbuffer, GLenum internalformat, GLsizei width, GLsizei height)
 {
-	struct ChimeraGlArgs_glNamedRenderbufferStorage cargs;
-	cargs.renderbuffer = renderbuffer;
-	cargs.internalformat = internalformat;
-	cargs.width = width;
-	cargs.height = height;
-	g_bridge(CHIMERA_GL_OP_glNamedRenderbufferStorage, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glNamedRenderbufferStorage chimera_a;
+	chimera_a.renderbuffer = renderbuffer;
+	chimera_a.internalformat = internalformat;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	g_bridge(CHIMERA_GL_OP_glNamedRenderbufferStorage, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glNamedRenderbufferStorageMultisample(GLuint renderbuffer, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height)
 {
-	struct ChimeraGlArgs_glNamedRenderbufferStorageMultisample cargs;
-	cargs.renderbuffer = renderbuffer;
-	cargs.samples = samples;
-	cargs.internalformat = internalformat;
-	cargs.width = width;
-	cargs.height = height;
-	g_bridge(CHIMERA_GL_OP_glNamedRenderbufferStorageMultisample, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glObjectLabel(GLenum identifier, GLuint name, GLsizei length, const GLchar * label)
-{
-	struct ChimeraGlArgs_glObjectLabel cargs;
-	cargs.identifier = identifier;
-	cargs.name = name;
-	cargs.length = length;
-	cargs.label = label;
-	g_bridge(CHIMERA_GL_OP_glObjectLabel, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glObjectLabelKHR(GLenum identifier, GLuint name, GLsizei length, const GLchar * label)
-{
-	struct ChimeraGlArgs_glObjectLabelKHR cargs;
-	cargs.identifier = identifier;
-	cargs.name = name;
-	cargs.length = length;
-	cargs.label = label;
-	g_bridge(CHIMERA_GL_OP_glObjectLabelKHR, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glNamedRenderbufferStorageMultisample chimera_a;
+	chimera_a.renderbuffer = renderbuffer;
+	chimera_a.samples = samples;
+	chimera_a.internalformat = internalformat;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	g_bridge(CHIMERA_GL_OP_glNamedRenderbufferStorageMultisample, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glObjectPtrLabel(const void * ptr, GLsizei length, const GLchar * label)
 {
-	struct ChimeraGlArgs_glObjectPtrLabel cargs;
-	cargs.ptr = ptr;
-	cargs.length = length;
-	cargs.label = label;
-	g_bridge(CHIMERA_GL_OP_glObjectPtrLabel, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glObjectPtrLabel chimera_a;
+	chimera_a.ptr = ptr;
+	chimera_a.length = length;
+	chimera_a.label = label;
+	g_bridge(CHIMERA_GL_OP_glObjectPtrLabel, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glPixelStoref(GLenum pname, GLfloat param)
+{
+	struct ChimeraGlArgs_glPixelStoref chimera_a;
+	chimera_a.pname = pname;
+	chimera_a.param = param;
+	g_bridge(CHIMERA_GL_OP_glPixelStoref, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glPointParameterf(GLenum pname, GLfloat param)
+{
+	struct ChimeraGlArgs_glPointParameterf chimera_a;
+	chimera_a.pname = pname;
+	chimera_a.param = param;
+	g_bridge(CHIMERA_GL_OP_glPointParameterf, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glPointParameterfv(GLenum pname, const GLfloat * params)
+{
+	struct ChimeraGlArgs_glPointParameterfv chimera_a;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glPointParameterfv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glPointParameteri(GLenum pname, GLint param)
+{
+	struct ChimeraGlArgs_glPointParameteri chimera_a;
+	chimera_a.pname = pname;
+	chimera_a.param = param;
+	g_bridge(CHIMERA_GL_OP_glPointParameteri, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glPointParameteriv(GLenum pname, const GLint * params)
+{
+	struct ChimeraGlArgs_glPointParameteriv chimera_a;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glPointParameteriv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glPointSize(GLfloat size)
+{
+	struct ChimeraGlArgs_glPointSize chimera_a;
+	chimera_a.size = size;
+	g_bridge(CHIMERA_GL_OP_glPointSize, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glPolygonOffset(GLfloat factor, GLfloat units)
+{
+	struct ChimeraGlArgs_glPolygonOffset chimera_a;
+	chimera_a.factor = factor;
+	chimera_a.units = units;
+	g_bridge(CHIMERA_GL_OP_glPolygonOffset, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glReadnPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLsizei bufSize, void * data)
+{
+	struct ChimeraGlArgs_glReadnPixels chimera_a;
+	chimera_a.x = x;
+	chimera_a.y = y;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	chimera_a.format = format;
+	chimera_a.type = type;
+	chimera_a.bufSize = bufSize;
+	chimera_a.data = data;
+	g_bridge(CHIMERA_GL_OP_glReadnPixels, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glReleaseShaderCompiler(void)
+{
+	g_bridge(CHIMERA_GL_OP_glReleaseShaderCompiler, 0, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glRenderbufferStorageMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height)
+{
+	struct ChimeraGlArgs_glRenderbufferStorageMultisample chimera_a;
+	chimera_a.target = target;
+	chimera_a.samples = samples;
+	chimera_a.internalformat = internalformat;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	g_bridge(CHIMERA_GL_OP_glRenderbufferStorageMultisample, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glSampleCoverage(GLfloat value, GLboolean invert)
+{
+	struct ChimeraGlArgs_glSampleCoverage chimera_a;
+	chimera_a.value = value;
+	chimera_a.invert = invert;
+	g_bridge(CHIMERA_GL_OP_glSampleCoverage, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glSampleMaski(GLuint maskNumber, GLbitfield mask)
+{
+	struct ChimeraGlArgs_glSampleMaski chimera_a;
+	chimera_a.maskNumber = maskNumber;
+	chimera_a.mask = mask;
+	g_bridge(CHIMERA_GL_OP_glSampleMaski, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glSamplerParameterfv(GLuint sampler, GLenum pname, const GLfloat * param)
+{
+	struct ChimeraGlArgs_glSamplerParameterfv chimera_a;
+	chimera_a.sampler = sampler;
+	chimera_a.pname = pname;
+	chimera_a.param = param;
+	g_bridge(CHIMERA_GL_OP_glSamplerParameterfv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glSamplerParameterIiv(GLuint sampler, GLenum pname, const GLint * param)
+{
+	struct ChimeraGlArgs_glSamplerParameterIiv chimera_a;
+	chimera_a.sampler = sampler;
+	chimera_a.pname = pname;
+	chimera_a.param = param;
+	g_bridge(CHIMERA_GL_OP_glSamplerParameterIiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glSamplerParameterIuiv(GLuint sampler, GLenum pname, const GLuint * param)
+{
+	struct ChimeraGlArgs_glSamplerParameterIuiv chimera_a;
+	chimera_a.sampler = sampler;
+	chimera_a.pname = pname;
+	chimera_a.param = param;
+	g_bridge(CHIMERA_GL_OP_glSamplerParameterIuiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glSamplerParameteriv(GLuint sampler, GLenum pname, const GLint * param)
+{
+	struct ChimeraGlArgs_glSamplerParameteriv chimera_a;
+	chimera_a.sampler = sampler;
+	chimera_a.pname = pname;
+	chimera_a.param = param;
+	g_bridge(CHIMERA_GL_OP_glSamplerParameteriv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glScissorArrayv(GLuint first, GLsizei count, const GLint * v)
+{
+	struct ChimeraGlArgs_glScissorArrayv chimera_a;
+	chimera_a.first = first;
+	chimera_a.count = count;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glScissorArrayv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glScissorIndexedv(GLuint index, const GLint * v)
+{
+	struct ChimeraGlArgs_glScissorIndexedv chimera_a;
+	chimera_a.index = index;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glScissorIndexedv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glShaderBinary(GLsizei count, const GLuint * shaders, GLenum binaryFormat, const void * binary, GLsizei length)
+{
+	struct ChimeraGlArgs_glShaderBinary chimera_a;
+	chimera_a.count = count;
+	chimera_a.shaders = shaders;
+	chimera_a.binaryFormat = binaryFormat;
+	chimera_a.binary = binary;
+	chimera_a.length = length;
+	g_bridge(CHIMERA_GL_OP_glShaderBinary, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glShaderStorageBlockBinding(GLuint program, GLuint storageBlockIndex, GLuint storageBlockBinding)
+{
+	struct ChimeraGlArgs_glShaderStorageBlockBinding chimera_a;
+	chimera_a.program = program;
+	chimera_a.storageBlockIndex = storageBlockIndex;
+	chimera_a.storageBlockBinding = storageBlockBinding;
+	g_bridge(CHIMERA_GL_OP_glShaderStorageBlockBinding, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glStencilFuncSeparate(GLenum face, GLenum func, GLint ref, GLuint mask)
+{
+	struct ChimeraGlArgs_glStencilFuncSeparate chimera_a;
+	chimera_a.face = face;
+	chimera_a.func = func;
+	chimera_a.ref = ref;
+	chimera_a.mask = mask;
+	g_bridge(CHIMERA_GL_OP_glStencilFuncSeparate, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glStencilMaskSeparate(GLenum face, GLuint mask)
+{
+	struct ChimeraGlArgs_glStencilMaskSeparate chimera_a;
+	chimera_a.face = face;
+	chimera_a.mask = mask;
+	g_bridge(CHIMERA_GL_OP_glStencilMaskSeparate, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glStencilOpSeparate(GLenum face, GLenum sfail, GLenum dpfail, GLenum dppass)
+{
+	struct ChimeraGlArgs_glStencilOpSeparate chimera_a;
+	chimera_a.face = face;
+	chimera_a.sfail = sfail;
+	chimera_a.dpfail = dpfail;
+	chimera_a.dppass = dppass;
+	g_bridge(CHIMERA_GL_OP_glStencilOpSeparate, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTexBuffer(GLenum target, GLenum internalformat, GLuint buffer)
+{
+	struct ChimeraGlArgs_glTexBuffer chimera_a;
+	chimera_a.target = target;
+	chimera_a.internalformat = internalformat;
+	chimera_a.buffer = buffer;
+	g_bridge(CHIMERA_GL_OP_glTexBuffer, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTexBufferRange(GLenum target, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size)
+{
+	struct ChimeraGlArgs_glTexBufferRange chimera_a;
+	chimera_a.target = target;
+	chimera_a.internalformat = internalformat;
+	chimera_a.buffer = buffer;
+	chimera_a.offset = offset;
+	chimera_a.size = size;
+	g_bridge(CHIMERA_GL_OP_glTexBufferRange, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTexImage1D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLint border, GLenum format, GLenum type, const void * pixels)
+{
+	struct ChimeraGlArgs_glTexImage1D chimera_a;
+	chimera_a.target = target;
+	chimera_a.level = level;
+	chimera_a.internalformat = internalformat;
+	chimera_a.width = width;
+	chimera_a.border = border;
+	chimera_a.format = format;
+	chimera_a.type = type;
+	chimera_a.pixels = pixels;
+	g_bridge(CHIMERA_GL_OP_glTexImage1D, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTexImage2DMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations)
+{
+	struct ChimeraGlArgs_glTexImage2DMultisample chimera_a;
+	chimera_a.target = target;
+	chimera_a.samples = samples;
+	chimera_a.internalformat = internalformat;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	chimera_a.fixedsamplelocations = fixedsamplelocations;
+	g_bridge(CHIMERA_GL_OP_glTexImage2DMultisample, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTexImage3DMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations)
+{
+	struct ChimeraGlArgs_glTexImage3DMultisample chimera_a;
+	chimera_a.target = target;
+	chimera_a.samples = samples;
+	chimera_a.internalformat = internalformat;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	chimera_a.depth = depth;
+	chimera_a.fixedsamplelocations = fixedsamplelocations;
+	g_bridge(CHIMERA_GL_OP_glTexImage3DMultisample, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTexParameterIiv(GLenum target, GLenum pname, const GLint * params)
+{
+	struct ChimeraGlArgs_glTexParameterIiv chimera_a;
+	chimera_a.target = target;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glTexParameterIiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTexParameterIuiv(GLenum target, GLenum pname, const GLuint * params)
+{
+	struct ChimeraGlArgs_glTexParameterIuiv chimera_a;
+	chimera_a.target = target;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glTexParameterIuiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTexStorage1D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width)
+{
+	struct ChimeraGlArgs_glTexStorage1D chimera_a;
+	chimera_a.target = target;
+	chimera_a.levels = levels;
+	chimera_a.internalformat = internalformat;
+	chimera_a.width = width;
+	g_bridge(CHIMERA_GL_OP_glTexStorage1D, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTexStorage2DMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations)
+{
+	struct ChimeraGlArgs_glTexStorage2DMultisample chimera_a;
+	chimera_a.target = target;
+	chimera_a.samples = samples;
+	chimera_a.internalformat = internalformat;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	chimera_a.fixedsamplelocations = fixedsamplelocations;
+	g_bridge(CHIMERA_GL_OP_glTexStorage2DMultisample, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTexStorage3D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth)
+{
+	struct ChimeraGlArgs_glTexStorage3D chimera_a;
+	chimera_a.target = target;
+	chimera_a.levels = levels;
+	chimera_a.internalformat = internalformat;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	chimera_a.depth = depth;
+	g_bridge(CHIMERA_GL_OP_glTexStorage3D, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTexStorage3DMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations)
+{
+	struct ChimeraGlArgs_glTexStorage3DMultisample chimera_a;
+	chimera_a.target = target;
+	chimera_a.samples = samples;
+	chimera_a.internalformat = internalformat;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	chimera_a.depth = depth;
+	chimera_a.fixedsamplelocations = fixedsamplelocations;
+	g_bridge(CHIMERA_GL_OP_glTexStorage3DMultisample, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void * pixels)
+{
+	struct ChimeraGlArgs_glTexSubImage1D chimera_a;
+	chimera_a.target = target;
+	chimera_a.level = level;
+	chimera_a.xoffset = xoffset;
+	chimera_a.width = width;
+	chimera_a.format = format;
+	chimera_a.type = type;
+	chimera_a.pixels = pixels;
+	g_bridge(CHIMERA_GL_OP_glTexSubImage1D, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void * pixels)
+{
+	struct ChimeraGlArgs_glTexSubImage3D chimera_a;
+	chimera_a.target = target;
+	chimera_a.level = level;
+	chimera_a.xoffset = xoffset;
+	chimera_a.yoffset = yoffset;
+	chimera_a.zoffset = zoffset;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	chimera_a.depth = depth;
+	chimera_a.format = format;
+	chimera_a.type = type;
+	chimera_a.pixels = pixels;
+	g_bridge(CHIMERA_GL_OP_glTexSubImage3D, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTextureBuffer(GLuint texture, GLenum internalformat, GLuint buffer)
+{
+	struct ChimeraGlArgs_glTextureBuffer chimera_a;
+	chimera_a.texture = texture;
+	chimera_a.internalformat = internalformat;
+	chimera_a.buffer = buffer;
+	g_bridge(CHIMERA_GL_OP_glTextureBuffer, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTextureBufferRange(GLuint texture, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size)
+{
+	struct ChimeraGlArgs_glTextureBufferRange chimera_a;
+	chimera_a.texture = texture;
+	chimera_a.internalformat = internalformat;
+	chimera_a.buffer = buffer;
+	chimera_a.offset = offset;
+	chimera_a.size = size;
+	g_bridge(CHIMERA_GL_OP_glTextureBufferRange, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTextureParameterf(GLuint texture, GLenum pname, GLfloat param)
+{
+	struct ChimeraGlArgs_glTextureParameterf chimera_a;
+	chimera_a.texture = texture;
+	chimera_a.pname = pname;
+	chimera_a.param = param;
+	g_bridge(CHIMERA_GL_OP_glTextureParameterf, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTextureParameterfv(GLuint texture, GLenum pname, const GLfloat * param)
+{
+	struct ChimeraGlArgs_glTextureParameterfv chimera_a;
+	chimera_a.texture = texture;
+	chimera_a.pname = pname;
+	chimera_a.param = param;
+	g_bridge(CHIMERA_GL_OP_glTextureParameterfv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTextureParameterIiv(GLuint texture, GLenum pname, const GLint * params)
+{
+	struct ChimeraGlArgs_glTextureParameterIiv chimera_a;
+	chimera_a.texture = texture;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glTextureParameterIiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTextureParameterIuiv(GLuint texture, GLenum pname, const GLuint * params)
+{
+	struct ChimeraGlArgs_glTextureParameterIuiv chimera_a;
+	chimera_a.texture = texture;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glTextureParameterIuiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTextureParameteriv(GLuint texture, GLenum pname, const GLint * param)
+{
+	struct ChimeraGlArgs_glTextureParameteriv chimera_a;
+	chimera_a.texture = texture;
+	chimera_a.pname = pname;
+	chimera_a.param = param;
+	g_bridge(CHIMERA_GL_OP_glTextureParameteriv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTextureStorage1D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width)
+{
+	struct ChimeraGlArgs_glTextureStorage1D chimera_a;
+	chimera_a.texture = texture;
+	chimera_a.levels = levels;
+	chimera_a.internalformat = internalformat;
+	chimera_a.width = width;
+	g_bridge(CHIMERA_GL_OP_glTextureStorage1D, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTextureStorage2DMultisample(GLuint texture, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations)
+{
+	struct ChimeraGlArgs_glTextureStorage2DMultisample chimera_a;
+	chimera_a.texture = texture;
+	chimera_a.samples = samples;
+	chimera_a.internalformat = internalformat;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	chimera_a.fixedsamplelocations = fixedsamplelocations;
+	g_bridge(CHIMERA_GL_OP_glTextureStorage2DMultisample, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTextureStorage3D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth)
+{
+	struct ChimeraGlArgs_glTextureStorage3D chimera_a;
+	chimera_a.texture = texture;
+	chimera_a.levels = levels;
+	chimera_a.internalformat = internalformat;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	chimera_a.depth = depth;
+	g_bridge(CHIMERA_GL_OP_glTextureStorage3D, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTextureStorage3DMultisample(GLuint texture, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations)
+{
+	struct ChimeraGlArgs_glTextureStorage3DMultisample chimera_a;
+	chimera_a.texture = texture;
+	chimera_a.samples = samples;
+	chimera_a.internalformat = internalformat;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	chimera_a.depth = depth;
+	chimera_a.fixedsamplelocations = fixedsamplelocations;
+	g_bridge(CHIMERA_GL_OP_glTextureStorage3DMultisample, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void * pixels)
+{
+	struct ChimeraGlArgs_glTextureSubImage1D chimera_a;
+	chimera_a.texture = texture;
+	chimera_a.level = level;
+	chimera_a.xoffset = xoffset;
+	chimera_a.width = width;
+	chimera_a.format = format;
+	chimera_a.type = type;
+	chimera_a.pixels = pixels;
+	g_bridge(CHIMERA_GL_OP_glTextureSubImage1D, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void * pixels)
+{
+	struct ChimeraGlArgs_glTextureSubImage3D chimera_a;
+	chimera_a.texture = texture;
+	chimera_a.level = level;
+	chimera_a.xoffset = xoffset;
+	chimera_a.yoffset = yoffset;
+	chimera_a.zoffset = zoffset;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	chimera_a.depth = depth;
+	chimera_a.format = format;
+	chimera_a.type = type;
+	chimera_a.pixels = pixels;
+	g_bridge(CHIMERA_GL_OP_glTextureSubImage3D, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTextureView(GLuint texture, GLenum target, GLuint origtexture, GLenum internalformat, GLuint minlevel, GLuint numlevels, GLuint minlayer, GLuint numlayers)
+{
+	struct ChimeraGlArgs_glTextureView chimera_a;
+	chimera_a.texture = texture;
+	chimera_a.target = target;
+	chimera_a.origtexture = origtexture;
+	chimera_a.internalformat = internalformat;
+	chimera_a.minlevel = minlevel;
+	chimera_a.numlevels = numlevels;
+	chimera_a.minlayer = minlayer;
+	chimera_a.numlayers = numlayers;
+	g_bridge(CHIMERA_GL_OP_glTextureView, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTransformFeedbackBufferBase(GLuint xfb, GLuint index, GLuint buffer)
+{
+	struct ChimeraGlArgs_glTransformFeedbackBufferBase chimera_a;
+	chimera_a.xfb = xfb;
+	chimera_a.index = index;
+	chimera_a.buffer = buffer;
+	g_bridge(CHIMERA_GL_OP_glTransformFeedbackBufferBase, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTransformFeedbackBufferRange(GLuint xfb, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size)
+{
+	struct ChimeraGlArgs_glTransformFeedbackBufferRange chimera_a;
+	chimera_a.xfb = xfb;
+	chimera_a.index = index;
+	chimera_a.buffer = buffer;
+	chimera_a.offset = offset;
+	chimera_a.size = size;
+	g_bridge(CHIMERA_GL_OP_glTransformFeedbackBufferRange, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glTransformFeedbackVaryings(GLuint program, GLsizei count, const GLchar *const* varyings, GLenum bufferMode)
+{
+	struct ChimeraGlArgs_glTransformFeedbackVaryings chimera_a;
+	chimera_a.program = program;
+	chimera_a.count = count;
+	chimera_a.varyings = varyings;
+	chimera_a.bufferMode = bufferMode;
+	g_bridge(CHIMERA_GL_OP_glTransformFeedbackVaryings, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glUniformMatrix2x3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat * value)
+{
+	struct ChimeraGlArgs_glUniformMatrix2x3fv chimera_a;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.transpose = transpose;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glUniformMatrix2x3fv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glUniformMatrix2x4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat * value)
+{
+	struct ChimeraGlArgs_glUniformMatrix2x4fv chimera_a;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.transpose = transpose;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glUniformMatrix2x4fv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glUniformMatrix3x2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat * value)
+{
+	struct ChimeraGlArgs_glUniformMatrix3x2fv chimera_a;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.transpose = transpose;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glUniformMatrix3x2fv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glUniformMatrix3x4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat * value)
+{
+	struct ChimeraGlArgs_glUniformMatrix3x4fv chimera_a;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.transpose = transpose;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glUniformMatrix3x4fv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glUniformMatrix4x2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat * value)
+{
+	struct ChimeraGlArgs_glUniformMatrix4x2fv chimera_a;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.transpose = transpose;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glUniformMatrix4x2fv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glUniformMatrix4x3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat * value)
+{
+	struct ChimeraGlArgs_glUniformMatrix4x3fv chimera_a;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.transpose = transpose;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glUniformMatrix4x3fv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static GLboolean GLAD_API_PTR w_glUnmapNamedBuffer(GLuint buffer)
+{
+	struct ChimeraGlArgs_glUnmapNamedBuffer chimera_a;
+	chimera_a.buffer = buffer;
+	return (GLboolean)g_bridge(CHIMERA_GL_OP_glUnmapNamedBuffer, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexArrayAttribBinding(GLuint vaobj, GLuint attribindex, GLuint bindingindex)
+{
+	struct ChimeraGlArgs_glVertexArrayAttribBinding chimera_a;
+	chimera_a.vaobj = vaobj;
+	chimera_a.attribindex = attribindex;
+	chimera_a.bindingindex = bindingindex;
+	g_bridge(CHIMERA_GL_OP_glVertexArrayAttribBinding, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexArrayAttribFormat(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset)
+{
+	struct ChimeraGlArgs_glVertexArrayAttribFormat chimera_a;
+	chimera_a.vaobj = vaobj;
+	chimera_a.attribindex = attribindex;
+	chimera_a.size = size;
+	chimera_a.type = type;
+	chimera_a.normalized = normalized;
+	chimera_a.relativeoffset = relativeoffset;
+	g_bridge(CHIMERA_GL_OP_glVertexArrayAttribFormat, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexArrayAttribIFormat(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset)
+{
+	struct ChimeraGlArgs_glVertexArrayAttribIFormat chimera_a;
+	chimera_a.vaobj = vaobj;
+	chimera_a.attribindex = attribindex;
+	chimera_a.size = size;
+	chimera_a.type = type;
+	chimera_a.relativeoffset = relativeoffset;
+	g_bridge(CHIMERA_GL_OP_glVertexArrayAttribIFormat, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexArrayAttribLFormat(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset)
+{
+	struct ChimeraGlArgs_glVertexArrayAttribLFormat chimera_a;
+	chimera_a.vaobj = vaobj;
+	chimera_a.attribindex = attribindex;
+	chimera_a.size = size;
+	chimera_a.type = type;
+	chimera_a.relativeoffset = relativeoffset;
+	g_bridge(CHIMERA_GL_OP_glVertexArrayAttribLFormat, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexArrayBindingDivisor(GLuint vaobj, GLuint bindingindex, GLuint divisor)
+{
+	struct ChimeraGlArgs_glVertexArrayBindingDivisor chimera_a;
+	chimera_a.vaobj = vaobj;
+	chimera_a.bindingindex = bindingindex;
+	chimera_a.divisor = divisor;
+	g_bridge(CHIMERA_GL_OP_glVertexArrayBindingDivisor, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexArrayElementBuffer(GLuint vaobj, GLuint buffer)
+{
+	struct ChimeraGlArgs_glVertexArrayElementBuffer chimera_a;
+	chimera_a.vaobj = vaobj;
+	chimera_a.buffer = buffer;
+	g_bridge(CHIMERA_GL_OP_glVertexArrayElementBuffer, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexArrayVertexBuffer(GLuint vaobj, GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride)
+{
+	struct ChimeraGlArgs_glVertexArrayVertexBuffer chimera_a;
+	chimera_a.vaobj = vaobj;
+	chimera_a.bindingindex = bindingindex;
+	chimera_a.buffer = buffer;
+	chimera_a.offset = offset;
+	chimera_a.stride = stride;
+	g_bridge(CHIMERA_GL_OP_glVertexArrayVertexBuffer, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexArrayVertexBuffers(GLuint vaobj, GLuint first, GLsizei count, const GLuint * buffers, const GLintptr * offsets, const GLsizei * strides)
+{
+	struct ChimeraGlArgs_glVertexArrayVertexBuffers chimera_a;
+	chimera_a.vaobj = vaobj;
+	chimera_a.first = first;
+	chimera_a.count = count;
+	chimera_a.buffers = buffers;
+	chimera_a.offsets = offsets;
+	chimera_a.strides = strides;
+	g_bridge(CHIMERA_GL_OP_glVertexArrayVertexBuffers, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttrib1d(GLuint index, GLdouble x)
+{
+	struct ChimeraGlArgs_glVertexAttrib1d chimera_a;
+	chimera_a.index = index;
+	chimera_a.x = x;
+	g_bridge(CHIMERA_GL_OP_glVertexAttrib1d, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttrib1dv(GLuint index, const GLdouble * v)
+{
+	struct ChimeraGlArgs_glVertexAttrib1dv chimera_a;
+	chimera_a.index = index;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glVertexAttrib1dv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttrib1f(GLuint index, GLfloat x)
+{
+	struct ChimeraGlArgs_glVertexAttrib1f chimera_a;
+	chimera_a.index = index;
+	chimera_a.x = x;
+	g_bridge(CHIMERA_GL_OP_glVertexAttrib1f, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttrib1fv(GLuint index, const GLfloat * v)
+{
+	struct ChimeraGlArgs_glVertexAttrib1fv chimera_a;
+	chimera_a.index = index;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glVertexAttrib1fv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttrib1s(GLuint index, GLshort x)
+{
+	struct ChimeraGlArgs_glVertexAttrib1s chimera_a;
+	chimera_a.index = index;
+	chimera_a.x = x;
+	g_bridge(CHIMERA_GL_OP_glVertexAttrib1s, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttrib1sv(GLuint index, const GLshort * v)
+{
+	struct ChimeraGlArgs_glVertexAttrib1sv chimera_a;
+	chimera_a.index = index;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glVertexAttrib1sv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttrib2d(GLuint index, GLdouble x, GLdouble y)
+{
+	struct ChimeraGlArgs_glVertexAttrib2d chimera_a;
+	chimera_a.index = index;
+	chimera_a.x = x;
+	chimera_a.y = y;
+	g_bridge(CHIMERA_GL_OP_glVertexAttrib2d, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttrib2dv(GLuint index, const GLdouble * v)
+{
+	struct ChimeraGlArgs_glVertexAttrib2dv chimera_a;
+	chimera_a.index = index;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glVertexAttrib2dv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttrib2f(GLuint index, GLfloat x, GLfloat y)
+{
+	struct ChimeraGlArgs_glVertexAttrib2f chimera_a;
+	chimera_a.index = index;
+	chimera_a.x = x;
+	chimera_a.y = y;
+	g_bridge(CHIMERA_GL_OP_glVertexAttrib2f, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttrib2fv(GLuint index, const GLfloat * v)
+{
+	struct ChimeraGlArgs_glVertexAttrib2fv chimera_a;
+	chimera_a.index = index;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glVertexAttrib2fv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttrib2s(GLuint index, GLshort x, GLshort y)
+{
+	struct ChimeraGlArgs_glVertexAttrib2s chimera_a;
+	chimera_a.index = index;
+	chimera_a.x = x;
+	chimera_a.y = y;
+	g_bridge(CHIMERA_GL_OP_glVertexAttrib2s, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttrib2sv(GLuint index, const GLshort * v)
+{
+	struct ChimeraGlArgs_glVertexAttrib2sv chimera_a;
+	chimera_a.index = index;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glVertexAttrib2sv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttrib3d(GLuint index, GLdouble x, GLdouble y, GLdouble z)
+{
+	struct ChimeraGlArgs_glVertexAttrib3d chimera_a;
+	chimera_a.index = index;
+	chimera_a.x = x;
+	chimera_a.y = y;
+	chimera_a.z = z;
+	g_bridge(CHIMERA_GL_OP_glVertexAttrib3d, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttrib3dv(GLuint index, const GLdouble * v)
+{
+	struct ChimeraGlArgs_glVertexAttrib3dv chimera_a;
+	chimera_a.index = index;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glVertexAttrib3dv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttrib3f(GLuint index, GLfloat x, GLfloat y, GLfloat z)
+{
+	struct ChimeraGlArgs_glVertexAttrib3f chimera_a;
+	chimera_a.index = index;
+	chimera_a.x = x;
+	chimera_a.y = y;
+	chimera_a.z = z;
+	g_bridge(CHIMERA_GL_OP_glVertexAttrib3f, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttrib3fv(GLuint index, const GLfloat * v)
+{
+	struct ChimeraGlArgs_glVertexAttrib3fv chimera_a;
+	chimera_a.index = index;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glVertexAttrib3fv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttrib3s(GLuint index, GLshort x, GLshort y, GLshort z)
+{
+	struct ChimeraGlArgs_glVertexAttrib3s chimera_a;
+	chimera_a.index = index;
+	chimera_a.x = x;
+	chimera_a.y = y;
+	chimera_a.z = z;
+	g_bridge(CHIMERA_GL_OP_glVertexAttrib3s, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttrib3sv(GLuint index, const GLshort * v)
+{
+	struct ChimeraGlArgs_glVertexAttrib3sv chimera_a;
+	chimera_a.index = index;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glVertexAttrib3sv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttrib4bv(GLuint index, const GLbyte * v)
+{
+	struct ChimeraGlArgs_glVertexAttrib4bv chimera_a;
+	chimera_a.index = index;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glVertexAttrib4bv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttrib4d(GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w)
+{
+	struct ChimeraGlArgs_glVertexAttrib4d chimera_a;
+	chimera_a.index = index;
+	chimera_a.x = x;
+	chimera_a.y = y;
+	chimera_a.z = z;
+	chimera_a.w = w;
+	g_bridge(CHIMERA_GL_OP_glVertexAttrib4d, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttrib4dv(GLuint index, const GLdouble * v)
+{
+	struct ChimeraGlArgs_glVertexAttrib4dv chimera_a;
+	chimera_a.index = index;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glVertexAttrib4dv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttrib4f(GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w)
+{
+	struct ChimeraGlArgs_glVertexAttrib4f chimera_a;
+	chimera_a.index = index;
+	chimera_a.x = x;
+	chimera_a.y = y;
+	chimera_a.z = z;
+	chimera_a.w = w;
+	g_bridge(CHIMERA_GL_OP_glVertexAttrib4f, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttrib4iv(GLuint index, const GLint * v)
+{
+	struct ChimeraGlArgs_glVertexAttrib4iv chimera_a;
+	chimera_a.index = index;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glVertexAttrib4iv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttrib4Nbv(GLuint index, const GLbyte * v)
+{
+	struct ChimeraGlArgs_glVertexAttrib4Nbv chimera_a;
+	chimera_a.index = index;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glVertexAttrib4Nbv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttrib4Niv(GLuint index, const GLint * v)
+{
+	struct ChimeraGlArgs_glVertexAttrib4Niv chimera_a;
+	chimera_a.index = index;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glVertexAttrib4Niv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttrib4Nsv(GLuint index, const GLshort * v)
+{
+	struct ChimeraGlArgs_glVertexAttrib4Nsv chimera_a;
+	chimera_a.index = index;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glVertexAttrib4Nsv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttrib4Nub(GLuint index, GLubyte x, GLubyte y, GLubyte z, GLubyte w)
+{
+	struct ChimeraGlArgs_glVertexAttrib4Nub chimera_a;
+	chimera_a.index = index;
+	chimera_a.x = x;
+	chimera_a.y = y;
+	chimera_a.z = z;
+	chimera_a.w = w;
+	g_bridge(CHIMERA_GL_OP_glVertexAttrib4Nub, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttrib4Nubv(GLuint index, const GLubyte * v)
+{
+	struct ChimeraGlArgs_glVertexAttrib4Nubv chimera_a;
+	chimera_a.index = index;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glVertexAttrib4Nubv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttrib4Nuiv(GLuint index, const GLuint * v)
+{
+	struct ChimeraGlArgs_glVertexAttrib4Nuiv chimera_a;
+	chimera_a.index = index;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glVertexAttrib4Nuiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttrib4Nusv(GLuint index, const GLushort * v)
+{
+	struct ChimeraGlArgs_glVertexAttrib4Nusv chimera_a;
+	chimera_a.index = index;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glVertexAttrib4Nusv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttrib4s(GLuint index, GLshort x, GLshort y, GLshort z, GLshort w)
+{
+	struct ChimeraGlArgs_glVertexAttrib4s chimera_a;
+	chimera_a.index = index;
+	chimera_a.x = x;
+	chimera_a.y = y;
+	chimera_a.z = z;
+	chimera_a.w = w;
+	g_bridge(CHIMERA_GL_OP_glVertexAttrib4s, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttrib4sv(GLuint index, const GLshort * v)
+{
+	struct ChimeraGlArgs_glVertexAttrib4sv chimera_a;
+	chimera_a.index = index;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glVertexAttrib4sv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttrib4ubv(GLuint index, const GLubyte * v)
+{
+	struct ChimeraGlArgs_glVertexAttrib4ubv chimera_a;
+	chimera_a.index = index;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glVertexAttrib4ubv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttrib4uiv(GLuint index, const GLuint * v)
+{
+	struct ChimeraGlArgs_glVertexAttrib4uiv chimera_a;
+	chimera_a.index = index;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glVertexAttrib4uiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttrib4usv(GLuint index, const GLushort * v)
+{
+	struct ChimeraGlArgs_glVertexAttrib4usv chimera_a;
+	chimera_a.index = index;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glVertexAttrib4usv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttribBinding(GLuint attribindex, GLuint bindingindex)
+{
+	struct ChimeraGlArgs_glVertexAttribBinding chimera_a;
+	chimera_a.attribindex = attribindex;
+	chimera_a.bindingindex = bindingindex;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribBinding, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttribFormat(GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset)
+{
+	struct ChimeraGlArgs_glVertexAttribFormat chimera_a;
+	chimera_a.attribindex = attribindex;
+	chimera_a.size = size;
+	chimera_a.type = type;
+	chimera_a.normalized = normalized;
+	chimera_a.relativeoffset = relativeoffset;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribFormat, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttribI1i(GLuint index, GLint x)
+{
+	struct ChimeraGlArgs_glVertexAttribI1i chimera_a;
+	chimera_a.index = index;
+	chimera_a.x = x;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribI1i, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttribI1iv(GLuint index, const GLint * v)
+{
+	struct ChimeraGlArgs_glVertexAttribI1iv chimera_a;
+	chimera_a.index = index;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribI1iv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttribI1ui(GLuint index, GLuint x)
+{
+	struct ChimeraGlArgs_glVertexAttribI1ui chimera_a;
+	chimera_a.index = index;
+	chimera_a.x = x;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribI1ui, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttribI1uiv(GLuint index, const GLuint * v)
+{
+	struct ChimeraGlArgs_glVertexAttribI1uiv chimera_a;
+	chimera_a.index = index;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribI1uiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttribI2i(GLuint index, GLint x, GLint y)
+{
+	struct ChimeraGlArgs_glVertexAttribI2i chimera_a;
+	chimera_a.index = index;
+	chimera_a.x = x;
+	chimera_a.y = y;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribI2i, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttribI2iv(GLuint index, const GLint * v)
+{
+	struct ChimeraGlArgs_glVertexAttribI2iv chimera_a;
+	chimera_a.index = index;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribI2iv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttribI2ui(GLuint index, GLuint x, GLuint y)
+{
+	struct ChimeraGlArgs_glVertexAttribI2ui chimera_a;
+	chimera_a.index = index;
+	chimera_a.x = x;
+	chimera_a.y = y;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribI2ui, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttribI2uiv(GLuint index, const GLuint * v)
+{
+	struct ChimeraGlArgs_glVertexAttribI2uiv chimera_a;
+	chimera_a.index = index;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribI2uiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttribI3i(GLuint index, GLint x, GLint y, GLint z)
+{
+	struct ChimeraGlArgs_glVertexAttribI3i chimera_a;
+	chimera_a.index = index;
+	chimera_a.x = x;
+	chimera_a.y = y;
+	chimera_a.z = z;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribI3i, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttribI3iv(GLuint index, const GLint * v)
+{
+	struct ChimeraGlArgs_glVertexAttribI3iv chimera_a;
+	chimera_a.index = index;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribI3iv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttribI3ui(GLuint index, GLuint x, GLuint y, GLuint z)
+{
+	struct ChimeraGlArgs_glVertexAttribI3ui chimera_a;
+	chimera_a.index = index;
+	chimera_a.x = x;
+	chimera_a.y = y;
+	chimera_a.z = z;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribI3ui, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttribI3uiv(GLuint index, const GLuint * v)
+{
+	struct ChimeraGlArgs_glVertexAttribI3uiv chimera_a;
+	chimera_a.index = index;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribI3uiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttribI4bv(GLuint index, const GLbyte * v)
+{
+	struct ChimeraGlArgs_glVertexAttribI4bv chimera_a;
+	chimera_a.index = index;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribI4bv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttribI4i(GLuint index, GLint x, GLint y, GLint z, GLint w)
+{
+	struct ChimeraGlArgs_glVertexAttribI4i chimera_a;
+	chimera_a.index = index;
+	chimera_a.x = x;
+	chimera_a.y = y;
+	chimera_a.z = z;
+	chimera_a.w = w;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribI4i, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttribI4iv(GLuint index, const GLint * v)
+{
+	struct ChimeraGlArgs_glVertexAttribI4iv chimera_a;
+	chimera_a.index = index;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribI4iv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttribI4sv(GLuint index, const GLshort * v)
+{
+	struct ChimeraGlArgs_glVertexAttribI4sv chimera_a;
+	chimera_a.index = index;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribI4sv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttribI4ubv(GLuint index, const GLubyte * v)
+{
+	struct ChimeraGlArgs_glVertexAttribI4ubv chimera_a;
+	chimera_a.index = index;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribI4ubv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttribI4ui(GLuint index, GLuint x, GLuint y, GLuint z, GLuint w)
+{
+	struct ChimeraGlArgs_glVertexAttribI4ui chimera_a;
+	chimera_a.index = index;
+	chimera_a.x = x;
+	chimera_a.y = y;
+	chimera_a.z = z;
+	chimera_a.w = w;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribI4ui, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttribI4uiv(GLuint index, const GLuint * v)
+{
+	struct ChimeraGlArgs_glVertexAttribI4uiv chimera_a;
+	chimera_a.index = index;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribI4uiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttribI4usv(GLuint index, const GLushort * v)
+{
+	struct ChimeraGlArgs_glVertexAttribI4usv chimera_a;
+	chimera_a.index = index;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribI4usv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttribIFormat(GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset)
+{
+	struct ChimeraGlArgs_glVertexAttribIFormat chimera_a;
+	chimera_a.attribindex = attribindex;
+	chimera_a.size = size;
+	chimera_a.type = type;
+	chimera_a.relativeoffset = relativeoffset;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribIFormat, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexAttribLFormat(GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset)
+{
+	struct ChimeraGlArgs_glVertexAttribLFormat chimera_a;
+	chimera_a.attribindex = attribindex;
+	chimera_a.size = size;
+	chimera_a.type = type;
+	chimera_a.relativeoffset = relativeoffset;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribLFormat, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glVertexBindingDivisor(GLuint bindingindex, GLuint divisor)
+{
+	struct ChimeraGlArgs_glVertexBindingDivisor chimera_a;
+	chimera_a.bindingindex = bindingindex;
+	chimera_a.divisor = divisor;
+	g_bridge(CHIMERA_GL_OP_glVertexBindingDivisor, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glViewportArrayv(GLuint first, GLsizei count, const GLfloat * v)
+{
+	struct ChimeraGlArgs_glViewportArrayv chimera_a;
+	chimera_a.first = first;
+	chimera_a.count = count;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glViewportArrayv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glViewportIndexedfv(GLuint index, const GLfloat * v)
+{
+	struct ChimeraGlArgs_glViewportIndexedfv chimera_a;
+	chimera_a.index = index;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glViewportIndexedfv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glWaitSync(GLsync sync, GLbitfield flags, GLuint64 timeout)
+{
+	struct ChimeraGlArgs_glWaitSync chimera_a;
+	chimera_a.sync = sync;
+	chimera_a.flags = flags;
+	chimera_a.timeout = timeout;
+	g_bridge(CHIMERA_GL_OP_glWaitSync, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glProgramUniform1f(GLuint program, GLint location, GLfloat v0)
+{
+	struct ChimeraGlArgs_glProgramUniform1f chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.v0 = v0;
+	g_bridge(CHIMERA_GL_OP_glProgramUniform1f, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glProgramUniform1iv(GLuint program, GLint location, GLsizei count, const GLint * value)
+{
+	struct ChimeraGlArgs_glProgramUniform1iv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glProgramUniform1iv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glProgramUniform1ui(GLuint program, GLint location, GLuint v0)
+{
+	struct ChimeraGlArgs_glProgramUniform1ui chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.v0 = v0;
+	g_bridge(CHIMERA_GL_OP_glProgramUniform1ui, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glProgramUniform2i(GLuint program, GLint location, GLint v0, GLint v1)
+{
+	struct ChimeraGlArgs_glProgramUniform2i chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.v0 = v0;
+	chimera_a.v1 = v1;
+	g_bridge(CHIMERA_GL_OP_glProgramUniform2i, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glProgramUniform3f(GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2)
+{
+	struct ChimeraGlArgs_glProgramUniform3f chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.v0 = v0;
+	chimera_a.v1 = v1;
+	chimera_a.v2 = v2;
+	g_bridge(CHIMERA_GL_OP_glProgramUniform3f, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glProgramUniform3i(GLuint program, GLint location, GLint v0, GLint v1, GLint v2)
+{
+	struct ChimeraGlArgs_glProgramUniform3i chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.v0 = v0;
+	chimera_a.v1 = v1;
+	chimera_a.v2 = v2;
+	g_bridge(CHIMERA_GL_OP_glProgramUniform3i, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glProgramUniform4f(GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3)
+{
+	struct ChimeraGlArgs_glProgramUniform4f chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.v0 = v0;
+	chimera_a.v1 = v1;
+	chimera_a.v2 = v2;
+	chimera_a.v3 = v3;
+	g_bridge(CHIMERA_GL_OP_glProgramUniform4f, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glProgramUniform4i(GLuint program, GLint location, GLint v0, GLint v1, GLint v2, GLint v3)
+{
+	struct ChimeraGlArgs_glProgramUniform4i chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.v0 = v0;
+	chimera_a.v1 = v1;
+	chimera_a.v2 = v2;
+	chimera_a.v3 = v3;
+	g_bridge(CHIMERA_GL_OP_glProgramUniform4i, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glProgramUniformMatrix3fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value)
+{
+	struct ChimeraGlArgs_glProgramUniformMatrix3fv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.transpose = transpose;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glProgramUniformMatrix3fv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetIntegeri_v(GLenum target, GLuint index, GLint * data)
+{
+	struct ChimeraGlArgs_glGetIntegeri_v chimera_a;
+	chimera_a.target = target;
+	chimera_a.index = index;
+	chimera_a.data = data;
+	g_bridge(CHIMERA_GL_OP_glGetIntegeri_v, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetInteger64i_v(GLenum target, GLuint index, GLint64 * data)
+{
+	struct ChimeraGlArgs_glGetInteger64i_v chimera_a;
+	chimera_a.target = target;
+	chimera_a.index = index;
+	chimera_a.data = data;
+	g_bridge(CHIMERA_GL_OP_glGetInteger64i_v, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetBooleani_v(GLenum target, GLuint index, GLboolean * data)
+{
+	struct ChimeraGlArgs_glGetBooleani_v chimera_a;
+	chimera_a.target = target;
+	chimera_a.index = index;
+	chimera_a.data = data;
+	g_bridge(CHIMERA_GL_OP_glGetBooleani_v, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetFloati_v(GLenum target, GLuint index, GLfloat * data)
+{
+	struct ChimeraGlArgs_glGetFloati_v chimera_a;
+	chimera_a.target = target;
+	chimera_a.index = index;
+	chimera_a.data = data;
+	g_bridge(CHIMERA_GL_OP_glGetFloati_v, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetDoublei_v(GLenum target, GLuint index, GLdouble * data)
+{
+	struct ChimeraGlArgs_glGetDoublei_v chimera_a;
+	chimera_a.target = target;
+	chimera_a.index = index;
+	chimera_a.data = data;
+	g_bridge(CHIMERA_GL_OP_glGetDoublei_v, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glActiveShaderProgram(GLuint pipeline, GLuint program)
+{
+	struct ChimeraGlArgs_glActiveShaderProgram chimera_a;
+	chimera_a.pipeline = pipeline;
+	chimera_a.program = program;
+	g_bridge(CHIMERA_GL_OP_glActiveShaderProgram, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glBeginQueryEXT(GLenum target, GLuint id)
+{
+	struct ChimeraGlArgs_glBeginQueryEXT chimera_a;
+	chimera_a.target = target;
+	chimera_a.id = id;
+	g_bridge(CHIMERA_GL_OP_glBeginQueryEXT, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glBeginQueryIndexed(GLenum target, GLuint index, GLuint id)
+{
+	struct ChimeraGlArgs_glBeginQueryIndexed chimera_a;
+	chimera_a.target = target;
+	chimera_a.index = index;
+	chimera_a.id = id;
+	g_bridge(CHIMERA_GL_OP_glBeginQueryIndexed, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glBindProgramPipeline(GLuint pipeline)
+{
+	struct ChimeraGlArgs_glBindProgramPipeline chimera_a;
+	chimera_a.pipeline = pipeline;
+	g_bridge(CHIMERA_GL_OP_glBindProgramPipeline, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glBindTransformFeedback(GLenum target, GLuint id)
+{
+	struct ChimeraGlArgs_glBindTransformFeedback chimera_a;
+	chimera_a.target = target;
+	chimera_a.id = id;
+	g_bridge(CHIMERA_GL_OP_glBindTransformFeedback, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glBindVertexArrayAPPLE(GLuint array)
+{
+	struct ChimeraGlArgs_glBindVertexArrayAPPLE chimera_a;
+	chimera_a.array = array;
+	g_bridge(CHIMERA_GL_OP_glBindVertexArrayAPPLE, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glBindVertexArrayOES(GLuint array)
+{
+	struct ChimeraGlArgs_glBindVertexArrayOES chimera_a;
+	chimera_a.array = array;
+	g_bridge(CHIMERA_GL_OP_glBindVertexArrayOES, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glBlendBarrier(void)
+{
+	g_bridge(CHIMERA_GL_OP_glBlendBarrier, 0, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glBlendEquationi(GLuint buf, GLenum mode)
+{
+	struct ChimeraGlArgs_glBlendEquationi chimera_a;
+	chimera_a.buf = buf;
+	chimera_a.mode = mode;
+	g_bridge(CHIMERA_GL_OP_glBlendEquationi, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glBlendEquationSeparatei(GLuint buf, GLenum modeRGB, GLenum modeAlpha)
+{
+	struct ChimeraGlArgs_glBlendEquationSeparatei chimera_a;
+	chimera_a.buf = buf;
+	chimera_a.modeRGB = modeRGB;
+	chimera_a.modeAlpha = modeAlpha;
+	g_bridge(CHIMERA_GL_OP_glBlendEquationSeparatei, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glBlendFunci(GLuint buf, GLenum src, GLenum dst)
+{
+	struct ChimeraGlArgs_glBlendFunci chimera_a;
+	chimera_a.buf = buf;
+	chimera_a.src = src;
+	chimera_a.dst = dst;
+	g_bridge(CHIMERA_GL_OP_glBlendFunci, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glBlendFuncSeparatei(GLuint buf, GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha)
+{
+	struct ChimeraGlArgs_glBlendFuncSeparatei chimera_a;
+	chimera_a.buf = buf;
+	chimera_a.srcRGB = srcRGB;
+	chimera_a.dstRGB = dstRGB;
+	chimera_a.srcAlpha = srcAlpha;
+	chimera_a.dstAlpha = dstAlpha;
+	g_bridge(CHIMERA_GL_OP_glBlendFuncSeparatei, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glColorMaskIndexedEXT(GLuint index, GLboolean r, GLboolean g, GLboolean b, GLboolean a)
+{
+	struct ChimeraGlArgs_glColorMaskIndexedEXT chimera_a;
+	chimera_a.index = index;
+	chimera_a.r = r;
+	chimera_a.g = g;
+	chimera_a.b = b;
+	chimera_a.a = a;
+	g_bridge(CHIMERA_GL_OP_glColorMaskIndexedEXT, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glCopyBufferSubData(GLenum readTarget, GLenum writeTarget, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size)
+{
+	struct ChimeraGlArgs_glCopyBufferSubData chimera_a;
+	chimera_a.readTarget = readTarget;
+	chimera_a.writeTarget = writeTarget;
+	chimera_a.readOffset = readOffset;
+	chimera_a.writeOffset = writeOffset;
+	chimera_a.size = size;
+	g_bridge(CHIMERA_GL_OP_glCopyBufferSubData, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glCopyBufferSubDataNV(GLenum readTarget, GLenum writeTarget, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size)
+{
+	struct ChimeraGlArgs_glCopyBufferSubDataNV chimera_a;
+	chimera_a.readTarget = readTarget;
+	chimera_a.writeTarget = writeTarget;
+	chimera_a.readOffset = readOffset;
+	chimera_a.writeOffset = writeOffset;
+	chimera_a.size = size;
+	g_bridge(CHIMERA_GL_OP_glCopyBufferSubDataNV, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static GLuint GLAD_API_PTR w_glCreateShaderProgramv(GLenum type, GLsizei count, const GLchar *const* strings)
+{
+	struct ChimeraGlArgs_glCreateShaderProgramv chimera_a;
+	chimera_a.type = type;
+	chimera_a.count = count;
+	chimera_a.strings = strings;
+	return (GLuint)g_bridge(CHIMERA_GL_OP_glCreateShaderProgramv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glDebugMessageCallbackKHR(GLDEBUGPROCKHR callback, const void * userParam)
+{
+	struct ChimeraGlArgs_glDebugMessageCallbackKHR chimera_a;
+	chimera_a.callback = callback;
+	chimera_a.userParam = userParam;
+	g_bridge(CHIMERA_GL_OP_glDebugMessageCallbackKHR, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glDebugMessageControlKHR(GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint * ids, GLboolean enabled)
+{
+	struct ChimeraGlArgs_glDebugMessageControlKHR chimera_a;
+	chimera_a.source = source;
+	chimera_a.type = type;
+	chimera_a.severity = severity;
+	chimera_a.count = count;
+	chimera_a.ids = ids;
+	chimera_a.enabled = enabled;
+	g_bridge(CHIMERA_GL_OP_glDebugMessageControlKHR, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glDebugMessageInsertKHR(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar * buf)
+{
+	struct ChimeraGlArgs_glDebugMessageInsertKHR chimera_a;
+	chimera_a.source = source;
+	chimera_a.type = type;
+	chimera_a.id = id;
+	chimera_a.severity = severity;
+	chimera_a.length = length;
+	chimera_a.buf = buf;
+	g_bridge(CHIMERA_GL_OP_glDebugMessageInsertKHR, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glDeleteProgramPipelines(GLsizei n, const GLuint * pipelines)
+{
+	struct ChimeraGlArgs_glDeleteProgramPipelines chimera_a;
+	chimera_a.n = n;
+	chimera_a.pipelines = pipelines;
+	g_bridge(CHIMERA_GL_OP_glDeleteProgramPipelines, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glDeleteQueriesEXT(GLsizei n, const GLuint * ids)
+{
+	struct ChimeraGlArgs_glDeleteQueriesEXT chimera_a;
+	chimera_a.n = n;
+	chimera_a.ids = ids;
+	g_bridge(CHIMERA_GL_OP_glDeleteQueriesEXT, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glDeleteTransformFeedbacks(GLsizei n, const GLuint * ids)
+{
+	struct ChimeraGlArgs_glDeleteTransformFeedbacks chimera_a;
+	chimera_a.n = n;
+	chimera_a.ids = ids;
+	g_bridge(CHIMERA_GL_OP_glDeleteTransformFeedbacks, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glDeleteVertexArraysAPPLE(GLsizei n, const GLuint * arrays)
+{
+	struct ChimeraGlArgs_glDeleteVertexArraysAPPLE chimera_a;
+	chimera_a.n = n;
+	chimera_a.arrays = arrays;
+	g_bridge(CHIMERA_GL_OP_glDeleteVertexArraysAPPLE, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glDeleteVertexArraysOES(GLsizei n, const GLuint * arrays)
+{
+	struct ChimeraGlArgs_glDeleteVertexArraysOES chimera_a;
+	chimera_a.n = n;
+	chimera_a.arrays = arrays;
+	g_bridge(CHIMERA_GL_OP_glDeleteVertexArraysOES, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glDisableIndexedEXT(GLenum target, GLuint index)
+{
+	struct ChimeraGlArgs_glDisableIndexedEXT chimera_a;
+	chimera_a.target = target;
+	chimera_a.index = index;
+	g_bridge(CHIMERA_GL_OP_glDisableIndexedEXT, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glDrawArraysIndirect(GLenum mode, const void * indirect)
+{
+	struct ChimeraGlArgs_glDrawArraysIndirect chimera_a;
+	chimera_a.mode = mode;
+	chimera_a.indirect = indirect;
+	g_bridge(CHIMERA_GL_OP_glDrawArraysIndirect, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glDrawArraysInstancedARB(GLenum mode, GLint first, GLsizei count, GLsizei primcount)
+{
+	struct ChimeraGlArgs_glDrawArraysInstancedARB chimera_a;
+	chimera_a.mode = mode;
+	chimera_a.first = first;
+	chimera_a.count = count;
+	chimera_a.primcount = primcount;
+	g_bridge(CHIMERA_GL_OP_glDrawArraysInstancedARB, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glDrawElementsIndirect(GLenum mode, GLenum type, const void * indirect)
+{
+	struct ChimeraGlArgs_glDrawElementsIndirect chimera_a;
+	chimera_a.mode = mode;
+	chimera_a.type = type;
+	chimera_a.indirect = indirect;
+	g_bridge(CHIMERA_GL_OP_glDrawElementsIndirect, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glDrawElementsInstancedARB(GLenum mode, GLsizei count, GLenum type, const void * indices, GLsizei primcount)
+{
+	struct ChimeraGlArgs_glDrawElementsInstancedARB chimera_a;
+	chimera_a.mode = mode;
+	chimera_a.count = count;
+	chimera_a.type = type;
+	chimera_a.indices = indices;
+	chimera_a.primcount = primcount;
+	g_bridge(CHIMERA_GL_OP_glDrawElementsInstancedARB, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glDrawTransformFeedback(GLenum mode, GLuint id)
+{
+	struct ChimeraGlArgs_glDrawTransformFeedback chimera_a;
+	chimera_a.mode = mode;
+	chimera_a.id = id;
+	g_bridge(CHIMERA_GL_OP_glDrawTransformFeedback, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glDrawTransformFeedbackStream(GLenum mode, GLuint id, GLuint stream)
+{
+	struct ChimeraGlArgs_glDrawTransformFeedbackStream chimera_a;
+	chimera_a.mode = mode;
+	chimera_a.id = id;
+	chimera_a.stream = stream;
+	g_bridge(CHIMERA_GL_OP_glDrawTransformFeedbackStream, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glEnableIndexedEXT(GLenum target, GLuint index)
+{
+	struct ChimeraGlArgs_glEnableIndexedEXT chimera_a;
+	chimera_a.target = target;
+	chimera_a.index = index;
+	g_bridge(CHIMERA_GL_OP_glEnableIndexedEXT, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glEndQueryEXT(GLenum target)
+{
+	struct ChimeraGlArgs_glEndQueryEXT chimera_a;
+	chimera_a.target = target;
+	g_bridge(CHIMERA_GL_OP_glEndQueryEXT, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glEndQueryIndexed(GLenum target, GLuint index)
+{
+	struct ChimeraGlArgs_glEndQueryIndexed chimera_a;
+	chimera_a.target = target;
+	chimera_a.index = index;
+	g_bridge(CHIMERA_GL_OP_glEndQueryIndexed, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glFramebufferTexture2DMultisampleEXT(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLsizei samples)
+{
+	struct ChimeraGlArgs_glFramebufferTexture2DMultisampleEXT chimera_a;
+	chimera_a.target = target;
+	chimera_a.attachment = attachment;
+	chimera_a.textarget = textarget;
+	chimera_a.texture = texture;
+	chimera_a.level = level;
+	chimera_a.samples = samples;
+	g_bridge(CHIMERA_GL_OP_glFramebufferTexture2DMultisampleEXT, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGenProgramPipelines(GLsizei n, GLuint * pipelines)
+{
+	struct ChimeraGlArgs_glGenProgramPipelines chimera_a;
+	chimera_a.n = n;
+	chimera_a.pipelines = pipelines;
+	g_bridge(CHIMERA_GL_OP_glGenProgramPipelines, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGenQueriesEXT(GLsizei n, GLuint * ids)
+{
+	struct ChimeraGlArgs_glGenQueriesEXT chimera_a;
+	chimera_a.n = n;
+	chimera_a.ids = ids;
+	g_bridge(CHIMERA_GL_OP_glGenQueriesEXT, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGenTransformFeedbacks(GLsizei n, GLuint * ids)
+{
+	struct ChimeraGlArgs_glGenTransformFeedbacks chimera_a;
+	chimera_a.n = n;
+	chimera_a.ids = ids;
+	g_bridge(CHIMERA_GL_OP_glGenTransformFeedbacks, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGenVertexArraysAPPLE(GLsizei n, GLuint * arrays)
+{
+	struct ChimeraGlArgs_glGenVertexArraysAPPLE chimera_a;
+	chimera_a.n = n;
+	chimera_a.arrays = arrays;
+	g_bridge(CHIMERA_GL_OP_glGenVertexArraysAPPLE, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGenVertexArraysOES(GLsizei n, GLuint * arrays)
+{
+	struct ChimeraGlArgs_glGenVertexArraysOES chimera_a;
+	chimera_a.n = n;
+	chimera_a.arrays = arrays;
+	g_bridge(CHIMERA_GL_OP_glGenVertexArraysOES, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetActiveSubroutineName(GLuint program, GLenum shadertype, GLuint index, GLsizei bufSize, GLsizei * length, GLchar * name)
+{
+	struct ChimeraGlArgs_glGetActiveSubroutineName chimera_a;
+	chimera_a.program = program;
+	chimera_a.shadertype = shadertype;
+	chimera_a.index = index;
+	chimera_a.bufSize = bufSize;
+	chimera_a.length = length;
+	chimera_a.name = name;
+	g_bridge(CHIMERA_GL_OP_glGetActiveSubroutineName, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetActiveSubroutineUniformiv(GLuint program, GLenum shadertype, GLuint index, GLenum pname, GLint * values)
+{
+	struct ChimeraGlArgs_glGetActiveSubroutineUniformiv chimera_a;
+	chimera_a.program = program;
+	chimera_a.shadertype = shadertype;
+	chimera_a.index = index;
+	chimera_a.pname = pname;
+	chimera_a.values = values;
+	g_bridge(CHIMERA_GL_OP_glGetActiveSubroutineUniformiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetActiveSubroutineUniformName(GLuint program, GLenum shadertype, GLuint index, GLsizei bufSize, GLsizei * length, GLchar * name)
+{
+	struct ChimeraGlArgs_glGetActiveSubroutineUniformName chimera_a;
+	chimera_a.program = program;
+	chimera_a.shadertype = shadertype;
+	chimera_a.index = index;
+	chimera_a.bufSize = bufSize;
+	chimera_a.length = length;
+	chimera_a.name = name;
+	g_bridge(CHIMERA_GL_OP_glGetActiveSubroutineUniformName, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetBooleanIndexedvEXT(GLenum target, GLuint index, GLboolean * data)
+{
+	struct ChimeraGlArgs_glGetBooleanIndexedvEXT chimera_a;
+	chimera_a.target = target;
+	chimera_a.index = index;
+	chimera_a.data = data;
+	g_bridge(CHIMERA_GL_OP_glGetBooleanIndexedvEXT, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static GLuint GLAD_API_PTR w_glGetDebugMessageLogKHR(GLuint count, GLsizei bufSize, GLenum * sources, GLenum * types, GLuint * ids, GLenum * severities, GLsizei * lengths, GLchar * messageLog)
+{
+	struct ChimeraGlArgs_glGetDebugMessageLogKHR chimera_a;
+	chimera_a.count = count;
+	chimera_a.bufSize = bufSize;
+	chimera_a.sources = sources;
+	chimera_a.types = types;
+	chimera_a.ids = ids;
+	chimera_a.severities = severities;
+	chimera_a.lengths = lengths;
+	chimera_a.messageLog = messageLog;
+	return (GLuint)g_bridge(CHIMERA_GL_OP_glGetDebugMessageLogKHR, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetInteger64vEXT(GLenum pname, GLint64 * data)
+{
+	struct ChimeraGlArgs_glGetInteger64vEXT chimera_a;
+	chimera_a.pname = pname;
+	chimera_a.data = data;
+	g_bridge(CHIMERA_GL_OP_glGetInteger64vEXT, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetIntegerIndexedvEXT(GLenum target, GLuint index, GLint * data)
+{
+	struct ChimeraGlArgs_glGetIntegerIndexedvEXT chimera_a;
+	chimera_a.target = target;
+	chimera_a.index = index;
+	chimera_a.data = data;
+	g_bridge(CHIMERA_GL_OP_glGetIntegerIndexedvEXT, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetObjectLabelKHR(GLenum identifier, GLuint name, GLsizei bufSize, GLsizei * length, GLchar * label)
+{
+	struct ChimeraGlArgs_glGetObjectLabelKHR chimera_a;
+	chimera_a.identifier = identifier;
+	chimera_a.name = name;
+	chimera_a.bufSize = bufSize;
+	chimera_a.length = length;
+	chimera_a.label = label;
+	g_bridge(CHIMERA_GL_OP_glGetObjectLabelKHR, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetObjectPtrLabelKHR(const void * ptr, GLsizei bufSize, GLsizei * length, GLchar * label)
+{
+	struct ChimeraGlArgs_glGetObjectPtrLabelKHR chimera_a;
+	chimera_a.ptr = ptr;
+	chimera_a.bufSize = bufSize;
+	chimera_a.length = length;
+	chimera_a.label = label;
+	g_bridge(CHIMERA_GL_OP_glGetObjectPtrLabelKHR, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetPointervKHR(GLenum pname, void ** params)
+{
+	struct ChimeraGlArgs_glGetPointervKHR chimera_a;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetPointervKHR, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetProgramPipelineInfoLog(GLuint pipeline, GLsizei bufSize, GLsizei * length, GLchar * infoLog)
+{
+	struct ChimeraGlArgs_glGetProgramPipelineInfoLog chimera_a;
+	chimera_a.pipeline = pipeline;
+	chimera_a.bufSize = bufSize;
+	chimera_a.length = length;
+	chimera_a.infoLog = infoLog;
+	g_bridge(CHIMERA_GL_OP_glGetProgramPipelineInfoLog, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetProgramPipelineiv(GLuint pipeline, GLenum pname, GLint * params)
+{
+	struct ChimeraGlArgs_glGetProgramPipelineiv chimera_a;
+	chimera_a.pipeline = pipeline;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetProgramPipelineiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetProgramStageiv(GLuint program, GLenum shadertype, GLenum pname, GLint * values)
+{
+	struct ChimeraGlArgs_glGetProgramStageiv chimera_a;
+	chimera_a.program = program;
+	chimera_a.shadertype = shadertype;
+	chimera_a.pname = pname;
+	chimera_a.values = values;
+	g_bridge(CHIMERA_GL_OP_glGetProgramStageiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetQueryIndexediv(GLenum target, GLuint index, GLenum pname, GLint * params)
+{
+	struct ChimeraGlArgs_glGetQueryIndexediv chimera_a;
+	chimera_a.target = target;
+	chimera_a.index = index;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetQueryIndexediv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetQueryivEXT(GLenum target, GLenum pname, GLint * params)
+{
+	struct ChimeraGlArgs_glGetQueryivEXT chimera_a;
+	chimera_a.target = target;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetQueryivEXT, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetQueryObjecti64v(GLuint id, GLenum pname, GLint64 * params)
+{
+	struct ChimeraGlArgs_glGetQueryObjecti64v chimera_a;
+	chimera_a.id = id;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetQueryObjecti64v, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetQueryObjecti64vEXT(GLuint id, GLenum pname, GLint64 * params)
+{
+	struct ChimeraGlArgs_glGetQueryObjecti64vEXT chimera_a;
+	chimera_a.id = id;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetQueryObjecti64vEXT, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetQueryObjectivEXT(GLuint id, GLenum pname, GLint * params)
+{
+	struct ChimeraGlArgs_glGetQueryObjectivEXT chimera_a;
+	chimera_a.id = id;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetQueryObjectivEXT, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetQueryObjectui64vEXT(GLuint id, GLenum pname, GLuint64 * params)
+{
+	struct ChimeraGlArgs_glGetQueryObjectui64vEXT chimera_a;
+	chimera_a.id = id;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetQueryObjectui64vEXT, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetQueryObjectuivEXT(GLuint id, GLenum pname, GLuint * params)
+{
+	struct ChimeraGlArgs_glGetQueryObjectuivEXT chimera_a;
+	chimera_a.id = id;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetQueryObjectuivEXT, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static GLuint GLAD_API_PTR w_glGetSubroutineIndex(GLuint program, GLenum shadertype, const GLchar * name)
+{
+	struct ChimeraGlArgs_glGetSubroutineIndex chimera_a;
+	chimera_a.program = program;
+	chimera_a.shadertype = shadertype;
+	chimera_a.name = name;
+	return (GLuint)g_bridge(CHIMERA_GL_OP_glGetSubroutineIndex, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static GLint GLAD_API_PTR w_glGetSubroutineUniformLocation(GLuint program, GLenum shadertype, const GLchar * name)
+{
+	struct ChimeraGlArgs_glGetSubroutineUniformLocation chimera_a;
+	chimera_a.program = program;
+	chimera_a.shadertype = shadertype;
+	chimera_a.name = name;
+	return (GLint)g_bridge(CHIMERA_GL_OP_glGetSubroutineUniformLocation, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetTransformFeedbacki64_v(GLuint xfb, GLenum pname, GLuint index, GLint64 * param)
+{
+	struct ChimeraGlArgs_glGetTransformFeedbacki64_v chimera_a;
+	chimera_a.xfb = xfb;
+	chimera_a.pname = pname;
+	chimera_a.index = index;
+	chimera_a.param = param;
+	g_bridge(CHIMERA_GL_OP_glGetTransformFeedbacki64_v, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetTransformFeedbacki_v(GLuint xfb, GLenum pname, GLuint index, GLint * param)
+{
+	struct ChimeraGlArgs_glGetTransformFeedbacki_v chimera_a;
+	chimera_a.xfb = xfb;
+	chimera_a.pname = pname;
+	chimera_a.index = index;
+	chimera_a.param = param;
+	g_bridge(CHIMERA_GL_OP_glGetTransformFeedbacki_v, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetUniformdv(GLuint program, GLint location, GLdouble * params)
+{
+	struct ChimeraGlArgs_glGetUniformdv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetUniformdv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetUniformSubroutineuiv(GLenum shadertype, GLint location, GLuint * params)
+{
+	struct ChimeraGlArgs_glGetUniformSubroutineuiv chimera_a;
+	chimera_a.shadertype = shadertype;
+	chimera_a.location = location;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetUniformSubroutineuiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glGetVertexAttribLdv(GLuint index, GLenum pname, GLdouble * params)
+{
+	struct ChimeraGlArgs_glGetVertexAttribLdv chimera_a;
+	chimera_a.index = index;
+	chimera_a.pname = pname;
+	chimera_a.params = params;
+	g_bridge(CHIMERA_GL_OP_glGetVertexAttribLdv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static GLboolean GLAD_API_PTR w_glIsEnabledIndexedEXT(GLenum target, GLuint index)
+{
+	struct ChimeraGlArgs_glIsEnabledIndexedEXT chimera_a;
+	chimera_a.target = target;
+	chimera_a.index = index;
+	return (GLboolean)g_bridge(CHIMERA_GL_OP_glIsEnabledIndexedEXT, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static GLboolean GLAD_API_PTR w_glIsProgramPipeline(GLuint pipeline)
+{
+	struct ChimeraGlArgs_glIsProgramPipeline chimera_a;
+	chimera_a.pipeline = pipeline;
+	return (GLboolean)g_bridge(CHIMERA_GL_OP_glIsProgramPipeline, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static GLboolean GLAD_API_PTR w_glIsQueryEXT(GLuint id)
+{
+	struct ChimeraGlArgs_glIsQueryEXT chimera_a;
+	chimera_a.id = id;
+	return (GLboolean)g_bridge(CHIMERA_GL_OP_glIsQueryEXT, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static GLboolean GLAD_API_PTR w_glIsTransformFeedback(GLuint id)
+{
+	struct ChimeraGlArgs_glIsTransformFeedback chimera_a;
+	chimera_a.id = id;
+	return (GLboolean)g_bridge(CHIMERA_GL_OP_glIsTransformFeedback, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static GLboolean GLAD_API_PTR w_glIsVertexArrayAPPLE(GLuint array)
+{
+	struct ChimeraGlArgs_glIsVertexArrayAPPLE chimera_a;
+	chimera_a.array = array;
+	return (GLboolean)g_bridge(CHIMERA_GL_OP_glIsVertexArrayAPPLE, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static GLboolean GLAD_API_PTR w_glIsVertexArrayOES(GLuint array)
+{
+	struct ChimeraGlArgs_glIsVertexArrayOES chimera_a;
+	chimera_a.array = array;
+	return (GLboolean)g_bridge(CHIMERA_GL_OP_glIsVertexArrayOES, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glMaxShaderCompilerThreadsARB(GLuint count)
+{
+	struct ChimeraGlArgs_glMaxShaderCompilerThreadsARB chimera_a;
+	chimera_a.count = count;
+	g_bridge(CHIMERA_GL_OP_glMaxShaderCompilerThreadsARB, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glMaxShaderCompilerThreadsKHR(GLuint count)
+{
+	struct ChimeraGlArgs_glMaxShaderCompilerThreadsKHR chimera_a;
+	chimera_a.count = count;
+	g_bridge(CHIMERA_GL_OP_glMaxShaderCompilerThreadsKHR, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glMultiDrawArraysIndirectCount(GLenum mode, const void * indirect, GLintptr drawcount, GLsizei maxdrawcount, GLsizei stride)
+{
+	struct ChimeraGlArgs_glMultiDrawArraysIndirectCount chimera_a;
+	chimera_a.mode = mode;
+	chimera_a.indirect = indirect;
+	chimera_a.drawcount = drawcount;
+	chimera_a.maxdrawcount = maxdrawcount;
+	chimera_a.stride = stride;
+	g_bridge(CHIMERA_GL_OP_glMultiDrawArraysIndirectCount, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glMultiDrawElementsIndirectCount(GLenum mode, GLenum type, const void * indirect, GLintptr drawcount, GLsizei maxdrawcount, GLsizei stride)
+{
+	struct ChimeraGlArgs_glMultiDrawElementsIndirectCount chimera_a;
+	chimera_a.mode = mode;
+	chimera_a.type = type;
+	chimera_a.indirect = indirect;
+	chimera_a.drawcount = drawcount;
+	chimera_a.maxdrawcount = maxdrawcount;
+	chimera_a.stride = stride;
+	g_bridge(CHIMERA_GL_OP_glMultiDrawElementsIndirectCount, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+}
+
+static void GLAD_API_PTR w_glObjectLabelKHR(GLenum identifier, GLuint name, GLsizei length, const GLchar * label)
+{
+	struct ChimeraGlArgs_glObjectLabelKHR chimera_a;
+	chimera_a.identifier = identifier;
+	chimera_a.name = name;
+	chimera_a.length = length;
+	chimera_a.label = label;
+	g_bridge(CHIMERA_GL_OP_glObjectLabelKHR, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glObjectPtrLabelKHR(const void * ptr, GLsizei length, const GLchar * label)
 {
-	struct ChimeraGlArgs_glObjectPtrLabelKHR cargs;
-	cargs.ptr = ptr;
-	cargs.length = length;
-	cargs.label = label;
-	g_bridge(CHIMERA_GL_OP_glObjectPtrLabelKHR, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glObjectPtrLabelKHR chimera_a;
+	chimera_a.ptr = ptr;
+	chimera_a.length = length;
+	chimera_a.label = label;
+	g_bridge(CHIMERA_GL_OP_glObjectPtrLabelKHR, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glPatchParameterfv(GLenum pname, const GLfloat * values)
 {
-	struct ChimeraGlArgs_glPatchParameterfv cargs;
-	cargs.pname = pname;
-	cargs.values = values;
-	g_bridge(CHIMERA_GL_OP_glPatchParameterfv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glPatchParameterfv chimera_a;
+	chimera_a.pname = pname;
+	chimera_a.values = values;
+	g_bridge(CHIMERA_GL_OP_glPatchParameterfv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glPatchParameteri(GLenum pname, GLint value)
 {
-	struct ChimeraGlArgs_glPatchParameteri cargs;
-	cargs.pname = pname;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glPatchParameteri, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glPatchParameteri chimera_a;
+	chimera_a.pname = pname;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glPatchParameteri, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glPauseTransformFeedback(void)
@@ -3870,89 +5885,13 @@ static void GLAD_API_PTR w_glPauseTransformFeedback(void)
 	g_bridge(CHIMERA_GL_OP_glPauseTransformFeedback, 0, 0, 0, 0, 0);
 }
 
-static void GLAD_API_PTR w_glPixelStoref(GLenum pname, GLfloat param)
-{
-	struct ChimeraGlArgs_glPixelStoref cargs;
-	cargs.pname = pname;
-	cargs.param = param;
-	g_bridge(CHIMERA_GL_OP_glPixelStoref, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glPixelStorei(GLenum pname, GLint param)
-{
-	struct ChimeraGlArgs_glPixelStorei cargs;
-	cargs.pname = pname;
-	cargs.param = param;
-	g_bridge(CHIMERA_GL_OP_glPixelStorei, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glPointParameterf(GLenum pname, GLfloat param)
-{
-	struct ChimeraGlArgs_glPointParameterf cargs;
-	cargs.pname = pname;
-	cargs.param = param;
-	g_bridge(CHIMERA_GL_OP_glPointParameterf, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glPointParameterfv(GLenum pname, const GLfloat * params)
-{
-	struct ChimeraGlArgs_glPointParameterfv cargs;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glPointParameterfv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glPointParameteri(GLenum pname, GLint param)
-{
-	struct ChimeraGlArgs_glPointParameteri cargs;
-	cargs.pname = pname;
-	cargs.param = param;
-	g_bridge(CHIMERA_GL_OP_glPointParameteri, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glPointParameteriv(GLenum pname, const GLint * params)
-{
-	struct ChimeraGlArgs_glPointParameteriv cargs;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glPointParameteriv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glPointSize(GLfloat size)
-{
-	struct ChimeraGlArgs_glPointSize cargs;
-	cargs.size = size;
-	g_bridge(CHIMERA_GL_OP_glPointSize, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glPolygonMode(GLenum face, GLenum mode)
-{
-	struct ChimeraGlArgs_glPolygonMode cargs;
-	cargs.face = face;
-	cargs.mode = mode;
-	g_bridge(CHIMERA_GL_OP_glPolygonMode, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glPolygonOffset(GLfloat factor, GLfloat units)
-{
-	struct ChimeraGlArgs_glPolygonOffset cargs;
-	cargs.factor = factor;
-	cargs.units = units;
-	g_bridge(CHIMERA_GL_OP_glPolygonOffset, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
 static void GLAD_API_PTR w_glPolygonOffsetClamp(GLfloat factor, GLfloat units, GLfloat clamp)
 {
-	struct ChimeraGlArgs_glPolygonOffsetClamp cargs;
-	cargs.factor = factor;
-	cargs.units = units;
-	cargs.clamp = clamp;
-	g_bridge(CHIMERA_GL_OP_glPolygonOffsetClamp, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glPopDebugGroup(void)
-{
-	g_bridge(CHIMERA_GL_OP_glPopDebugGroup, 0, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glPolygonOffsetClamp chimera_a;
+	chimera_a.factor = factor;
+	chimera_a.units = units;
+	chimera_a.clamp = clamp;
+	g_bridge(CHIMERA_GL_OP_glPolygonOffsetClamp, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glPopDebugGroupKHR(void)
@@ -3962,682 +5901,465 @@ static void GLAD_API_PTR w_glPopDebugGroupKHR(void)
 
 static void GLAD_API_PTR w_glPrimitiveBoundingBox(GLfloat minX, GLfloat minY, GLfloat minZ, GLfloat minW, GLfloat maxX, GLfloat maxY, GLfloat maxZ, GLfloat maxW)
 {
-	struct ChimeraGlArgs_glPrimitiveBoundingBox cargs;
-	cargs.minX = minX;
-	cargs.minY = minY;
-	cargs.minZ = minZ;
-	cargs.minW = minW;
-	cargs.maxX = maxX;
-	cargs.maxY = maxY;
-	cargs.maxZ = maxZ;
-	cargs.maxW = maxW;
-	g_bridge(CHIMERA_GL_OP_glPrimitiveBoundingBox, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glPrimitiveRestartIndex(GLuint index)
-{
-	struct ChimeraGlArgs_glPrimitiveRestartIndex cargs;
-	cargs.index = index;
-	g_bridge(CHIMERA_GL_OP_glPrimitiveRestartIndex, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glProgramBinary(GLuint program, GLenum binaryFormat, const void * binary, GLsizei length)
-{
-	struct ChimeraGlArgs_glProgramBinary cargs;
-	cargs.program = program;
-	cargs.binaryFormat = binaryFormat;
-	cargs.binary = binary;
-	cargs.length = length;
-	g_bridge(CHIMERA_GL_OP_glProgramBinary, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glProgramParameteri(GLuint program, GLenum pname, GLint value)
-{
-	struct ChimeraGlArgs_glProgramParameteri cargs;
-	cargs.program = program;
-	cargs.pname = pname;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glProgramParameteri, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glPrimitiveBoundingBox chimera_a;
+	chimera_a.minX = minX;
+	chimera_a.minY = minY;
+	chimera_a.minZ = minZ;
+	chimera_a.minW = minW;
+	chimera_a.maxX = maxX;
+	chimera_a.maxY = maxY;
+	chimera_a.maxZ = maxZ;
+	chimera_a.maxW = maxW;
+	g_bridge(CHIMERA_GL_OP_glPrimitiveBoundingBox, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glProgramUniform1d(GLuint program, GLint location, GLdouble v0)
 {
-	struct ChimeraGlArgs_glProgramUniform1d cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.v0 = v0;
-	g_bridge(CHIMERA_GL_OP_glProgramUniform1d, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glProgramUniform1d chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.v0 = v0;
+	g_bridge(CHIMERA_GL_OP_glProgramUniform1d, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glProgramUniform1dv(GLuint program, GLint location, GLsizei count, const GLdouble * value)
 {
-	struct ChimeraGlArgs_glProgramUniform1dv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glProgramUniform1dv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glProgramUniform1f(GLuint program, GLint location, GLfloat v0)
-{
-	struct ChimeraGlArgs_glProgramUniform1f cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.v0 = v0;
-	g_bridge(CHIMERA_GL_OP_glProgramUniform1f, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glProgramUniform1dv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glProgramUniform1dv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glProgramUniform1fv(GLuint program, GLint location, GLsizei count, const GLfloat * value)
 {
-	struct ChimeraGlArgs_glProgramUniform1fv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glProgramUniform1fv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glProgramUniform1i(GLuint program, GLint location, GLint v0)
-{
-	struct ChimeraGlArgs_glProgramUniform1i cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.v0 = v0;
-	g_bridge(CHIMERA_GL_OP_glProgramUniform1i, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glProgramUniform1iv(GLuint program, GLint location, GLsizei count, const GLint * value)
-{
-	struct ChimeraGlArgs_glProgramUniform1iv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glProgramUniform1iv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glProgramUniform1ui(GLuint program, GLint location, GLuint v0)
-{
-	struct ChimeraGlArgs_glProgramUniform1ui cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.v0 = v0;
-	g_bridge(CHIMERA_GL_OP_glProgramUniform1ui, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glProgramUniform1fv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glProgramUniform1fv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glProgramUniform1uiv(GLuint program, GLint location, GLsizei count, const GLuint * value)
 {
-	struct ChimeraGlArgs_glProgramUniform1uiv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glProgramUniform1uiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glProgramUniform1uiv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glProgramUniform1uiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glProgramUniform2d(GLuint program, GLint location, GLdouble v0, GLdouble v1)
 {
-	struct ChimeraGlArgs_glProgramUniform2d cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.v0 = v0;
-	cargs.v1 = v1;
-	g_bridge(CHIMERA_GL_OP_glProgramUniform2d, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glProgramUniform2d chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.v0 = v0;
+	chimera_a.v1 = v1;
+	g_bridge(CHIMERA_GL_OP_glProgramUniform2d, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glProgramUniform2dv(GLuint program, GLint location, GLsizei count, const GLdouble * value)
 {
-	struct ChimeraGlArgs_glProgramUniform2dv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glProgramUniform2dv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glProgramUniform2f(GLuint program, GLint location, GLfloat v0, GLfloat v1)
-{
-	struct ChimeraGlArgs_glProgramUniform2f cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.v0 = v0;
-	cargs.v1 = v1;
-	g_bridge(CHIMERA_GL_OP_glProgramUniform2f, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glProgramUniform2dv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glProgramUniform2dv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glProgramUniform2fv(GLuint program, GLint location, GLsizei count, const GLfloat * value)
 {
-	struct ChimeraGlArgs_glProgramUniform2fv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glProgramUniform2fv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glProgramUniform2i(GLuint program, GLint location, GLint v0, GLint v1)
-{
-	struct ChimeraGlArgs_glProgramUniform2i cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.v0 = v0;
-	cargs.v1 = v1;
-	g_bridge(CHIMERA_GL_OP_glProgramUniform2i, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glProgramUniform2fv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glProgramUniform2fv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glProgramUniform2iv(GLuint program, GLint location, GLsizei count, const GLint * value)
 {
-	struct ChimeraGlArgs_glProgramUniform2iv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glProgramUniform2iv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glProgramUniform2iv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glProgramUniform2iv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glProgramUniform2ui(GLuint program, GLint location, GLuint v0, GLuint v1)
 {
-	struct ChimeraGlArgs_glProgramUniform2ui cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.v0 = v0;
-	cargs.v1 = v1;
-	g_bridge(CHIMERA_GL_OP_glProgramUniform2ui, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glProgramUniform2ui chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.v0 = v0;
+	chimera_a.v1 = v1;
+	g_bridge(CHIMERA_GL_OP_glProgramUniform2ui, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glProgramUniform2uiv(GLuint program, GLint location, GLsizei count, const GLuint * value)
 {
-	struct ChimeraGlArgs_glProgramUniform2uiv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glProgramUniform2uiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glProgramUniform2uiv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glProgramUniform2uiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glProgramUniform3d(GLuint program, GLint location, GLdouble v0, GLdouble v1, GLdouble v2)
 {
-	struct ChimeraGlArgs_glProgramUniform3d cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.v0 = v0;
-	cargs.v1 = v1;
-	cargs.v2 = v2;
-	g_bridge(CHIMERA_GL_OP_glProgramUniform3d, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glProgramUniform3d chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.v0 = v0;
+	chimera_a.v1 = v1;
+	chimera_a.v2 = v2;
+	g_bridge(CHIMERA_GL_OP_glProgramUniform3d, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glProgramUniform3dv(GLuint program, GLint location, GLsizei count, const GLdouble * value)
 {
-	struct ChimeraGlArgs_glProgramUniform3dv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glProgramUniform3dv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glProgramUniform3f(GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2)
-{
-	struct ChimeraGlArgs_glProgramUniform3f cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.v0 = v0;
-	cargs.v1 = v1;
-	cargs.v2 = v2;
-	g_bridge(CHIMERA_GL_OP_glProgramUniform3f, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glProgramUniform3dv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glProgramUniform3dv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glProgramUniform3fv(GLuint program, GLint location, GLsizei count, const GLfloat * value)
 {
-	struct ChimeraGlArgs_glProgramUniform3fv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glProgramUniform3fv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glProgramUniform3i(GLuint program, GLint location, GLint v0, GLint v1, GLint v2)
-{
-	struct ChimeraGlArgs_glProgramUniform3i cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.v0 = v0;
-	cargs.v1 = v1;
-	cargs.v2 = v2;
-	g_bridge(CHIMERA_GL_OP_glProgramUniform3i, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glProgramUniform3fv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glProgramUniform3fv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glProgramUniform3iv(GLuint program, GLint location, GLsizei count, const GLint * value)
 {
-	struct ChimeraGlArgs_glProgramUniform3iv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glProgramUniform3iv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glProgramUniform3iv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glProgramUniform3iv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glProgramUniform3ui(GLuint program, GLint location, GLuint v0, GLuint v1, GLuint v2)
 {
-	struct ChimeraGlArgs_glProgramUniform3ui cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.v0 = v0;
-	cargs.v1 = v1;
-	cargs.v2 = v2;
-	g_bridge(CHIMERA_GL_OP_glProgramUniform3ui, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glProgramUniform3ui chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.v0 = v0;
+	chimera_a.v1 = v1;
+	chimera_a.v2 = v2;
+	g_bridge(CHIMERA_GL_OP_glProgramUniform3ui, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glProgramUniform3uiv(GLuint program, GLint location, GLsizei count, const GLuint * value)
 {
-	struct ChimeraGlArgs_glProgramUniform3uiv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glProgramUniform3uiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glProgramUniform3uiv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glProgramUniform3uiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glProgramUniform4d(GLuint program, GLint location, GLdouble v0, GLdouble v1, GLdouble v2, GLdouble v3)
 {
-	struct ChimeraGlArgs_glProgramUniform4d cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.v0 = v0;
-	cargs.v1 = v1;
-	cargs.v2 = v2;
-	cargs.v3 = v3;
-	g_bridge(CHIMERA_GL_OP_glProgramUniform4d, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glProgramUniform4d chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.v0 = v0;
+	chimera_a.v1 = v1;
+	chimera_a.v2 = v2;
+	chimera_a.v3 = v3;
+	g_bridge(CHIMERA_GL_OP_glProgramUniform4d, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glProgramUniform4dv(GLuint program, GLint location, GLsizei count, const GLdouble * value)
 {
-	struct ChimeraGlArgs_glProgramUniform4dv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glProgramUniform4dv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glProgramUniform4f(GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3)
-{
-	struct ChimeraGlArgs_glProgramUniform4f cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.v0 = v0;
-	cargs.v1 = v1;
-	cargs.v2 = v2;
-	cargs.v3 = v3;
-	g_bridge(CHIMERA_GL_OP_glProgramUniform4f, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glProgramUniform4dv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glProgramUniform4dv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glProgramUniform4fv(GLuint program, GLint location, GLsizei count, const GLfloat * value)
 {
-	struct ChimeraGlArgs_glProgramUniform4fv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glProgramUniform4fv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glProgramUniform4i(GLuint program, GLint location, GLint v0, GLint v1, GLint v2, GLint v3)
-{
-	struct ChimeraGlArgs_glProgramUniform4i cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.v0 = v0;
-	cargs.v1 = v1;
-	cargs.v2 = v2;
-	cargs.v3 = v3;
-	g_bridge(CHIMERA_GL_OP_glProgramUniform4i, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glProgramUniform4fv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glProgramUniform4fv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glProgramUniform4iv(GLuint program, GLint location, GLsizei count, const GLint * value)
 {
-	struct ChimeraGlArgs_glProgramUniform4iv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glProgramUniform4iv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glProgramUniform4iv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glProgramUniform4iv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glProgramUniform4ui(GLuint program, GLint location, GLuint v0, GLuint v1, GLuint v2, GLuint v3)
 {
-	struct ChimeraGlArgs_glProgramUniform4ui cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.v0 = v0;
-	cargs.v1 = v1;
-	cargs.v2 = v2;
-	cargs.v3 = v3;
-	g_bridge(CHIMERA_GL_OP_glProgramUniform4ui, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glProgramUniform4ui chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.v0 = v0;
+	chimera_a.v1 = v1;
+	chimera_a.v2 = v2;
+	chimera_a.v3 = v3;
+	g_bridge(CHIMERA_GL_OP_glProgramUniform4ui, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glProgramUniform4uiv(GLuint program, GLint location, GLsizei count, const GLuint * value)
 {
-	struct ChimeraGlArgs_glProgramUniform4uiv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glProgramUniform4uiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glProgramUniform4uiv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glProgramUniform4uiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glProgramUniformMatrix2dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value)
 {
-	struct ChimeraGlArgs_glProgramUniformMatrix2dv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.transpose = transpose;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glProgramUniformMatrix2dv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glProgramUniformMatrix2dv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.transpose = transpose;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glProgramUniformMatrix2dv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glProgramUniformMatrix2fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value)
 {
-	struct ChimeraGlArgs_glProgramUniformMatrix2fv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.transpose = transpose;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glProgramUniformMatrix2fv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glProgramUniformMatrix2fv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.transpose = transpose;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glProgramUniformMatrix2fv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glProgramUniformMatrix2x3dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value)
 {
-	struct ChimeraGlArgs_glProgramUniformMatrix2x3dv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.transpose = transpose;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glProgramUniformMatrix2x3dv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glProgramUniformMatrix2x3dv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.transpose = transpose;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glProgramUniformMatrix2x3dv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glProgramUniformMatrix2x3fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value)
 {
-	struct ChimeraGlArgs_glProgramUniformMatrix2x3fv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.transpose = transpose;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glProgramUniformMatrix2x3fv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glProgramUniformMatrix2x3fv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.transpose = transpose;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glProgramUniformMatrix2x3fv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glProgramUniformMatrix2x4dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value)
 {
-	struct ChimeraGlArgs_glProgramUniformMatrix2x4dv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.transpose = transpose;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glProgramUniformMatrix2x4dv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glProgramUniformMatrix2x4dv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.transpose = transpose;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glProgramUniformMatrix2x4dv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glProgramUniformMatrix2x4fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value)
 {
-	struct ChimeraGlArgs_glProgramUniformMatrix2x4fv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.transpose = transpose;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glProgramUniformMatrix2x4fv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glProgramUniformMatrix2x4fv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.transpose = transpose;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glProgramUniformMatrix2x4fv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glProgramUniformMatrix3dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value)
 {
-	struct ChimeraGlArgs_glProgramUniformMatrix3dv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.transpose = transpose;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glProgramUniformMatrix3dv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glProgramUniformMatrix3fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value)
-{
-	struct ChimeraGlArgs_glProgramUniformMatrix3fv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.transpose = transpose;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glProgramUniformMatrix3fv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glProgramUniformMatrix3dv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.transpose = transpose;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glProgramUniformMatrix3dv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glProgramUniformMatrix3x2dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value)
 {
-	struct ChimeraGlArgs_glProgramUniformMatrix3x2dv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.transpose = transpose;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glProgramUniformMatrix3x2dv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glProgramUniformMatrix3x2dv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.transpose = transpose;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glProgramUniformMatrix3x2dv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glProgramUniformMatrix3x2fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value)
 {
-	struct ChimeraGlArgs_glProgramUniformMatrix3x2fv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.transpose = transpose;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glProgramUniformMatrix3x2fv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glProgramUniformMatrix3x2fv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.transpose = transpose;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glProgramUniformMatrix3x2fv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glProgramUniformMatrix3x4dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value)
 {
-	struct ChimeraGlArgs_glProgramUniformMatrix3x4dv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.transpose = transpose;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glProgramUniformMatrix3x4dv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glProgramUniformMatrix3x4dv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.transpose = transpose;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glProgramUniformMatrix3x4dv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glProgramUniformMatrix3x4fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value)
 {
-	struct ChimeraGlArgs_glProgramUniformMatrix3x4fv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.transpose = transpose;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glProgramUniformMatrix3x4fv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glProgramUniformMatrix3x4fv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.transpose = transpose;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glProgramUniformMatrix3x4fv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glProgramUniformMatrix4dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value)
 {
-	struct ChimeraGlArgs_glProgramUniformMatrix4dv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.transpose = transpose;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glProgramUniformMatrix4dv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glProgramUniformMatrix4dv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.transpose = transpose;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glProgramUniformMatrix4dv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glProgramUniformMatrix4fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value)
 {
-	struct ChimeraGlArgs_glProgramUniformMatrix4fv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.transpose = transpose;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glProgramUniformMatrix4fv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glProgramUniformMatrix4fv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.transpose = transpose;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glProgramUniformMatrix4fv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glProgramUniformMatrix4x2dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value)
 {
-	struct ChimeraGlArgs_glProgramUniformMatrix4x2dv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.transpose = transpose;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glProgramUniformMatrix4x2dv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glProgramUniformMatrix4x2dv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.transpose = transpose;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glProgramUniformMatrix4x2dv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glProgramUniformMatrix4x2fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value)
 {
-	struct ChimeraGlArgs_glProgramUniformMatrix4x2fv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.transpose = transpose;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glProgramUniformMatrix4x2fv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glProgramUniformMatrix4x2fv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.transpose = transpose;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glProgramUniformMatrix4x2fv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glProgramUniformMatrix4x3dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value)
 {
-	struct ChimeraGlArgs_glProgramUniformMatrix4x3dv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.transpose = transpose;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glProgramUniformMatrix4x3dv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glProgramUniformMatrix4x3dv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.transpose = transpose;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glProgramUniformMatrix4x3dv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glProgramUniformMatrix4x3fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value)
 {
-	struct ChimeraGlArgs_glProgramUniformMatrix4x3fv cargs;
-	cargs.program = program;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.transpose = transpose;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glProgramUniformMatrix4x3fv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glProvokingVertex(GLenum mode)
-{
-	struct ChimeraGlArgs_glProvokingVertex cargs;
-	cargs.mode = mode;
-	g_bridge(CHIMERA_GL_OP_glProvokingVertex, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glPushDebugGroup(GLenum source, GLuint id, GLsizei length, const GLchar * message)
-{
-	struct ChimeraGlArgs_glPushDebugGroup cargs;
-	cargs.source = source;
-	cargs.id = id;
-	cargs.length = length;
-	cargs.message = message;
-	g_bridge(CHIMERA_GL_OP_glPushDebugGroup, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glProgramUniformMatrix4x3fv chimera_a;
+	chimera_a.program = program;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.transpose = transpose;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glProgramUniformMatrix4x3fv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glPushDebugGroupKHR(GLenum source, GLuint id, GLsizei length, const GLchar * message)
 {
-	struct ChimeraGlArgs_glPushDebugGroupKHR cargs;
-	cargs.source = source;
-	cargs.id = id;
-	cargs.length = length;
-	cargs.message = message;
-	g_bridge(CHIMERA_GL_OP_glPushDebugGroupKHR, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glPushDebugGroupKHR chimera_a;
+	chimera_a.source = source;
+	chimera_a.id = id;
+	chimera_a.length = length;
+	chimera_a.message = message;
+	g_bridge(CHIMERA_GL_OP_glPushDebugGroupKHR, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glQueryCounter(GLuint id, GLenum target)
 {
-	struct ChimeraGlArgs_glQueryCounter cargs;
-	cargs.id = id;
-	cargs.target = target;
-	g_bridge(CHIMERA_GL_OP_glQueryCounter, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glQueryCounter chimera_a;
+	chimera_a.id = id;
+	chimera_a.target = target;
+	g_bridge(CHIMERA_GL_OP_glQueryCounter, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glQueryCounterEXT(GLuint id, GLenum target)
 {
-	struct ChimeraGlArgs_glQueryCounterEXT cargs;
-	cargs.id = id;
-	cargs.target = target;
-	g_bridge(CHIMERA_GL_OP_glQueryCounterEXT, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glReadBuffer(GLenum src)
-{
-	struct ChimeraGlArgs_glReadBuffer cargs;
-	cargs.src = src;
-	g_bridge(CHIMERA_GL_OP_glReadBuffer, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glReadnPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLsizei bufSize, void * data)
-{
-	struct ChimeraGlArgs_glReadnPixels cargs;
-	cargs.x = x;
-	cargs.y = y;
-	cargs.width = width;
-	cargs.height = height;
-	cargs.format = format;
-	cargs.type = type;
-	cargs.bufSize = bufSize;
-	cargs.data = data;
-	g_bridge(CHIMERA_GL_OP_glReadnPixels, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, void * pixels)
-{
-	struct ChimeraGlArgs_glReadPixels cargs;
-	cargs.x = x;
-	cargs.y = y;
-	cargs.width = width;
-	cargs.height = height;
-	cargs.format = format;
-	cargs.type = type;
-	cargs.pixels = pixels;
-	g_bridge(CHIMERA_GL_OP_glReadPixels, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glReleaseShaderCompiler(void)
-{
-	g_bridge(CHIMERA_GL_OP_glReleaseShaderCompiler, 0, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glRenderbufferStorage(GLenum target, GLenum internalformat, GLsizei width, GLsizei height)
-{
-	struct ChimeraGlArgs_glRenderbufferStorage cargs;
-	cargs.target = target;
-	cargs.internalformat = internalformat;
-	cargs.width = width;
-	cargs.height = height;
-	g_bridge(CHIMERA_GL_OP_glRenderbufferStorage, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glRenderbufferStorageMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height)
-{
-	struct ChimeraGlArgs_glRenderbufferStorageMultisample cargs;
-	cargs.target = target;
-	cargs.samples = samples;
-	cargs.internalformat = internalformat;
-	cargs.width = width;
-	cargs.height = height;
-	g_bridge(CHIMERA_GL_OP_glRenderbufferStorageMultisample, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glQueryCounterEXT chimera_a;
+	chimera_a.id = id;
+	chimera_a.target = target;
+	g_bridge(CHIMERA_GL_OP_glQueryCounterEXT, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glRenderbufferStorageMultisampleEXT(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height)
 {
-	struct ChimeraGlArgs_glRenderbufferStorageMultisampleEXT cargs;
-	cargs.target = target;
-	cargs.samples = samples;
-	cargs.internalformat = internalformat;
-	cargs.width = width;
-	cargs.height = height;
-	g_bridge(CHIMERA_GL_OP_glRenderbufferStorageMultisampleEXT, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glRenderbufferStorageMultisampleEXT chimera_a;
+	chimera_a.target = target;
+	chimera_a.samples = samples;
+	chimera_a.internalformat = internalformat;
+	chimera_a.width = width;
+	chimera_a.height = height;
+	g_bridge(CHIMERA_GL_OP_glRenderbufferStorageMultisampleEXT, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glResumeTransformFeedback(void)
@@ -4645,2321 +6367,1399 @@ static void GLAD_API_PTR w_glResumeTransformFeedback(void)
 	g_bridge(CHIMERA_GL_OP_glResumeTransformFeedback, 0, 0, 0, 0, 0);
 }
 
-static void GLAD_API_PTR w_glSampleCoverage(GLfloat value, GLboolean invert)
-{
-	struct ChimeraGlArgs_glSampleCoverage cargs;
-	cargs.value = value;
-	cargs.invert = invert;
-	g_bridge(CHIMERA_GL_OP_glSampleCoverage, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glSampleMaski(GLuint maskNumber, GLbitfield mask)
-{
-	struct ChimeraGlArgs_glSampleMaski cargs;
-	cargs.maskNumber = maskNumber;
-	cargs.mask = mask;
-	g_bridge(CHIMERA_GL_OP_glSampleMaski, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glSamplerParameterf(GLuint sampler, GLenum pname, GLfloat param)
-{
-	struct ChimeraGlArgs_glSamplerParameterf cargs;
-	cargs.sampler = sampler;
-	cargs.pname = pname;
-	cargs.param = param;
-	g_bridge(CHIMERA_GL_OP_glSamplerParameterf, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glSamplerParameterfv(GLuint sampler, GLenum pname, const GLfloat * param)
-{
-	struct ChimeraGlArgs_glSamplerParameterfv cargs;
-	cargs.sampler = sampler;
-	cargs.pname = pname;
-	cargs.param = param;
-	g_bridge(CHIMERA_GL_OP_glSamplerParameterfv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glSamplerParameteri(GLuint sampler, GLenum pname, GLint param)
-{
-	struct ChimeraGlArgs_glSamplerParameteri cargs;
-	cargs.sampler = sampler;
-	cargs.pname = pname;
-	cargs.param = param;
-	g_bridge(CHIMERA_GL_OP_glSamplerParameteri, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glSamplerParameterIiv(GLuint sampler, GLenum pname, const GLint * param)
-{
-	struct ChimeraGlArgs_glSamplerParameterIiv cargs;
-	cargs.sampler = sampler;
-	cargs.pname = pname;
-	cargs.param = param;
-	g_bridge(CHIMERA_GL_OP_glSamplerParameterIiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glSamplerParameterIuiv(GLuint sampler, GLenum pname, const GLuint * param)
-{
-	struct ChimeraGlArgs_glSamplerParameterIuiv cargs;
-	cargs.sampler = sampler;
-	cargs.pname = pname;
-	cargs.param = param;
-	g_bridge(CHIMERA_GL_OP_glSamplerParameterIuiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glSamplerParameteriv(GLuint sampler, GLenum pname, const GLint * param)
-{
-	struct ChimeraGlArgs_glSamplerParameteriv cargs;
-	cargs.sampler = sampler;
-	cargs.pname = pname;
-	cargs.param = param;
-	g_bridge(CHIMERA_GL_OP_glSamplerParameteriv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glScissor(GLint x, GLint y, GLsizei width, GLsizei height)
-{
-	struct ChimeraGlArgs_glScissor cargs;
-	cargs.x = x;
-	cargs.y = y;
-	cargs.width = width;
-	cargs.height = height;
-	g_bridge(CHIMERA_GL_OP_glScissor, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glScissorArrayv(GLuint first, GLsizei count, const GLint * v)
-{
-	struct ChimeraGlArgs_glScissorArrayv cargs;
-	cargs.first = first;
-	cargs.count = count;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glScissorArrayv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glScissorIndexed(GLuint index, GLint left, GLint bottom, GLsizei width, GLsizei height)
-{
-	struct ChimeraGlArgs_glScissorIndexed cargs;
-	cargs.index = index;
-	cargs.left = left;
-	cargs.bottom = bottom;
-	cargs.width = width;
-	cargs.height = height;
-	g_bridge(CHIMERA_GL_OP_glScissorIndexed, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glScissorIndexedv(GLuint index, const GLint * v)
-{
-	struct ChimeraGlArgs_glScissorIndexedv cargs;
-	cargs.index = index;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glScissorIndexedv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glShaderBinary(GLsizei count, const GLuint * shaders, GLenum binaryFormat, const void * binary, GLsizei length)
-{
-	struct ChimeraGlArgs_glShaderBinary cargs;
-	cargs.count = count;
-	cargs.shaders = shaders;
-	cargs.binaryFormat = binaryFormat;
-	cargs.binary = binary;
-	cargs.length = length;
-	g_bridge(CHIMERA_GL_OP_glShaderBinary, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glShaderSource(GLuint shader, GLsizei count, const GLchar *const* string, const GLint * length)
-{
-	struct ChimeraGlArgs_glShaderSource cargs;
-	cargs.shader = shader;
-	cargs.count = count;
-	cargs.string = string;
-	cargs.length = length;
-	g_bridge(CHIMERA_GL_OP_glShaderSource, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glShaderStorageBlockBinding(GLuint program, GLuint storageBlockIndex, GLuint storageBlockBinding)
-{
-	struct ChimeraGlArgs_glShaderStorageBlockBinding cargs;
-	cargs.program = program;
-	cargs.storageBlockIndex = storageBlockIndex;
-	cargs.storageBlockBinding = storageBlockBinding;
-	g_bridge(CHIMERA_GL_OP_glShaderStorageBlockBinding, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
 static void GLAD_API_PTR w_glSpecializeShader(GLuint shader, const GLchar * pEntryPoint, GLuint numSpecializationConstants, const GLuint * pConstantIndex, const GLuint * pConstantValue)
 {
-	struct ChimeraGlArgs_glSpecializeShader cargs;
-	cargs.shader = shader;
-	cargs.pEntryPoint = pEntryPoint;
-	cargs.numSpecializationConstants = numSpecializationConstants;
-	cargs.pConstantIndex = pConstantIndex;
-	cargs.pConstantValue = pConstantValue;
-	g_bridge(CHIMERA_GL_OP_glSpecializeShader, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glStencilFunc(GLenum func, GLint ref, GLuint mask)
-{
-	struct ChimeraGlArgs_glStencilFunc cargs;
-	cargs.func = func;
-	cargs.ref = ref;
-	cargs.mask = mask;
-	g_bridge(CHIMERA_GL_OP_glStencilFunc, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glStencilFuncSeparate(GLenum face, GLenum func, GLint ref, GLuint mask)
-{
-	struct ChimeraGlArgs_glStencilFuncSeparate cargs;
-	cargs.face = face;
-	cargs.func = func;
-	cargs.ref = ref;
-	cargs.mask = mask;
-	g_bridge(CHIMERA_GL_OP_glStencilFuncSeparate, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glStencilMask(GLuint mask)
-{
-	struct ChimeraGlArgs_glStencilMask cargs;
-	cargs.mask = mask;
-	g_bridge(CHIMERA_GL_OP_glStencilMask, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glStencilMaskSeparate(GLenum face, GLuint mask)
-{
-	struct ChimeraGlArgs_glStencilMaskSeparate cargs;
-	cargs.face = face;
-	cargs.mask = mask;
-	g_bridge(CHIMERA_GL_OP_glStencilMaskSeparate, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glStencilOp(GLenum fail, GLenum zfail, GLenum zpass)
-{
-	struct ChimeraGlArgs_glStencilOp cargs;
-	cargs.fail = fail;
-	cargs.zfail = zfail;
-	cargs.zpass = zpass;
-	g_bridge(CHIMERA_GL_OP_glStencilOp, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glStencilOpSeparate(GLenum face, GLenum sfail, GLenum dpfail, GLenum dppass)
-{
-	struct ChimeraGlArgs_glStencilOpSeparate cargs;
-	cargs.face = face;
-	cargs.sfail = sfail;
-	cargs.dpfail = dpfail;
-	cargs.dppass = dppass;
-	g_bridge(CHIMERA_GL_OP_glStencilOpSeparate, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTexBuffer(GLenum target, GLenum internalformat, GLuint buffer)
-{
-	struct ChimeraGlArgs_glTexBuffer cargs;
-	cargs.target = target;
-	cargs.internalformat = internalformat;
-	cargs.buffer = buffer;
-	g_bridge(CHIMERA_GL_OP_glTexBuffer, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTexBufferRange(GLenum target, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size)
-{
-	struct ChimeraGlArgs_glTexBufferRange cargs;
-	cargs.target = target;
-	cargs.internalformat = internalformat;
-	cargs.buffer = buffer;
-	cargs.offset = offset;
-	cargs.size = size;
-	g_bridge(CHIMERA_GL_OP_glTexBufferRange, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTexImage1D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLint border, GLenum format, GLenum type, const void * pixels)
-{
-	struct ChimeraGlArgs_glTexImage1D cargs;
-	cargs.target = target;
-	cargs.level = level;
-	cargs.internalformat = internalformat;
-	cargs.width = width;
-	cargs.border = border;
-	cargs.format = format;
-	cargs.type = type;
-	cargs.pixels = pixels;
-	g_bridge(CHIMERA_GL_OP_glTexImage1D, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void * pixels)
-{
-	struct ChimeraGlArgs_glTexImage2D cargs;
-	cargs.target = target;
-	cargs.level = level;
-	cargs.internalformat = internalformat;
-	cargs.width = width;
-	cargs.height = height;
-	cargs.border = border;
-	cargs.format = format;
-	cargs.type = type;
-	cargs.pixels = pixels;
-	g_bridge(CHIMERA_GL_OP_glTexImage2D, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTexImage2DMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations)
-{
-	struct ChimeraGlArgs_glTexImage2DMultisample cargs;
-	cargs.target = target;
-	cargs.samples = samples;
-	cargs.internalformat = internalformat;
-	cargs.width = width;
-	cargs.height = height;
-	cargs.fixedsamplelocations = fixedsamplelocations;
-	g_bridge(CHIMERA_GL_OP_glTexImage2DMultisample, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTexImage3D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void * pixels)
-{
-	struct ChimeraGlArgs_glTexImage3D cargs;
-	cargs.target = target;
-	cargs.level = level;
-	cargs.internalformat = internalformat;
-	cargs.width = width;
-	cargs.height = height;
-	cargs.depth = depth;
-	cargs.border = border;
-	cargs.format = format;
-	cargs.type = type;
-	cargs.pixels = pixels;
-	g_bridge(CHIMERA_GL_OP_glTexImage3D, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTexImage3DMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations)
-{
-	struct ChimeraGlArgs_glTexImage3DMultisample cargs;
-	cargs.target = target;
-	cargs.samples = samples;
-	cargs.internalformat = internalformat;
-	cargs.width = width;
-	cargs.height = height;
-	cargs.depth = depth;
-	cargs.fixedsamplelocations = fixedsamplelocations;
-	g_bridge(CHIMERA_GL_OP_glTexImage3DMultisample, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTexParameterf(GLenum target, GLenum pname, GLfloat param)
-{
-	struct ChimeraGlArgs_glTexParameterf cargs;
-	cargs.target = target;
-	cargs.pname = pname;
-	cargs.param = param;
-	g_bridge(CHIMERA_GL_OP_glTexParameterf, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTexParameterfv(GLenum target, GLenum pname, const GLfloat * params)
-{
-	struct ChimeraGlArgs_glTexParameterfv cargs;
-	cargs.target = target;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glTexParameterfv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTexParameteri(GLenum target, GLenum pname, GLint param)
-{
-	struct ChimeraGlArgs_glTexParameteri cargs;
-	cargs.target = target;
-	cargs.pname = pname;
-	cargs.param = param;
-	g_bridge(CHIMERA_GL_OP_glTexParameteri, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTexParameterIiv(GLenum target, GLenum pname, const GLint * params)
-{
-	struct ChimeraGlArgs_glTexParameterIiv cargs;
-	cargs.target = target;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glTexParameterIiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTexParameterIuiv(GLenum target, GLenum pname, const GLuint * params)
-{
-	struct ChimeraGlArgs_glTexParameterIuiv cargs;
-	cargs.target = target;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glTexParameterIuiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTexParameteriv(GLenum target, GLenum pname, const GLint * params)
-{
-	struct ChimeraGlArgs_glTexParameteriv cargs;
-	cargs.target = target;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glTexParameteriv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTexStorage1D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width)
-{
-	struct ChimeraGlArgs_glTexStorage1D cargs;
-	cargs.target = target;
-	cargs.levels = levels;
-	cargs.internalformat = internalformat;
-	cargs.width = width;
-	g_bridge(CHIMERA_GL_OP_glTexStorage1D, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTexStorage2D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height)
-{
-	struct ChimeraGlArgs_glTexStorage2D cargs;
-	cargs.target = target;
-	cargs.levels = levels;
-	cargs.internalformat = internalformat;
-	cargs.width = width;
-	cargs.height = height;
-	g_bridge(CHIMERA_GL_OP_glTexStorage2D, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTexStorage2DMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations)
-{
-	struct ChimeraGlArgs_glTexStorage2DMultisample cargs;
-	cargs.target = target;
-	cargs.samples = samples;
-	cargs.internalformat = internalformat;
-	cargs.width = width;
-	cargs.height = height;
-	cargs.fixedsamplelocations = fixedsamplelocations;
-	g_bridge(CHIMERA_GL_OP_glTexStorage2DMultisample, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTexStorage3D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth)
-{
-	struct ChimeraGlArgs_glTexStorage3D cargs;
-	cargs.target = target;
-	cargs.levels = levels;
-	cargs.internalformat = internalformat;
-	cargs.width = width;
-	cargs.height = height;
-	cargs.depth = depth;
-	g_bridge(CHIMERA_GL_OP_glTexStorage3D, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTexStorage3DMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations)
-{
-	struct ChimeraGlArgs_glTexStorage3DMultisample cargs;
-	cargs.target = target;
-	cargs.samples = samples;
-	cargs.internalformat = internalformat;
-	cargs.width = width;
-	cargs.height = height;
-	cargs.depth = depth;
-	cargs.fixedsamplelocations = fixedsamplelocations;
-	g_bridge(CHIMERA_GL_OP_glTexStorage3DMultisample, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void * pixels)
-{
-	struct ChimeraGlArgs_glTexSubImage1D cargs;
-	cargs.target = target;
-	cargs.level = level;
-	cargs.xoffset = xoffset;
-	cargs.width = width;
-	cargs.format = format;
-	cargs.type = type;
-	cargs.pixels = pixels;
-	g_bridge(CHIMERA_GL_OP_glTexSubImage1D, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void * pixels)
-{
-	struct ChimeraGlArgs_glTexSubImage2D cargs;
-	cargs.target = target;
-	cargs.level = level;
-	cargs.xoffset = xoffset;
-	cargs.yoffset = yoffset;
-	cargs.width = width;
-	cargs.height = height;
-	cargs.format = format;
-	cargs.type = type;
-	cargs.pixels = pixels;
-	g_bridge(CHIMERA_GL_OP_glTexSubImage2D, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void * pixels)
-{
-	struct ChimeraGlArgs_glTexSubImage3D cargs;
-	cargs.target = target;
-	cargs.level = level;
-	cargs.xoffset = xoffset;
-	cargs.yoffset = yoffset;
-	cargs.zoffset = zoffset;
-	cargs.width = width;
-	cargs.height = height;
-	cargs.depth = depth;
-	cargs.format = format;
-	cargs.type = type;
-	cargs.pixels = pixels;
-	g_bridge(CHIMERA_GL_OP_glTexSubImage3D, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTextureBarrier(void)
-{
-	g_bridge(CHIMERA_GL_OP_glTextureBarrier, 0, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTextureBuffer(GLuint texture, GLenum internalformat, GLuint buffer)
-{
-	struct ChimeraGlArgs_glTextureBuffer cargs;
-	cargs.texture = texture;
-	cargs.internalformat = internalformat;
-	cargs.buffer = buffer;
-	g_bridge(CHIMERA_GL_OP_glTextureBuffer, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTextureBufferRange(GLuint texture, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size)
-{
-	struct ChimeraGlArgs_glTextureBufferRange cargs;
-	cargs.texture = texture;
-	cargs.internalformat = internalformat;
-	cargs.buffer = buffer;
-	cargs.offset = offset;
-	cargs.size = size;
-	g_bridge(CHIMERA_GL_OP_glTextureBufferRange, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTextureParameterf(GLuint texture, GLenum pname, GLfloat param)
-{
-	struct ChimeraGlArgs_glTextureParameterf cargs;
-	cargs.texture = texture;
-	cargs.pname = pname;
-	cargs.param = param;
-	g_bridge(CHIMERA_GL_OP_glTextureParameterf, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTextureParameterfv(GLuint texture, GLenum pname, const GLfloat * param)
-{
-	struct ChimeraGlArgs_glTextureParameterfv cargs;
-	cargs.texture = texture;
-	cargs.pname = pname;
-	cargs.param = param;
-	g_bridge(CHIMERA_GL_OP_glTextureParameterfv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTextureParameteri(GLuint texture, GLenum pname, GLint param)
-{
-	struct ChimeraGlArgs_glTextureParameteri cargs;
-	cargs.texture = texture;
-	cargs.pname = pname;
-	cargs.param = param;
-	g_bridge(CHIMERA_GL_OP_glTextureParameteri, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTextureParameterIiv(GLuint texture, GLenum pname, const GLint * params)
-{
-	struct ChimeraGlArgs_glTextureParameterIiv cargs;
-	cargs.texture = texture;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glTextureParameterIiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTextureParameterIuiv(GLuint texture, GLenum pname, const GLuint * params)
-{
-	struct ChimeraGlArgs_glTextureParameterIuiv cargs;
-	cargs.texture = texture;
-	cargs.pname = pname;
-	cargs.params = params;
-	g_bridge(CHIMERA_GL_OP_glTextureParameterIuiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTextureParameteriv(GLuint texture, GLenum pname, const GLint * param)
-{
-	struct ChimeraGlArgs_glTextureParameteriv cargs;
-	cargs.texture = texture;
-	cargs.pname = pname;
-	cargs.param = param;
-	g_bridge(CHIMERA_GL_OP_glTextureParameteriv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTextureStorage1D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width)
-{
-	struct ChimeraGlArgs_glTextureStorage1D cargs;
-	cargs.texture = texture;
-	cargs.levels = levels;
-	cargs.internalformat = internalformat;
-	cargs.width = width;
-	g_bridge(CHIMERA_GL_OP_glTextureStorage1D, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTextureStorage2D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height)
-{
-	struct ChimeraGlArgs_glTextureStorage2D cargs;
-	cargs.texture = texture;
-	cargs.levels = levels;
-	cargs.internalformat = internalformat;
-	cargs.width = width;
-	cargs.height = height;
-	g_bridge(CHIMERA_GL_OP_glTextureStorage2D, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTextureStorage2DMultisample(GLuint texture, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations)
-{
-	struct ChimeraGlArgs_glTextureStorage2DMultisample cargs;
-	cargs.texture = texture;
-	cargs.samples = samples;
-	cargs.internalformat = internalformat;
-	cargs.width = width;
-	cargs.height = height;
-	cargs.fixedsamplelocations = fixedsamplelocations;
-	g_bridge(CHIMERA_GL_OP_glTextureStorage2DMultisample, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTextureStorage3D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth)
-{
-	struct ChimeraGlArgs_glTextureStorage3D cargs;
-	cargs.texture = texture;
-	cargs.levels = levels;
-	cargs.internalformat = internalformat;
-	cargs.width = width;
-	cargs.height = height;
-	cargs.depth = depth;
-	g_bridge(CHIMERA_GL_OP_glTextureStorage3D, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTextureStorage3DMultisample(GLuint texture, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations)
-{
-	struct ChimeraGlArgs_glTextureStorage3DMultisample cargs;
-	cargs.texture = texture;
-	cargs.samples = samples;
-	cargs.internalformat = internalformat;
-	cargs.width = width;
-	cargs.height = height;
-	cargs.depth = depth;
-	cargs.fixedsamplelocations = fixedsamplelocations;
-	g_bridge(CHIMERA_GL_OP_glTextureStorage3DMultisample, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void * pixels)
-{
-	struct ChimeraGlArgs_glTextureSubImage1D cargs;
-	cargs.texture = texture;
-	cargs.level = level;
-	cargs.xoffset = xoffset;
-	cargs.width = width;
-	cargs.format = format;
-	cargs.type = type;
-	cargs.pixels = pixels;
-	g_bridge(CHIMERA_GL_OP_glTextureSubImage1D, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void * pixels)
-{
-	struct ChimeraGlArgs_glTextureSubImage2D cargs;
-	cargs.texture = texture;
-	cargs.level = level;
-	cargs.xoffset = xoffset;
-	cargs.yoffset = yoffset;
-	cargs.width = width;
-	cargs.height = height;
-	cargs.format = format;
-	cargs.type = type;
-	cargs.pixels = pixels;
-	g_bridge(CHIMERA_GL_OP_glTextureSubImage2D, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void * pixels)
-{
-	struct ChimeraGlArgs_glTextureSubImage3D cargs;
-	cargs.texture = texture;
-	cargs.level = level;
-	cargs.xoffset = xoffset;
-	cargs.yoffset = yoffset;
-	cargs.zoffset = zoffset;
-	cargs.width = width;
-	cargs.height = height;
-	cargs.depth = depth;
-	cargs.format = format;
-	cargs.type = type;
-	cargs.pixels = pixels;
-	g_bridge(CHIMERA_GL_OP_glTextureSubImage3D, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTextureView(GLuint texture, GLenum target, GLuint origtexture, GLenum internalformat, GLuint minlevel, GLuint numlevels, GLuint minlayer, GLuint numlayers)
-{
-	struct ChimeraGlArgs_glTextureView cargs;
-	cargs.texture = texture;
-	cargs.target = target;
-	cargs.origtexture = origtexture;
-	cargs.internalformat = internalformat;
-	cargs.minlevel = minlevel;
-	cargs.numlevels = numlevels;
-	cargs.minlayer = minlayer;
-	cargs.numlayers = numlayers;
-	g_bridge(CHIMERA_GL_OP_glTextureView, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTransformFeedbackBufferBase(GLuint xfb, GLuint index, GLuint buffer)
-{
-	struct ChimeraGlArgs_glTransformFeedbackBufferBase cargs;
-	cargs.xfb = xfb;
-	cargs.index = index;
-	cargs.buffer = buffer;
-	g_bridge(CHIMERA_GL_OP_glTransformFeedbackBufferBase, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTransformFeedbackBufferRange(GLuint xfb, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size)
-{
-	struct ChimeraGlArgs_glTransformFeedbackBufferRange cargs;
-	cargs.xfb = xfb;
-	cargs.index = index;
-	cargs.buffer = buffer;
-	cargs.offset = offset;
-	cargs.size = size;
-	g_bridge(CHIMERA_GL_OP_glTransformFeedbackBufferRange, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glTransformFeedbackVaryings(GLuint program, GLsizei count, const GLchar *const* varyings, GLenum bufferMode)
-{
-	struct ChimeraGlArgs_glTransformFeedbackVaryings cargs;
-	cargs.program = program;
-	cargs.count = count;
-	cargs.varyings = varyings;
-	cargs.bufferMode = bufferMode;
-	g_bridge(CHIMERA_GL_OP_glTransformFeedbackVaryings, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glSpecializeShader chimera_a;
+	chimera_a.shader = shader;
+	chimera_a.pEntryPoint = pEntryPoint;
+	chimera_a.numSpecializationConstants = numSpecializationConstants;
+	chimera_a.pConstantIndex = pConstantIndex;
+	chimera_a.pConstantValue = pConstantValue;
+	g_bridge(CHIMERA_GL_OP_glSpecializeShader, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glUniform1d(GLint location, GLdouble x)
 {
-	struct ChimeraGlArgs_glUniform1d cargs;
-	cargs.location = location;
-	cargs.x = x;
-	g_bridge(CHIMERA_GL_OP_glUniform1d, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glUniform1d chimera_a;
+	chimera_a.location = location;
+	chimera_a.x = x;
+	g_bridge(CHIMERA_GL_OP_glUniform1d, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glUniform1dv(GLint location, GLsizei count, const GLdouble * value)
 {
-	struct ChimeraGlArgs_glUniform1dv cargs;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glUniform1dv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glUniform1f(GLint location, GLfloat v0)
-{
-	struct ChimeraGlArgs_glUniform1f cargs;
-	cargs.location = location;
-	cargs.v0 = v0;
-	g_bridge(CHIMERA_GL_OP_glUniform1f, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glUniform1fv(GLint location, GLsizei count, const GLfloat * value)
-{
-	struct ChimeraGlArgs_glUniform1fv cargs;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glUniform1fv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glUniform1i(GLint location, GLint v0)
-{
-	struct ChimeraGlArgs_glUniform1i cargs;
-	cargs.location = location;
-	cargs.v0 = v0;
-	g_bridge(CHIMERA_GL_OP_glUniform1i, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glUniform1iv(GLint location, GLsizei count, const GLint * value)
-{
-	struct ChimeraGlArgs_glUniform1iv cargs;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glUniform1iv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glUniform1ui(GLint location, GLuint v0)
-{
-	struct ChimeraGlArgs_glUniform1ui cargs;
-	cargs.location = location;
-	cargs.v0 = v0;
-	g_bridge(CHIMERA_GL_OP_glUniform1ui, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glUniform1uiv(GLint location, GLsizei count, const GLuint * value)
-{
-	struct ChimeraGlArgs_glUniform1uiv cargs;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glUniform1uiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glUniform1dv chimera_a;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glUniform1dv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glUniform2d(GLint location, GLdouble x, GLdouble y)
 {
-	struct ChimeraGlArgs_glUniform2d cargs;
-	cargs.location = location;
-	cargs.x = x;
-	cargs.y = y;
-	g_bridge(CHIMERA_GL_OP_glUniform2d, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glUniform2d chimera_a;
+	chimera_a.location = location;
+	chimera_a.x = x;
+	chimera_a.y = y;
+	g_bridge(CHIMERA_GL_OP_glUniform2d, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glUniform2dv(GLint location, GLsizei count, const GLdouble * value)
 {
-	struct ChimeraGlArgs_glUniform2dv cargs;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glUniform2dv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glUniform2f(GLint location, GLfloat v0, GLfloat v1)
-{
-	struct ChimeraGlArgs_glUniform2f cargs;
-	cargs.location = location;
-	cargs.v0 = v0;
-	cargs.v1 = v1;
-	g_bridge(CHIMERA_GL_OP_glUniform2f, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glUniform2fv(GLint location, GLsizei count, const GLfloat * value)
-{
-	struct ChimeraGlArgs_glUniform2fv cargs;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glUniform2fv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glUniform2i(GLint location, GLint v0, GLint v1)
-{
-	struct ChimeraGlArgs_glUniform2i cargs;
-	cargs.location = location;
-	cargs.v0 = v0;
-	cargs.v1 = v1;
-	g_bridge(CHIMERA_GL_OP_glUniform2i, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glUniform2iv(GLint location, GLsizei count, const GLint * value)
-{
-	struct ChimeraGlArgs_glUniform2iv cargs;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glUniform2iv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glUniform2ui(GLint location, GLuint v0, GLuint v1)
-{
-	struct ChimeraGlArgs_glUniform2ui cargs;
-	cargs.location = location;
-	cargs.v0 = v0;
-	cargs.v1 = v1;
-	g_bridge(CHIMERA_GL_OP_glUniform2ui, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glUniform2uiv(GLint location, GLsizei count, const GLuint * value)
-{
-	struct ChimeraGlArgs_glUniform2uiv cargs;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glUniform2uiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glUniform2dv chimera_a;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glUniform2dv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glUniform3d(GLint location, GLdouble x, GLdouble y, GLdouble z)
 {
-	struct ChimeraGlArgs_glUniform3d cargs;
-	cargs.location = location;
-	cargs.x = x;
-	cargs.y = y;
-	cargs.z = z;
-	g_bridge(CHIMERA_GL_OP_glUniform3d, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glUniform3d chimera_a;
+	chimera_a.location = location;
+	chimera_a.x = x;
+	chimera_a.y = y;
+	chimera_a.z = z;
+	g_bridge(CHIMERA_GL_OP_glUniform3d, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glUniform3dv(GLint location, GLsizei count, const GLdouble * value)
 {
-	struct ChimeraGlArgs_glUniform3dv cargs;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glUniform3dv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glUniform3f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2)
-{
-	struct ChimeraGlArgs_glUniform3f cargs;
-	cargs.location = location;
-	cargs.v0 = v0;
-	cargs.v1 = v1;
-	cargs.v2 = v2;
-	g_bridge(CHIMERA_GL_OP_glUniform3f, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glUniform3fv(GLint location, GLsizei count, const GLfloat * value)
-{
-	struct ChimeraGlArgs_glUniform3fv cargs;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glUniform3fv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glUniform3i(GLint location, GLint v0, GLint v1, GLint v2)
-{
-	struct ChimeraGlArgs_glUniform3i cargs;
-	cargs.location = location;
-	cargs.v0 = v0;
-	cargs.v1 = v1;
-	cargs.v2 = v2;
-	g_bridge(CHIMERA_GL_OP_glUniform3i, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glUniform3iv(GLint location, GLsizei count, const GLint * value)
-{
-	struct ChimeraGlArgs_glUniform3iv cargs;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glUniform3iv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glUniform3ui(GLint location, GLuint v0, GLuint v1, GLuint v2)
-{
-	struct ChimeraGlArgs_glUniform3ui cargs;
-	cargs.location = location;
-	cargs.v0 = v0;
-	cargs.v1 = v1;
-	cargs.v2 = v2;
-	g_bridge(CHIMERA_GL_OP_glUniform3ui, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glUniform3uiv(GLint location, GLsizei count, const GLuint * value)
-{
-	struct ChimeraGlArgs_glUniform3uiv cargs;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glUniform3uiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glUniform3dv chimera_a;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glUniform3dv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glUniform4d(GLint location, GLdouble x, GLdouble y, GLdouble z, GLdouble w)
 {
-	struct ChimeraGlArgs_glUniform4d cargs;
-	cargs.location = location;
-	cargs.x = x;
-	cargs.y = y;
-	cargs.z = z;
-	cargs.w = w;
-	g_bridge(CHIMERA_GL_OP_glUniform4d, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glUniform4d chimera_a;
+	chimera_a.location = location;
+	chimera_a.x = x;
+	chimera_a.y = y;
+	chimera_a.z = z;
+	chimera_a.w = w;
+	g_bridge(CHIMERA_GL_OP_glUniform4d, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glUniform4dv(GLint location, GLsizei count, const GLdouble * value)
 {
-	struct ChimeraGlArgs_glUniform4dv cargs;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glUniform4dv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glUniform4f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3)
-{
-	struct ChimeraGlArgs_glUniform4f cargs;
-	cargs.location = location;
-	cargs.v0 = v0;
-	cargs.v1 = v1;
-	cargs.v2 = v2;
-	cargs.v3 = v3;
-	g_bridge(CHIMERA_GL_OP_glUniform4f, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glUniform4fv(GLint location, GLsizei count, const GLfloat * value)
-{
-	struct ChimeraGlArgs_glUniform4fv cargs;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glUniform4fv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glUniform4i(GLint location, GLint v0, GLint v1, GLint v2, GLint v3)
-{
-	struct ChimeraGlArgs_glUniform4i cargs;
-	cargs.location = location;
-	cargs.v0 = v0;
-	cargs.v1 = v1;
-	cargs.v2 = v2;
-	cargs.v3 = v3;
-	g_bridge(CHIMERA_GL_OP_glUniform4i, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glUniform4iv(GLint location, GLsizei count, const GLint * value)
-{
-	struct ChimeraGlArgs_glUniform4iv cargs;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glUniform4iv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glUniform4ui(GLint location, GLuint v0, GLuint v1, GLuint v2, GLuint v3)
-{
-	struct ChimeraGlArgs_glUniform4ui cargs;
-	cargs.location = location;
-	cargs.v0 = v0;
-	cargs.v1 = v1;
-	cargs.v2 = v2;
-	cargs.v3 = v3;
-	g_bridge(CHIMERA_GL_OP_glUniform4ui, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glUniform4uiv(GLint location, GLsizei count, const GLuint * value)
-{
-	struct ChimeraGlArgs_glUniform4uiv cargs;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glUniform4uiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glUniformBlockBinding(GLuint program, GLuint uniformBlockIndex, GLuint uniformBlockBinding)
-{
-	struct ChimeraGlArgs_glUniformBlockBinding cargs;
-	cargs.program = program;
-	cargs.uniformBlockIndex = uniformBlockIndex;
-	cargs.uniformBlockBinding = uniformBlockBinding;
-	g_bridge(CHIMERA_GL_OP_glUniformBlockBinding, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glUniform4dv chimera_a;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glUniform4dv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glUniformMatrix2dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value)
 {
-	struct ChimeraGlArgs_glUniformMatrix2dv cargs;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.transpose = transpose;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glUniformMatrix2dv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glUniformMatrix2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat * value)
-{
-	struct ChimeraGlArgs_glUniformMatrix2fv cargs;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.transpose = transpose;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glUniformMatrix2fv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glUniformMatrix2dv chimera_a;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.transpose = transpose;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glUniformMatrix2dv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glUniformMatrix2x3dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value)
 {
-	struct ChimeraGlArgs_glUniformMatrix2x3dv cargs;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.transpose = transpose;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glUniformMatrix2x3dv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glUniformMatrix2x3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat * value)
-{
-	struct ChimeraGlArgs_glUniformMatrix2x3fv cargs;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.transpose = transpose;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glUniformMatrix2x3fv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glUniformMatrix2x3dv chimera_a;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.transpose = transpose;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glUniformMatrix2x3dv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glUniformMatrix2x4dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value)
 {
-	struct ChimeraGlArgs_glUniformMatrix2x4dv cargs;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.transpose = transpose;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glUniformMatrix2x4dv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glUniformMatrix2x4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat * value)
-{
-	struct ChimeraGlArgs_glUniformMatrix2x4fv cargs;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.transpose = transpose;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glUniformMatrix2x4fv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glUniformMatrix2x4dv chimera_a;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.transpose = transpose;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glUniformMatrix2x4dv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glUniformMatrix3dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value)
 {
-	struct ChimeraGlArgs_glUniformMatrix3dv cargs;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.transpose = transpose;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glUniformMatrix3dv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glUniformMatrix3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat * value)
-{
-	struct ChimeraGlArgs_glUniformMatrix3fv cargs;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.transpose = transpose;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glUniformMatrix3fv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glUniformMatrix3dv chimera_a;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.transpose = transpose;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glUniformMatrix3dv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glUniformMatrix3x2dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value)
 {
-	struct ChimeraGlArgs_glUniformMatrix3x2dv cargs;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.transpose = transpose;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glUniformMatrix3x2dv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glUniformMatrix3x2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat * value)
-{
-	struct ChimeraGlArgs_glUniformMatrix3x2fv cargs;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.transpose = transpose;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glUniformMatrix3x2fv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glUniformMatrix3x2dv chimera_a;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.transpose = transpose;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glUniformMatrix3x2dv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glUniformMatrix3x4dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value)
 {
-	struct ChimeraGlArgs_glUniformMatrix3x4dv cargs;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.transpose = transpose;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glUniformMatrix3x4dv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glUniformMatrix3x4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat * value)
-{
-	struct ChimeraGlArgs_glUniformMatrix3x4fv cargs;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.transpose = transpose;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glUniformMatrix3x4fv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glUniformMatrix3x4dv chimera_a;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.transpose = transpose;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glUniformMatrix3x4dv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glUniformMatrix4dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value)
 {
-	struct ChimeraGlArgs_glUniformMatrix4dv cargs;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.transpose = transpose;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glUniformMatrix4dv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glUniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat * value)
-{
-	struct ChimeraGlArgs_glUniformMatrix4fv cargs;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.transpose = transpose;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glUniformMatrix4fv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glUniformMatrix4dv chimera_a;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.transpose = transpose;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glUniformMatrix4dv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glUniformMatrix4x2dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value)
 {
-	struct ChimeraGlArgs_glUniformMatrix4x2dv cargs;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.transpose = transpose;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glUniformMatrix4x2dv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glUniformMatrix4x2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat * value)
-{
-	struct ChimeraGlArgs_glUniformMatrix4x2fv cargs;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.transpose = transpose;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glUniformMatrix4x2fv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glUniformMatrix4x2dv chimera_a;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.transpose = transpose;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glUniformMatrix4x2dv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glUniformMatrix4x3dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value)
 {
-	struct ChimeraGlArgs_glUniformMatrix4x3dv cargs;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.transpose = transpose;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glUniformMatrix4x3dv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glUniformMatrix4x3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat * value)
-{
-	struct ChimeraGlArgs_glUniformMatrix4x3fv cargs;
-	cargs.location = location;
-	cargs.count = count;
-	cargs.transpose = transpose;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glUniformMatrix4x3fv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glUniformMatrix4x3dv chimera_a;
+	chimera_a.location = location;
+	chimera_a.count = count;
+	chimera_a.transpose = transpose;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glUniformMatrix4x3dv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glUniformSubroutinesuiv(GLenum shadertype, GLsizei count, const GLuint * indices)
 {
-	struct ChimeraGlArgs_glUniformSubroutinesuiv cargs;
-	cargs.shadertype = shadertype;
-	cargs.count = count;
-	cargs.indices = indices;
-	g_bridge(CHIMERA_GL_OP_glUniformSubroutinesuiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static GLboolean GLAD_API_PTR w_glUnmapNamedBuffer(GLuint buffer)
-{
-	struct ChimeraGlArgs_glUnmapNamedBuffer cargs;
-	cargs.buffer = buffer;
-	return (GLboolean)g_bridge(CHIMERA_GL_OP_glUnmapNamedBuffer, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glUseProgram(GLuint program)
-{
-	struct ChimeraGlArgs_glUseProgram cargs;
-	cargs.program = program;
-	g_bridge(CHIMERA_GL_OP_glUseProgram, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glUniformSubroutinesuiv chimera_a;
+	chimera_a.shadertype = shadertype;
+	chimera_a.count = count;
+	chimera_a.indices = indices;
+	g_bridge(CHIMERA_GL_OP_glUniformSubroutinesuiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glUseProgramStages(GLuint pipeline, GLbitfield stages, GLuint program)
 {
-	struct ChimeraGlArgs_glUseProgramStages cargs;
-	cargs.pipeline = pipeline;
-	cargs.stages = stages;
-	cargs.program = program;
-	g_bridge(CHIMERA_GL_OP_glUseProgramStages, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glValidateProgram(GLuint program)
-{
-	struct ChimeraGlArgs_glValidateProgram cargs;
-	cargs.program = program;
-	g_bridge(CHIMERA_GL_OP_glValidateProgram, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glUseProgramStages chimera_a;
+	chimera_a.pipeline = pipeline;
+	chimera_a.stages = stages;
+	chimera_a.program = program;
+	g_bridge(CHIMERA_GL_OP_glUseProgramStages, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glValidateProgramPipeline(GLuint pipeline)
 {
-	struct ChimeraGlArgs_glValidateProgramPipeline cargs;
-	cargs.pipeline = pipeline;
-	g_bridge(CHIMERA_GL_OP_glValidateProgramPipeline, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexArrayAttribBinding(GLuint vaobj, GLuint attribindex, GLuint bindingindex)
-{
-	struct ChimeraGlArgs_glVertexArrayAttribBinding cargs;
-	cargs.vaobj = vaobj;
-	cargs.attribindex = attribindex;
-	cargs.bindingindex = bindingindex;
-	g_bridge(CHIMERA_GL_OP_glVertexArrayAttribBinding, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexArrayAttribFormat(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset)
-{
-	struct ChimeraGlArgs_glVertexArrayAttribFormat cargs;
-	cargs.vaobj = vaobj;
-	cargs.attribindex = attribindex;
-	cargs.size = size;
-	cargs.type = type;
-	cargs.normalized = normalized;
-	cargs.relativeoffset = relativeoffset;
-	g_bridge(CHIMERA_GL_OP_glVertexArrayAttribFormat, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexArrayAttribIFormat(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset)
-{
-	struct ChimeraGlArgs_glVertexArrayAttribIFormat cargs;
-	cargs.vaobj = vaobj;
-	cargs.attribindex = attribindex;
-	cargs.size = size;
-	cargs.type = type;
-	cargs.relativeoffset = relativeoffset;
-	g_bridge(CHIMERA_GL_OP_glVertexArrayAttribIFormat, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexArrayAttribLFormat(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset)
-{
-	struct ChimeraGlArgs_glVertexArrayAttribLFormat cargs;
-	cargs.vaobj = vaobj;
-	cargs.attribindex = attribindex;
-	cargs.size = size;
-	cargs.type = type;
-	cargs.relativeoffset = relativeoffset;
-	g_bridge(CHIMERA_GL_OP_glVertexArrayAttribLFormat, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexArrayBindingDivisor(GLuint vaobj, GLuint bindingindex, GLuint divisor)
-{
-	struct ChimeraGlArgs_glVertexArrayBindingDivisor cargs;
-	cargs.vaobj = vaobj;
-	cargs.bindingindex = bindingindex;
-	cargs.divisor = divisor;
-	g_bridge(CHIMERA_GL_OP_glVertexArrayBindingDivisor, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexArrayElementBuffer(GLuint vaobj, GLuint buffer)
-{
-	struct ChimeraGlArgs_glVertexArrayElementBuffer cargs;
-	cargs.vaobj = vaobj;
-	cargs.buffer = buffer;
-	g_bridge(CHIMERA_GL_OP_glVertexArrayElementBuffer, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexArrayVertexBuffer(GLuint vaobj, GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride)
-{
-	struct ChimeraGlArgs_glVertexArrayVertexBuffer cargs;
-	cargs.vaobj = vaobj;
-	cargs.bindingindex = bindingindex;
-	cargs.buffer = buffer;
-	cargs.offset = offset;
-	cargs.stride = stride;
-	g_bridge(CHIMERA_GL_OP_glVertexArrayVertexBuffer, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexArrayVertexBuffers(GLuint vaobj, GLuint first, GLsizei count, const GLuint * buffers, const GLintptr * offsets, const GLsizei * strides)
-{
-	struct ChimeraGlArgs_glVertexArrayVertexBuffers cargs;
-	cargs.vaobj = vaobj;
-	cargs.first = first;
-	cargs.count = count;
-	cargs.buffers = buffers;
-	cargs.offsets = offsets;
-	cargs.strides = strides;
-	g_bridge(CHIMERA_GL_OP_glVertexArrayVertexBuffers, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttrib1d(GLuint index, GLdouble x)
-{
-	struct ChimeraGlArgs_glVertexAttrib1d cargs;
-	cargs.index = index;
-	cargs.x = x;
-	g_bridge(CHIMERA_GL_OP_glVertexAttrib1d, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttrib1dv(GLuint index, const GLdouble * v)
-{
-	struct ChimeraGlArgs_glVertexAttrib1dv cargs;
-	cargs.index = index;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glVertexAttrib1dv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttrib1f(GLuint index, GLfloat x)
-{
-	struct ChimeraGlArgs_glVertexAttrib1f cargs;
-	cargs.index = index;
-	cargs.x = x;
-	g_bridge(CHIMERA_GL_OP_glVertexAttrib1f, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttrib1fv(GLuint index, const GLfloat * v)
-{
-	struct ChimeraGlArgs_glVertexAttrib1fv cargs;
-	cargs.index = index;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glVertexAttrib1fv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttrib1s(GLuint index, GLshort x)
-{
-	struct ChimeraGlArgs_glVertexAttrib1s cargs;
-	cargs.index = index;
-	cargs.x = x;
-	g_bridge(CHIMERA_GL_OP_glVertexAttrib1s, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttrib1sv(GLuint index, const GLshort * v)
-{
-	struct ChimeraGlArgs_glVertexAttrib1sv cargs;
-	cargs.index = index;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glVertexAttrib1sv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttrib2d(GLuint index, GLdouble x, GLdouble y)
-{
-	struct ChimeraGlArgs_glVertexAttrib2d cargs;
-	cargs.index = index;
-	cargs.x = x;
-	cargs.y = y;
-	g_bridge(CHIMERA_GL_OP_glVertexAttrib2d, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttrib2dv(GLuint index, const GLdouble * v)
-{
-	struct ChimeraGlArgs_glVertexAttrib2dv cargs;
-	cargs.index = index;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glVertexAttrib2dv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttrib2f(GLuint index, GLfloat x, GLfloat y)
-{
-	struct ChimeraGlArgs_glVertexAttrib2f cargs;
-	cargs.index = index;
-	cargs.x = x;
-	cargs.y = y;
-	g_bridge(CHIMERA_GL_OP_glVertexAttrib2f, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttrib2fv(GLuint index, const GLfloat * v)
-{
-	struct ChimeraGlArgs_glVertexAttrib2fv cargs;
-	cargs.index = index;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glVertexAttrib2fv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttrib2s(GLuint index, GLshort x, GLshort y)
-{
-	struct ChimeraGlArgs_glVertexAttrib2s cargs;
-	cargs.index = index;
-	cargs.x = x;
-	cargs.y = y;
-	g_bridge(CHIMERA_GL_OP_glVertexAttrib2s, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttrib2sv(GLuint index, const GLshort * v)
-{
-	struct ChimeraGlArgs_glVertexAttrib2sv cargs;
-	cargs.index = index;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glVertexAttrib2sv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttrib3d(GLuint index, GLdouble x, GLdouble y, GLdouble z)
-{
-	struct ChimeraGlArgs_glVertexAttrib3d cargs;
-	cargs.index = index;
-	cargs.x = x;
-	cargs.y = y;
-	cargs.z = z;
-	g_bridge(CHIMERA_GL_OP_glVertexAttrib3d, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttrib3dv(GLuint index, const GLdouble * v)
-{
-	struct ChimeraGlArgs_glVertexAttrib3dv cargs;
-	cargs.index = index;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glVertexAttrib3dv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttrib3f(GLuint index, GLfloat x, GLfloat y, GLfloat z)
-{
-	struct ChimeraGlArgs_glVertexAttrib3f cargs;
-	cargs.index = index;
-	cargs.x = x;
-	cargs.y = y;
-	cargs.z = z;
-	g_bridge(CHIMERA_GL_OP_glVertexAttrib3f, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttrib3fv(GLuint index, const GLfloat * v)
-{
-	struct ChimeraGlArgs_glVertexAttrib3fv cargs;
-	cargs.index = index;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glVertexAttrib3fv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttrib3s(GLuint index, GLshort x, GLshort y, GLshort z)
-{
-	struct ChimeraGlArgs_glVertexAttrib3s cargs;
-	cargs.index = index;
-	cargs.x = x;
-	cargs.y = y;
-	cargs.z = z;
-	g_bridge(CHIMERA_GL_OP_glVertexAttrib3s, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttrib3sv(GLuint index, const GLshort * v)
-{
-	struct ChimeraGlArgs_glVertexAttrib3sv cargs;
-	cargs.index = index;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glVertexAttrib3sv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttrib4bv(GLuint index, const GLbyte * v)
-{
-	struct ChimeraGlArgs_glVertexAttrib4bv cargs;
-	cargs.index = index;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glVertexAttrib4bv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttrib4d(GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w)
-{
-	struct ChimeraGlArgs_glVertexAttrib4d cargs;
-	cargs.index = index;
-	cargs.x = x;
-	cargs.y = y;
-	cargs.z = z;
-	cargs.w = w;
-	g_bridge(CHIMERA_GL_OP_glVertexAttrib4d, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttrib4dv(GLuint index, const GLdouble * v)
-{
-	struct ChimeraGlArgs_glVertexAttrib4dv cargs;
-	cargs.index = index;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glVertexAttrib4dv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttrib4f(GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w)
-{
-	struct ChimeraGlArgs_glVertexAttrib4f cargs;
-	cargs.index = index;
-	cargs.x = x;
-	cargs.y = y;
-	cargs.z = z;
-	cargs.w = w;
-	g_bridge(CHIMERA_GL_OP_glVertexAttrib4f, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttrib4fv(GLuint index, const GLfloat * v)
-{
-	struct ChimeraGlArgs_glVertexAttrib4fv cargs;
-	cargs.index = index;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glVertexAttrib4fv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttrib4iv(GLuint index, const GLint * v)
-{
-	struct ChimeraGlArgs_glVertexAttrib4iv cargs;
-	cargs.index = index;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glVertexAttrib4iv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttrib4Nbv(GLuint index, const GLbyte * v)
-{
-	struct ChimeraGlArgs_glVertexAttrib4Nbv cargs;
-	cargs.index = index;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glVertexAttrib4Nbv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttrib4Niv(GLuint index, const GLint * v)
-{
-	struct ChimeraGlArgs_glVertexAttrib4Niv cargs;
-	cargs.index = index;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glVertexAttrib4Niv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttrib4Nsv(GLuint index, const GLshort * v)
-{
-	struct ChimeraGlArgs_glVertexAttrib4Nsv cargs;
-	cargs.index = index;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glVertexAttrib4Nsv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttrib4Nub(GLuint index, GLubyte x, GLubyte y, GLubyte z, GLubyte w)
-{
-	struct ChimeraGlArgs_glVertexAttrib4Nub cargs;
-	cargs.index = index;
-	cargs.x = x;
-	cargs.y = y;
-	cargs.z = z;
-	cargs.w = w;
-	g_bridge(CHIMERA_GL_OP_glVertexAttrib4Nub, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttrib4Nubv(GLuint index, const GLubyte * v)
-{
-	struct ChimeraGlArgs_glVertexAttrib4Nubv cargs;
-	cargs.index = index;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glVertexAttrib4Nubv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttrib4Nuiv(GLuint index, const GLuint * v)
-{
-	struct ChimeraGlArgs_glVertexAttrib4Nuiv cargs;
-	cargs.index = index;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glVertexAttrib4Nuiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttrib4Nusv(GLuint index, const GLushort * v)
-{
-	struct ChimeraGlArgs_glVertexAttrib4Nusv cargs;
-	cargs.index = index;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glVertexAttrib4Nusv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttrib4s(GLuint index, GLshort x, GLshort y, GLshort z, GLshort w)
-{
-	struct ChimeraGlArgs_glVertexAttrib4s cargs;
-	cargs.index = index;
-	cargs.x = x;
-	cargs.y = y;
-	cargs.z = z;
-	cargs.w = w;
-	g_bridge(CHIMERA_GL_OP_glVertexAttrib4s, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttrib4sv(GLuint index, const GLshort * v)
-{
-	struct ChimeraGlArgs_glVertexAttrib4sv cargs;
-	cargs.index = index;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glVertexAttrib4sv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttrib4ubv(GLuint index, const GLubyte * v)
-{
-	struct ChimeraGlArgs_glVertexAttrib4ubv cargs;
-	cargs.index = index;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glVertexAttrib4ubv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttrib4uiv(GLuint index, const GLuint * v)
-{
-	struct ChimeraGlArgs_glVertexAttrib4uiv cargs;
-	cargs.index = index;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glVertexAttrib4uiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttrib4usv(GLuint index, const GLushort * v)
-{
-	struct ChimeraGlArgs_glVertexAttrib4usv cargs;
-	cargs.index = index;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glVertexAttrib4usv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttribBinding(GLuint attribindex, GLuint bindingindex)
-{
-	struct ChimeraGlArgs_glVertexAttribBinding cargs;
-	cargs.attribindex = attribindex;
-	cargs.bindingindex = bindingindex;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribBinding, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glValidateProgramPipeline chimera_a;
+	chimera_a.pipeline = pipeline;
+	g_bridge(CHIMERA_GL_OP_glValidateProgramPipeline, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glVertexAttribDivisor(GLuint index, GLuint divisor)
 {
-	struct ChimeraGlArgs_glVertexAttribDivisor cargs;
-	cargs.index = index;
-	cargs.divisor = divisor;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribDivisor, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glVertexAttribDivisor chimera_a;
+	chimera_a.index = index;
+	chimera_a.divisor = divisor;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribDivisor, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glVertexAttribDivisorARB(GLuint index, GLuint divisor)
 {
-	struct ChimeraGlArgs_glVertexAttribDivisorARB cargs;
-	cargs.index = index;
-	cargs.divisor = divisor;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribDivisorARB, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttribFormat(GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset)
-{
-	struct ChimeraGlArgs_glVertexAttribFormat cargs;
-	cargs.attribindex = attribindex;
-	cargs.size = size;
-	cargs.type = type;
-	cargs.normalized = normalized;
-	cargs.relativeoffset = relativeoffset;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribFormat, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttribI1i(GLuint index, GLint x)
-{
-	struct ChimeraGlArgs_glVertexAttribI1i cargs;
-	cargs.index = index;
-	cargs.x = x;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribI1i, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttribI1iv(GLuint index, const GLint * v)
-{
-	struct ChimeraGlArgs_glVertexAttribI1iv cargs;
-	cargs.index = index;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribI1iv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttribI1ui(GLuint index, GLuint x)
-{
-	struct ChimeraGlArgs_glVertexAttribI1ui cargs;
-	cargs.index = index;
-	cargs.x = x;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribI1ui, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttribI1uiv(GLuint index, const GLuint * v)
-{
-	struct ChimeraGlArgs_glVertexAttribI1uiv cargs;
-	cargs.index = index;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribI1uiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttribI2i(GLuint index, GLint x, GLint y)
-{
-	struct ChimeraGlArgs_glVertexAttribI2i cargs;
-	cargs.index = index;
-	cargs.x = x;
-	cargs.y = y;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribI2i, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttribI2iv(GLuint index, const GLint * v)
-{
-	struct ChimeraGlArgs_glVertexAttribI2iv cargs;
-	cargs.index = index;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribI2iv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttribI2ui(GLuint index, GLuint x, GLuint y)
-{
-	struct ChimeraGlArgs_glVertexAttribI2ui cargs;
-	cargs.index = index;
-	cargs.x = x;
-	cargs.y = y;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribI2ui, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttribI2uiv(GLuint index, const GLuint * v)
-{
-	struct ChimeraGlArgs_glVertexAttribI2uiv cargs;
-	cargs.index = index;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribI2uiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttribI3i(GLuint index, GLint x, GLint y, GLint z)
-{
-	struct ChimeraGlArgs_glVertexAttribI3i cargs;
-	cargs.index = index;
-	cargs.x = x;
-	cargs.y = y;
-	cargs.z = z;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribI3i, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttribI3iv(GLuint index, const GLint * v)
-{
-	struct ChimeraGlArgs_glVertexAttribI3iv cargs;
-	cargs.index = index;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribI3iv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttribI3ui(GLuint index, GLuint x, GLuint y, GLuint z)
-{
-	struct ChimeraGlArgs_glVertexAttribI3ui cargs;
-	cargs.index = index;
-	cargs.x = x;
-	cargs.y = y;
-	cargs.z = z;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribI3ui, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttribI3uiv(GLuint index, const GLuint * v)
-{
-	struct ChimeraGlArgs_glVertexAttribI3uiv cargs;
-	cargs.index = index;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribI3uiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttribI4bv(GLuint index, const GLbyte * v)
-{
-	struct ChimeraGlArgs_glVertexAttribI4bv cargs;
-	cargs.index = index;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribI4bv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttribI4i(GLuint index, GLint x, GLint y, GLint z, GLint w)
-{
-	struct ChimeraGlArgs_glVertexAttribI4i cargs;
-	cargs.index = index;
-	cargs.x = x;
-	cargs.y = y;
-	cargs.z = z;
-	cargs.w = w;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribI4i, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttribI4iv(GLuint index, const GLint * v)
-{
-	struct ChimeraGlArgs_glVertexAttribI4iv cargs;
-	cargs.index = index;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribI4iv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttribI4sv(GLuint index, const GLshort * v)
-{
-	struct ChimeraGlArgs_glVertexAttribI4sv cargs;
-	cargs.index = index;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribI4sv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttribI4ubv(GLuint index, const GLubyte * v)
-{
-	struct ChimeraGlArgs_glVertexAttribI4ubv cargs;
-	cargs.index = index;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribI4ubv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttribI4ui(GLuint index, GLuint x, GLuint y, GLuint z, GLuint w)
-{
-	struct ChimeraGlArgs_glVertexAttribI4ui cargs;
-	cargs.index = index;
-	cargs.x = x;
-	cargs.y = y;
-	cargs.z = z;
-	cargs.w = w;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribI4ui, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttribI4uiv(GLuint index, const GLuint * v)
-{
-	struct ChimeraGlArgs_glVertexAttribI4uiv cargs;
-	cargs.index = index;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribI4uiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttribI4usv(GLuint index, const GLushort * v)
-{
-	struct ChimeraGlArgs_glVertexAttribI4usv cargs;
-	cargs.index = index;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribI4usv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttribIFormat(GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset)
-{
-	struct ChimeraGlArgs_glVertexAttribIFormat cargs;
-	cargs.attribindex = attribindex;
-	cargs.size = size;
-	cargs.type = type;
-	cargs.relativeoffset = relativeoffset;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribIFormat, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttribIPointer(GLuint index, GLint size, GLenum type, GLsizei stride, const void * pointer)
-{
-	struct ChimeraGlArgs_glVertexAttribIPointer cargs;
-	cargs.index = index;
-	cargs.size = size;
-	cargs.type = type;
-	cargs.stride = stride;
-	cargs.pointer = pointer;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribIPointer, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glVertexAttribDivisorARB chimera_a;
+	chimera_a.index = index;
+	chimera_a.divisor = divisor;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribDivisorARB, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glVertexAttribL1d(GLuint index, GLdouble x)
 {
-	struct ChimeraGlArgs_glVertexAttribL1d cargs;
-	cargs.index = index;
-	cargs.x = x;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribL1d, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glVertexAttribL1d chimera_a;
+	chimera_a.index = index;
+	chimera_a.x = x;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribL1d, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glVertexAttribL1dv(GLuint index, const GLdouble * v)
 {
-	struct ChimeraGlArgs_glVertexAttribL1dv cargs;
-	cargs.index = index;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribL1dv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glVertexAttribL1dv chimera_a;
+	chimera_a.index = index;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribL1dv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glVertexAttribL2d(GLuint index, GLdouble x, GLdouble y)
 {
-	struct ChimeraGlArgs_glVertexAttribL2d cargs;
-	cargs.index = index;
-	cargs.x = x;
-	cargs.y = y;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribL2d, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glVertexAttribL2d chimera_a;
+	chimera_a.index = index;
+	chimera_a.x = x;
+	chimera_a.y = y;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribL2d, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glVertexAttribL2dv(GLuint index, const GLdouble * v)
 {
-	struct ChimeraGlArgs_glVertexAttribL2dv cargs;
-	cargs.index = index;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribL2dv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glVertexAttribL2dv chimera_a;
+	chimera_a.index = index;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribL2dv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glVertexAttribL3d(GLuint index, GLdouble x, GLdouble y, GLdouble z)
 {
-	struct ChimeraGlArgs_glVertexAttribL3d cargs;
-	cargs.index = index;
-	cargs.x = x;
-	cargs.y = y;
-	cargs.z = z;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribL3d, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glVertexAttribL3d chimera_a;
+	chimera_a.index = index;
+	chimera_a.x = x;
+	chimera_a.y = y;
+	chimera_a.z = z;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribL3d, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glVertexAttribL3dv(GLuint index, const GLdouble * v)
 {
-	struct ChimeraGlArgs_glVertexAttribL3dv cargs;
-	cargs.index = index;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribL3dv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glVertexAttribL3dv chimera_a;
+	chimera_a.index = index;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribL3dv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glVertexAttribL4d(GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w)
 {
-	struct ChimeraGlArgs_glVertexAttribL4d cargs;
-	cargs.index = index;
-	cargs.x = x;
-	cargs.y = y;
-	cargs.z = z;
-	cargs.w = w;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribL4d, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glVertexAttribL4d chimera_a;
+	chimera_a.index = index;
+	chimera_a.x = x;
+	chimera_a.y = y;
+	chimera_a.z = z;
+	chimera_a.w = w;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribL4d, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glVertexAttribL4dv(GLuint index, const GLdouble * v)
 {
-	struct ChimeraGlArgs_glVertexAttribL4dv cargs;
-	cargs.index = index;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribL4dv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glVertexAttribLFormat(GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset)
-{
-	struct ChimeraGlArgs_glVertexAttribLFormat cargs;
-	cargs.attribindex = attribindex;
-	cargs.size = size;
-	cargs.type = type;
-	cargs.relativeoffset = relativeoffset;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribLFormat, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glVertexAttribL4dv chimera_a;
+	chimera_a.index = index;
+	chimera_a.v = v;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribL4dv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glVertexAttribLPointer(GLuint index, GLint size, GLenum type, GLsizei stride, const void * pointer)
 {
-	struct ChimeraGlArgs_glVertexAttribLPointer cargs;
-	cargs.index = index;
-	cargs.size = size;
-	cargs.type = type;
-	cargs.stride = stride;
-	cargs.pointer = pointer;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribLPointer, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glVertexAttribLPointer chimera_a;
+	chimera_a.index = index;
+	chimera_a.size = size;
+	chimera_a.type = type;
+	chimera_a.stride = stride;
+	chimera_a.pointer = pointer;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribLPointer, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glVertexAttribP1ui(GLuint index, GLenum type, GLboolean normalized, GLuint value)
 {
-	struct ChimeraGlArgs_glVertexAttribP1ui cargs;
-	cargs.index = index;
-	cargs.type = type;
-	cargs.normalized = normalized;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribP1ui, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glVertexAttribP1ui chimera_a;
+	chimera_a.index = index;
+	chimera_a.type = type;
+	chimera_a.normalized = normalized;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribP1ui, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glVertexAttribP1uiv(GLuint index, GLenum type, GLboolean normalized, const GLuint * value)
 {
-	struct ChimeraGlArgs_glVertexAttribP1uiv cargs;
-	cargs.index = index;
-	cargs.type = type;
-	cargs.normalized = normalized;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribP1uiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glVertexAttribP1uiv chimera_a;
+	chimera_a.index = index;
+	chimera_a.type = type;
+	chimera_a.normalized = normalized;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribP1uiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glVertexAttribP2ui(GLuint index, GLenum type, GLboolean normalized, GLuint value)
 {
-	struct ChimeraGlArgs_glVertexAttribP2ui cargs;
-	cargs.index = index;
-	cargs.type = type;
-	cargs.normalized = normalized;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribP2ui, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glVertexAttribP2ui chimera_a;
+	chimera_a.index = index;
+	chimera_a.type = type;
+	chimera_a.normalized = normalized;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribP2ui, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glVertexAttribP2uiv(GLuint index, GLenum type, GLboolean normalized, const GLuint * value)
 {
-	struct ChimeraGlArgs_glVertexAttribP2uiv cargs;
-	cargs.index = index;
-	cargs.type = type;
-	cargs.normalized = normalized;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribP2uiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glVertexAttribP2uiv chimera_a;
+	chimera_a.index = index;
+	chimera_a.type = type;
+	chimera_a.normalized = normalized;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribP2uiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glVertexAttribP3ui(GLuint index, GLenum type, GLboolean normalized, GLuint value)
 {
-	struct ChimeraGlArgs_glVertexAttribP3ui cargs;
-	cargs.index = index;
-	cargs.type = type;
-	cargs.normalized = normalized;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribP3ui, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glVertexAttribP3ui chimera_a;
+	chimera_a.index = index;
+	chimera_a.type = type;
+	chimera_a.normalized = normalized;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribP3ui, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glVertexAttribP3uiv(GLuint index, GLenum type, GLboolean normalized, const GLuint * value)
 {
-	struct ChimeraGlArgs_glVertexAttribP3uiv cargs;
-	cargs.index = index;
-	cargs.type = type;
-	cargs.normalized = normalized;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribP3uiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glVertexAttribP3uiv chimera_a;
+	chimera_a.index = index;
+	chimera_a.type = type;
+	chimera_a.normalized = normalized;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribP3uiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glVertexAttribP4ui(GLuint index, GLenum type, GLboolean normalized, GLuint value)
 {
-	struct ChimeraGlArgs_glVertexAttribP4ui cargs;
-	cargs.index = index;
-	cargs.type = type;
-	cargs.normalized = normalized;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribP4ui, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glVertexAttribP4ui chimera_a;
+	chimera_a.index = index;
+	chimera_a.type = type;
+	chimera_a.normalized = normalized;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribP4ui, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
 static void GLAD_API_PTR w_glVertexAttribP4uiv(GLuint index, GLenum type, GLboolean normalized, const GLuint * value)
 {
-	struct ChimeraGlArgs_glVertexAttribP4uiv cargs;
-	cargs.index = index;
-	cargs.type = type;
-	cargs.normalized = normalized;
-	cargs.value = value;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribP4uiv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	struct ChimeraGlArgs_glVertexAttribP4uiv chimera_a;
+	chimera_a.index = index;
+	chimera_a.type = type;
+	chimera_a.normalized = normalized;
+	chimera_a.value = value;
+	g_bridge(CHIMERA_GL_OP_glVertexAttribP4uiv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
 }
 
-static void GLAD_API_PTR w_glVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void * pointer)
+/* Returns false when the host is older than this guest - it would not know
+ * every opcode this guest can emit, and the core must draw some other way. */
+bool chimera_gl_install(chimera_gl_bridge_fn bridge)
 {
-	struct ChimeraGlArgs_glVertexAttribPointer cargs;
-	cargs.index = index;
-	cargs.size = size;
-	cargs.type = type;
-	cargs.normalized = normalized;
-	cargs.stride = stride;
-	cargs.pointer = pointer;
-	g_bridge(CHIMERA_GL_OP_glVertexAttribPointer, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
+	uint64_t host_length = bridge(GL_OP_LIST_LENGTH, 0, 0, 0, 0, 0);
+	if (host_length < CHIMERA_GL_OP_LIST_LENGTH)
+	{
+		fprintf(stderr, "chimera gl: the host knows %llu entry points and this "
+			"core was built against %d; not bridging\n",
+			(unsigned long long)host_length, CHIMERA_GL_OP_LIST_LENGTH);
+		return false;
+	}
+
+	g_bridge = bridge;
+	glad_glActiveTexture = w_glActiveTexture;
+	glad_glAttachShader = w_glAttachShader;
+	glad_glBeginQuery = w_glBeginQuery;
+	glad_glBindAttribLocation = w_glBindAttribLocation;
+	glad_glBindBuffer = w_glBindBuffer;
+	glad_glBindBufferRange = w_glBindBufferRange;
+	glad_glBindFragDataLocation = w_glBindFragDataLocation;
+	glad_glBindFragDataLocationIndexed = w_glBindFragDataLocationIndexed;
+	glad_glBindFramebuffer = w_glBindFramebuffer;
+	glad_glBindImageTexture = w_glBindImageTexture;
+	glad_glBindRenderbuffer = w_glBindRenderbuffer;
+	glad_glBindSampler = w_glBindSampler;
+	glad_glBindTexture = w_glBindTexture;
+	glad_glBindTextureUnit = w_glBindTextureUnit;
+	glad_glBindVertexArray = w_glBindVertexArray;
+	glad_glBlendColor = w_glBlendColor;
+	glad_glBlendEquationSeparate = w_glBlendEquationSeparate;
+	glad_glBlendFunc = w_glBlendFunc;
+	glad_glBlendFuncSeparate = w_glBlendFuncSeparate;
+	glad_glBlitFramebuffer = w_glBlitFramebuffer;
+	glad_glBufferData = w_glBufferData;
+	glad_glBufferStorage = w_glBufferStorage;
+	glad_glBufferStorageEXT = w_glBufferStorageEXT;
+	glad_glBufferSubData = w_glBufferSubData;
+	glad_glCheckFramebufferStatus = w_glCheckFramebufferStatus;
+	glad_glClear = w_glClear;
+	glad_glClearBufferfv = w_glClearBufferfv;
+	glad_glClearBufferiv = w_glClearBufferiv;
+	glad_glClearBufferuiv = w_glClearBufferuiv;
+	glad_glClearColor = w_glClearColor;
+	glad_glClearDepthf = w_glClearDepthf;
+	glad_glClearStencil = w_glClearStencil;
+	glad_glClientWaitSync = w_glClientWaitSync;
+	glad_glClipControl = w_glClipControl;
+	glad_glColorMask = w_glColorMask;
+	glad_glColorMaski = w_glColorMaski;
+	glad_glCompileShader = w_glCompileShader;
+	glad_glCompressedTexSubImage2D = w_glCompressedTexSubImage2D;
+	glad_glCompressedTextureSubImage2D = w_glCompressedTextureSubImage2D;
+	glad_glCopyImageSubData = w_glCopyImageSubData;
+	glad_glCopyTexSubImage2D = w_glCopyTexSubImage2D;
+	glad_glCopyTextureSubImage2D = w_glCopyTextureSubImage2D;
+	glad_glCreateProgram = w_glCreateProgram;
+	glad_glCreateSamplers = w_glCreateSamplers;
+	glad_glCreateShader = w_glCreateShader;
+	glad_glCreateTextures = w_glCreateTextures;
+	glad_glCullFace = w_glCullFace;
+	glad_glDebugMessageCallback = w_glDebugMessageCallback;
+	glad_glDebugMessageControl = w_glDebugMessageControl;
+	glad_glDeleteBuffers = w_glDeleteBuffers;
+	glad_glDeleteFramebuffers = w_glDeleteFramebuffers;
+	glad_glDeleteProgram = w_glDeleteProgram;
+	glad_glDeleteQueries = w_glDeleteQueries;
+	glad_glDeleteRenderbuffers = w_glDeleteRenderbuffers;
+	glad_glDeleteSamplers = w_glDeleteSamplers;
+	glad_glDeleteShader = w_glDeleteShader;
+	glad_glDeleteSync = w_glDeleteSync;
+	glad_glDeleteTextures = w_glDeleteTextures;
+	glad_glDeleteVertexArrays = w_glDeleteVertexArrays;
+	glad_glDepthFunc = w_glDepthFunc;
+	glad_glDepthMask = w_glDepthMask;
+	glad_glDetachShader = w_glDetachShader;
+	glad_glDisable = w_glDisable;
+	glad_glDisableVertexAttribArray = w_glDisableVertexAttribArray;
+	glad_glDispatchCompute = w_glDispatchCompute;
+	glad_glDrawArrays = w_glDrawArrays;
+	glad_glDrawBuffers = w_glDrawBuffers;
+	glad_glDrawElements = w_glDrawElements;
+	glad_glDrawElementsBaseVertex = w_glDrawElementsBaseVertex;
+	glad_glEnable = w_glEnable;
+	glad_glEnableVertexAttribArray = w_glEnableVertexAttribArray;
+	glad_glEndQuery = w_glEndQuery;
+	glad_glFenceSync = w_glFenceSync;
+	glad_glFlushMappedBufferRange = w_glFlushMappedBufferRange;
+	glad_glFramebufferRenderbuffer = w_glFramebufferRenderbuffer;
+	glad_glFramebufferTexture2D = w_glFramebufferTexture2D;
+	glad_glGenBuffers = w_glGenBuffers;
+	glad_glGenerateMipmap = w_glGenerateMipmap;
+	glad_glGenerateTextureMipmap = w_glGenerateTextureMipmap;
+	glad_glGenFramebuffers = w_glGenFramebuffers;
+	glad_glGenQueries = w_glGenQueries;
+	glad_glGenRenderbuffers = w_glGenRenderbuffers;
+	glad_glGenSamplers = w_glGenSamplers;
+	glad_glGenTextures = w_glGenTextures;
+	glad_glGenVertexArrays = w_glGenVertexArrays;
+	glad_glGetError = w_glGetError;
+	glad_glGetFloatv = w_glGetFloatv;
+	glad_glGetIntegerv = w_glGetIntegerv;
+	glad_glGetProgramBinary = w_glGetProgramBinary;
+	glad_glGetProgramInfoLog = w_glGetProgramInfoLog;
+	glad_glGetProgramiv = w_glGetProgramiv;
+	glad_glGetQueryObjectiv = w_glGetQueryObjectiv;
+	glad_glGetQueryObjectui64v = w_glGetQueryObjectui64v;
+	glad_glGetShaderInfoLog = w_glGetShaderInfoLog;
+	glad_glGetShaderiv = w_glGetShaderiv;
+	glad_glGetShaderPrecisionFormat = w_glGetShaderPrecisionFormat;
+	glad_glGetString = w_glGetString;
+	glad_glGetStringi = w_glGetStringi;
+	glad_glGetTexImage = w_glGetTexImage;
+	glad_glGetTextureImage = w_glGetTextureImage;
+	glad_glGetUniformBlockIndex = w_glGetUniformBlockIndex;
+	glad_glGetUniformLocation = w_glGetUniformLocation;
+	glad_glHint = w_glHint;
+	glad_glInvalidateFramebuffer = w_glInvalidateFramebuffer;
+	glad_glLineWidth = w_glLineWidth;
+	glad_glLinkProgram = w_glLinkProgram;
+	glad_glMapBufferRange = w_glMapBufferRange;
+	glad_glMemoryBarrier = w_glMemoryBarrier;
+	glad_glPixelStorei = w_glPixelStorei;
+	glad_glPolygonMode = w_glPolygonMode;
+	glad_glPrimitiveRestartIndex = w_glPrimitiveRestartIndex;
+	glad_glProgramBinary = w_glProgramBinary;
+	glad_glProgramParameteri = w_glProgramParameteri;
+	glad_glReadBuffer = w_glReadBuffer;
+	glad_glReadPixels = w_glReadPixels;
+	glad_glRenderbufferStorage = w_glRenderbufferStorage;
+	glad_glSamplerParameterf = w_glSamplerParameterf;
+	glad_glSamplerParameteri = w_glSamplerParameteri;
+	glad_glScissor = w_glScissor;
+	glad_glScissorIndexed = w_glScissorIndexed;
+	glad_glShaderSource = w_glShaderSource;
+	glad_glStencilFunc = w_glStencilFunc;
+	glad_glStencilMask = w_glStencilMask;
+	glad_glStencilOp = w_glStencilOp;
+	glad_glTexImage2D = w_glTexImage2D;
+	glad_glTexParameterf = w_glTexParameterf;
+	glad_glTexParameterfv = w_glTexParameterfv;
+	glad_glTexParameteri = w_glTexParameteri;
+	glad_glTexStorage2D = w_glTexStorage2D;
+	glad_glTexSubImage2D = w_glTexSubImage2D;
+	glad_glTextureBarrier = w_glTextureBarrier;
+	glad_glTextureParameteri = w_glTextureParameteri;
+	glad_glTextureStorage2D = w_glTextureStorage2D;
+	glad_glTextureSubImage2D = w_glTextureSubImage2D;
+	glad_glUniform1f = w_glUniform1f;
+	glad_glUniform1i = w_glUniform1i;
+	glad_glUniform1ui = w_glUniform1ui;
+	glad_glUniform2f = w_glUniform2f;
+	glad_glUniform2fv = w_glUniform2fv;
+	glad_glUniform2i = w_glUniform2i;
+	glad_glUniform2iv = w_glUniform2iv;
+	glad_glUniform2ui = w_glUniform2ui;
+	glad_glUniform2uiv = w_glUniform2uiv;
+	glad_glUniform3f = w_glUniform3f;
+	glad_glUniform3fv = w_glUniform3fv;
+	glad_glUniform3i = w_glUniform3i;
+	glad_glUniform3iv = w_glUniform3iv;
+	glad_glUniform3ui = w_glUniform3ui;
+	glad_glUniform3uiv = w_glUniform3uiv;
+	glad_glUniform4f = w_glUniform4f;
+	glad_glUniform4fv = w_glUniform4fv;
+	glad_glUniform4i = w_glUniform4i;
+	glad_glUniform4iv = w_glUniform4iv;
+	glad_glUniform4ui = w_glUniform4ui;
+	glad_glUniform4uiv = w_glUniform4uiv;
+	glad_glUniformBlockBinding = w_glUniformBlockBinding;
+	glad_glUniformMatrix2fv = w_glUniformMatrix2fv;
+	glad_glUniformMatrix3fv = w_glUniformMatrix3fv;
+	glad_glUniformMatrix4fv = w_glUniformMatrix4fv;
+	glad_glUnmapBuffer = w_glUnmapBuffer;
+	glad_glUseProgram = w_glUseProgram;
+	glad_glVertexAttribIPointer = w_glVertexAttribIPointer;
+	glad_glVertexAttribPointer = w_glVertexAttribPointer;
+	glad_glViewport = w_glViewport;
+	glad_glViewportIndexedf = w_glViewportIndexedf;
+	glad_glBlendEquation = w_glBlendEquation;
+	glad_glClearDepth = w_glClearDepth;
+	glad_glDebugMessageInsert = w_glDebugMessageInsert;
+	glad_glFinish = w_glFinish;
+	glad_glFrontFace = w_glFrontFace;
+	glad_glGetQueryObjectuiv = w_glGetQueryObjectuiv;
+	glad_glMultiDrawArrays = w_glMultiDrawArrays;
+	glad_glObjectLabel = w_glObjectLabel;
+	glad_glPopDebugGroup = w_glPopDebugGroup;
+	glad_glProgramUniform1i = w_glProgramUniform1i;
+	glad_glProgramUniform2f = w_glProgramUniform2f;
+	glad_glProvokingVertex = w_glProvokingVertex;
+	glad_glPushDebugGroup = w_glPushDebugGroup;
+	glad_glTexImage3D = w_glTexImage3D;
+	glad_glTexParameteriv = w_glTexParameteriv;
+	glad_glUniform1fv = w_glUniform1fv;
+	glad_glUniform1iv = w_glUniform1iv;
+	glad_glUniform1uiv = w_glUniform1uiv;
+	glad_glValidateProgram = w_glValidateProgram;
+	glad_glVertexAttrib4fv = w_glVertexAttrib4fv;
+	glad_glBeginConditionalRender = w_glBeginConditionalRender;
+	glad_glBeginTransformFeedback = w_glBeginTransformFeedback;
+	glad_glBindBufferBase = w_glBindBufferBase;
+	glad_glBindBuffersBase = w_glBindBuffersBase;
+	glad_glBindBuffersRange = w_glBindBuffersRange;
+	glad_glBindImageTextures = w_glBindImageTextures;
+	glad_glBindSamplers = w_glBindSamplers;
+	glad_glBindTextures = w_glBindTextures;
+	glad_glBindVertexBuffer = w_glBindVertexBuffer;
+	glad_glBindVertexBuffers = w_glBindVertexBuffers;
+	glad_glBlitNamedFramebuffer = w_glBlitNamedFramebuffer;
+	glad_glCheckNamedFramebufferStatus = w_glCheckNamedFramebufferStatus;
+	glad_glClampColor = w_glClampColor;
+	glad_glClearBufferData = w_glClearBufferData;
+	glad_glClearBufferfi = w_glClearBufferfi;
+	glad_glClearBufferSubData = w_glClearBufferSubData;
+	glad_glClearNamedBufferData = w_glClearNamedBufferData;
+	glad_glClearNamedBufferSubData = w_glClearNamedBufferSubData;
+	glad_glClearNamedFramebufferfi = w_glClearNamedFramebufferfi;
+	glad_glClearNamedFramebufferfv = w_glClearNamedFramebufferfv;
+	glad_glClearNamedFramebufferiv = w_glClearNamedFramebufferiv;
+	glad_glClearNamedFramebufferuiv = w_glClearNamedFramebufferuiv;
+	glad_glClearTexImage = w_glClearTexImage;
+	glad_glClearTexSubImage = w_glClearTexSubImage;
+	glad_glCompressedTexImage1D = w_glCompressedTexImage1D;
+	glad_glCompressedTexImage2D = w_glCompressedTexImage2D;
+	glad_glCompressedTexImage3D = w_glCompressedTexImage3D;
+	glad_glCompressedTexSubImage1D = w_glCompressedTexSubImage1D;
+	glad_glCompressedTexSubImage3D = w_glCompressedTexSubImage3D;
+	glad_glCompressedTextureSubImage1D = w_glCompressedTextureSubImage1D;
+	glad_glCompressedTextureSubImage3D = w_glCompressedTextureSubImage3D;
+	glad_glCopyNamedBufferSubData = w_glCopyNamedBufferSubData;
+	glad_glCopyTexImage1D = w_glCopyTexImage1D;
+	glad_glCopyTexImage2D = w_glCopyTexImage2D;
+	glad_glCopyTexSubImage1D = w_glCopyTexSubImage1D;
+	glad_glCopyTexSubImage3D = w_glCopyTexSubImage3D;
+	glad_glCopyTextureSubImage1D = w_glCopyTextureSubImage1D;
+	glad_glCopyTextureSubImage3D = w_glCopyTextureSubImage3D;
+	glad_glCreateBuffers = w_glCreateBuffers;
+	glad_glCreateFramebuffers = w_glCreateFramebuffers;
+	glad_glCreateProgramPipelines = w_glCreateProgramPipelines;
+	glad_glCreateQueries = w_glCreateQueries;
+	glad_glCreateRenderbuffers = w_glCreateRenderbuffers;
+	glad_glCreateTransformFeedbacks = w_glCreateTransformFeedbacks;
+	glad_glCreateVertexArrays = w_glCreateVertexArrays;
+	glad_glDebugMessageCallbackARB = w_glDebugMessageCallbackARB;
+	glad_glDebugMessageControlARB = w_glDebugMessageControlARB;
+	glad_glDebugMessageInsertARB = w_glDebugMessageInsertARB;
+	glad_glDepthRange = w_glDepthRange;
+	glad_glDepthRangeArrayv = w_glDepthRangeArrayv;
+	glad_glDepthRangef = w_glDepthRangef;
+	glad_glDepthRangeIndexed = w_glDepthRangeIndexed;
+	glad_glDisablei = w_glDisablei;
+	glad_glDisableVertexArrayAttrib = w_glDisableVertexArrayAttrib;
+	glad_glDispatchComputeIndirect = w_glDispatchComputeIndirect;
+	glad_glDrawArraysInstanced = w_glDrawArraysInstanced;
+	glad_glDrawArraysInstancedBaseInstance = w_glDrawArraysInstancedBaseInstance;
+	glad_glDrawBuffer = w_glDrawBuffer;
+	glad_glDrawElementsInstanced = w_glDrawElementsInstanced;
+	glad_glDrawElementsInstancedBaseInstance = w_glDrawElementsInstancedBaseInstance;
+	glad_glDrawElementsInstancedBaseVertex = w_glDrawElementsInstancedBaseVertex;
+	glad_glDrawElementsInstancedBaseVertexBaseInstance = w_glDrawElementsInstancedBaseVertexBaseInstance;
+	glad_glDrawRangeElements = w_glDrawRangeElements;
+	glad_glDrawRangeElementsBaseVertex = w_glDrawRangeElementsBaseVertex;
+	glad_glDrawTransformFeedbackInstanced = w_glDrawTransformFeedbackInstanced;
+	glad_glDrawTransformFeedbackStreamInstanced = w_glDrawTransformFeedbackStreamInstanced;
+	glad_glEnablei = w_glEnablei;
+	glad_glEnableVertexArrayAttrib = w_glEnableVertexArrayAttrib;
+	glad_glEndConditionalRender = w_glEndConditionalRender;
+	glad_glEndTransformFeedback = w_glEndTransformFeedback;
+	glad_glFlush = w_glFlush;
+	glad_glFlushMappedNamedBufferRange = w_glFlushMappedNamedBufferRange;
+	glad_glFramebufferParameteri = w_glFramebufferParameteri;
+	glad_glFramebufferTexture = w_glFramebufferTexture;
+	glad_glFramebufferTexture1D = w_glFramebufferTexture1D;
+	glad_glFramebufferTexture3D = w_glFramebufferTexture3D;
+	glad_glFramebufferTextureLayer = w_glFramebufferTextureLayer;
+	glad_glGetActiveAtomicCounterBufferiv = w_glGetActiveAtomicCounterBufferiv;
+	glad_glGetActiveAttrib = w_glGetActiveAttrib;
+	glad_glGetActiveUniform = w_glGetActiveUniform;
+	glad_glGetActiveUniformBlockiv = w_glGetActiveUniformBlockiv;
+	glad_glGetActiveUniformBlockName = w_glGetActiveUniformBlockName;
+	glad_glGetActiveUniformName = w_glGetActiveUniformName;
+	glad_glGetActiveUniformsiv = w_glGetActiveUniformsiv;
+	glad_glGetAttachedShaders = w_glGetAttachedShaders;
+	glad_glGetAttribLocation = w_glGetAttribLocation;
+	glad_glGetBooleanv = w_glGetBooleanv;
+	glad_glGetBufferParameteri64v = w_glGetBufferParameteri64v;
+	glad_glGetBufferParameteriv = w_glGetBufferParameteriv;
+	glad_glGetBufferPointerv = w_glGetBufferPointerv;
+	glad_glGetBufferSubData = w_glGetBufferSubData;
+	glad_glGetCompressedTexImage = w_glGetCompressedTexImage;
+	glad_glGetCompressedTextureImage = w_glGetCompressedTextureImage;
+	glad_glGetCompressedTextureSubImage = w_glGetCompressedTextureSubImage;
+	glad_glGetDebugMessageLog = w_glGetDebugMessageLog;
+	glad_glGetDebugMessageLogARB = w_glGetDebugMessageLogARB;
+	glad_glGetDoublev = w_glGetDoublev;
+	glad_glGetFragDataIndex = w_glGetFragDataIndex;
+	glad_glGetFragDataLocation = w_glGetFragDataLocation;
+	glad_glGetFramebufferAttachmentParameteriv = w_glGetFramebufferAttachmentParameteriv;
+	glad_glGetFramebufferParameteriv = w_glGetFramebufferParameteriv;
+	glad_glGetGraphicsResetStatus = w_glGetGraphicsResetStatus;
+	glad_glGetInteger64v = w_glGetInteger64v;
+	glad_glGetInternalformati64v = w_glGetInternalformati64v;
+	glad_glGetInternalformativ = w_glGetInternalformativ;
+	glad_glGetMultisamplefv = w_glGetMultisamplefv;
+	glad_glGetNamedBufferParameteri64v = w_glGetNamedBufferParameteri64v;
+	glad_glGetNamedBufferParameteriv = w_glGetNamedBufferParameteriv;
+	glad_glGetNamedBufferPointerv = w_glGetNamedBufferPointerv;
+	glad_glGetNamedBufferSubData = w_glGetNamedBufferSubData;
+	glad_glGetNamedFramebufferAttachmentParameteriv = w_glGetNamedFramebufferAttachmentParameteriv;
+	glad_glGetNamedFramebufferParameteriv = w_glGetNamedFramebufferParameteriv;
+	glad_glGetNamedRenderbufferParameteriv = w_glGetNamedRenderbufferParameteriv;
+	glad_glGetnCompressedTexImage = w_glGetnCompressedTexImage;
+	glad_glGetnTexImage = w_glGetnTexImage;
+	glad_glGetnUniformdv = w_glGetnUniformdv;
+	glad_glGetnUniformfv = w_glGetnUniformfv;
+	glad_glGetnUniformiv = w_glGetnUniformiv;
+	glad_glGetnUniformuiv = w_glGetnUniformuiv;
+	glad_glGetObjectLabel = w_glGetObjectLabel;
+	glad_glGetObjectPtrLabel = w_glGetObjectPtrLabel;
+	glad_glGetPointerv = w_glGetPointerv;
+	glad_glGetProgramInterfaceiv = w_glGetProgramInterfaceiv;
+	glad_glGetProgramResourceIndex = w_glGetProgramResourceIndex;
+	glad_glGetProgramResourceiv = w_glGetProgramResourceiv;
+	glad_glGetProgramResourceLocation = w_glGetProgramResourceLocation;
+	glad_glGetProgramResourceLocationIndex = w_glGetProgramResourceLocationIndex;
+	glad_glGetProgramResourceName = w_glGetProgramResourceName;
+	glad_glGetQueryBufferObjecti64v = w_glGetQueryBufferObjecti64v;
+	glad_glGetQueryBufferObjectiv = w_glGetQueryBufferObjectiv;
+	glad_glGetQueryBufferObjectui64v = w_glGetQueryBufferObjectui64v;
+	glad_glGetQueryBufferObjectuiv = w_glGetQueryBufferObjectuiv;
+	glad_glGetQueryiv = w_glGetQueryiv;
+	glad_glGetRenderbufferParameteriv = w_glGetRenderbufferParameteriv;
+	glad_glGetSamplerParameterfv = w_glGetSamplerParameterfv;
+	glad_glGetSamplerParameterIiv = w_glGetSamplerParameterIiv;
+	glad_glGetSamplerParameterIuiv = w_glGetSamplerParameterIuiv;
+	glad_glGetSamplerParameteriv = w_glGetSamplerParameteriv;
+	glad_glGetShaderSource = w_glGetShaderSource;
+	glad_glGetSynciv = w_glGetSynciv;
+	glad_glGetTexLevelParameterfv = w_glGetTexLevelParameterfv;
+	glad_glGetTexLevelParameteriv = w_glGetTexLevelParameteriv;
+	glad_glGetTexParameterfv = w_glGetTexParameterfv;
+	glad_glGetTexParameterIiv = w_glGetTexParameterIiv;
+	glad_glGetTexParameterIuiv = w_glGetTexParameterIuiv;
+	glad_glGetTexParameteriv = w_glGetTexParameteriv;
+	glad_glGetTextureLevelParameterfv = w_glGetTextureLevelParameterfv;
+	glad_glGetTextureLevelParameteriv = w_glGetTextureLevelParameteriv;
+	glad_glGetTextureParameterfv = w_glGetTextureParameterfv;
+	glad_glGetTextureParameterIiv = w_glGetTextureParameterIiv;
+	glad_glGetTextureParameterIuiv = w_glGetTextureParameterIuiv;
+	glad_glGetTextureParameteriv = w_glGetTextureParameteriv;
+	glad_glGetTextureSubImage = w_glGetTextureSubImage;
+	glad_glGetTransformFeedbackiv = w_glGetTransformFeedbackiv;
+	glad_glGetTransformFeedbackVarying = w_glGetTransformFeedbackVarying;
+	glad_glGetUniformfv = w_glGetUniformfv;
+	glad_glGetUniformIndices = w_glGetUniformIndices;
+	glad_glGetUniformiv = w_glGetUniformiv;
+	glad_glGetUniformuiv = w_glGetUniformuiv;
+	glad_glGetVertexArrayIndexed64iv = w_glGetVertexArrayIndexed64iv;
+	glad_glGetVertexArrayIndexediv = w_glGetVertexArrayIndexediv;
+	glad_glGetVertexArrayiv = w_glGetVertexArrayiv;
+	glad_glGetVertexAttribdv = w_glGetVertexAttribdv;
+	glad_glGetVertexAttribfv = w_glGetVertexAttribfv;
+	glad_glGetVertexAttribIiv = w_glGetVertexAttribIiv;
+	glad_glGetVertexAttribIuiv = w_glGetVertexAttribIuiv;
+	glad_glGetVertexAttribiv = w_glGetVertexAttribiv;
+	glad_glGetVertexAttribPointerv = w_glGetVertexAttribPointerv;
+	glad_glInvalidateBufferData = w_glInvalidateBufferData;
+	glad_glInvalidateBufferSubData = w_glInvalidateBufferSubData;
+	glad_glInvalidateNamedFramebufferData = w_glInvalidateNamedFramebufferData;
+	glad_glInvalidateNamedFramebufferSubData = w_glInvalidateNamedFramebufferSubData;
+	glad_glInvalidateSubFramebuffer = w_glInvalidateSubFramebuffer;
+	glad_glInvalidateTexImage = w_glInvalidateTexImage;
+	glad_glInvalidateTexSubImage = w_glInvalidateTexSubImage;
+	glad_glIsBuffer = w_glIsBuffer;
+	glad_glIsEnabled = w_glIsEnabled;
+	glad_glIsEnabledi = w_glIsEnabledi;
+	glad_glIsFramebuffer = w_glIsFramebuffer;
+	glad_glIsProgram = w_glIsProgram;
+	glad_glIsQuery = w_glIsQuery;
+	glad_glIsRenderbuffer = w_glIsRenderbuffer;
+	glad_glIsSampler = w_glIsSampler;
+	glad_glIsShader = w_glIsShader;
+	glad_glIsSync = w_glIsSync;
+	glad_glIsTexture = w_glIsTexture;
+	glad_glIsVertexArray = w_glIsVertexArray;
+	glad_glLogicOp = w_glLogicOp;
+	glad_glMapBuffer = w_glMapBuffer;
+	glad_glMapNamedBuffer = w_glMapNamedBuffer;
+	glad_glMapNamedBufferRange = w_glMapNamedBufferRange;
+	glad_glMemoryBarrierByRegion = w_glMemoryBarrierByRegion;
+	glad_glMinSampleShading = w_glMinSampleShading;
+	glad_glMultiDrawArraysIndirect = w_glMultiDrawArraysIndirect;
+	glad_glMultiDrawElements = w_glMultiDrawElements;
+	glad_glMultiDrawElementsBaseVertex = w_glMultiDrawElementsBaseVertex;
+	glad_glMultiDrawElementsIndirect = w_glMultiDrawElementsIndirect;
+	glad_glNamedBufferData = w_glNamedBufferData;
+	glad_glNamedBufferStorage = w_glNamedBufferStorage;
+	glad_glNamedBufferSubData = w_glNamedBufferSubData;
+	glad_glNamedFramebufferDrawBuffer = w_glNamedFramebufferDrawBuffer;
+	glad_glNamedFramebufferDrawBuffers = w_glNamedFramebufferDrawBuffers;
+	glad_glNamedFramebufferParameteri = w_glNamedFramebufferParameteri;
+	glad_glNamedFramebufferReadBuffer = w_glNamedFramebufferReadBuffer;
+	glad_glNamedFramebufferRenderbuffer = w_glNamedFramebufferRenderbuffer;
+	glad_glNamedFramebufferTexture = w_glNamedFramebufferTexture;
+	glad_glNamedFramebufferTextureLayer = w_glNamedFramebufferTextureLayer;
+	glad_glNamedRenderbufferStorage = w_glNamedRenderbufferStorage;
+	glad_glNamedRenderbufferStorageMultisample = w_glNamedRenderbufferStorageMultisample;
+	glad_glObjectPtrLabel = w_glObjectPtrLabel;
+	glad_glPixelStoref = w_glPixelStoref;
+	glad_glPointParameterf = w_glPointParameterf;
+	glad_glPointParameterfv = w_glPointParameterfv;
+	glad_glPointParameteri = w_glPointParameteri;
+	glad_glPointParameteriv = w_glPointParameteriv;
+	glad_glPointSize = w_glPointSize;
+	glad_glPolygonOffset = w_glPolygonOffset;
+	glad_glReadnPixels = w_glReadnPixels;
+	glad_glReleaseShaderCompiler = w_glReleaseShaderCompiler;
+	glad_glRenderbufferStorageMultisample = w_glRenderbufferStorageMultisample;
+	glad_glSampleCoverage = w_glSampleCoverage;
+	glad_glSampleMaski = w_glSampleMaski;
+	glad_glSamplerParameterfv = w_glSamplerParameterfv;
+	glad_glSamplerParameterIiv = w_glSamplerParameterIiv;
+	glad_glSamplerParameterIuiv = w_glSamplerParameterIuiv;
+	glad_glSamplerParameteriv = w_glSamplerParameteriv;
+	glad_glScissorArrayv = w_glScissorArrayv;
+	glad_glScissorIndexedv = w_glScissorIndexedv;
+	glad_glShaderBinary = w_glShaderBinary;
+	glad_glShaderStorageBlockBinding = w_glShaderStorageBlockBinding;
+	glad_glStencilFuncSeparate = w_glStencilFuncSeparate;
+	glad_glStencilMaskSeparate = w_glStencilMaskSeparate;
+	glad_glStencilOpSeparate = w_glStencilOpSeparate;
+	glad_glTexBuffer = w_glTexBuffer;
+	glad_glTexBufferRange = w_glTexBufferRange;
+	glad_glTexImage1D = w_glTexImage1D;
+	glad_glTexImage2DMultisample = w_glTexImage2DMultisample;
+	glad_glTexImage3DMultisample = w_glTexImage3DMultisample;
+	glad_glTexParameterIiv = w_glTexParameterIiv;
+	glad_glTexParameterIuiv = w_glTexParameterIuiv;
+	glad_glTexStorage1D = w_glTexStorage1D;
+	glad_glTexStorage2DMultisample = w_glTexStorage2DMultisample;
+	glad_glTexStorage3D = w_glTexStorage3D;
+	glad_glTexStorage3DMultisample = w_glTexStorage3DMultisample;
+	glad_glTexSubImage1D = w_glTexSubImage1D;
+	glad_glTexSubImage3D = w_glTexSubImage3D;
+	glad_glTextureBuffer = w_glTextureBuffer;
+	glad_glTextureBufferRange = w_glTextureBufferRange;
+	glad_glTextureParameterf = w_glTextureParameterf;
+	glad_glTextureParameterfv = w_glTextureParameterfv;
+	glad_glTextureParameterIiv = w_glTextureParameterIiv;
+	glad_glTextureParameterIuiv = w_glTextureParameterIuiv;
+	glad_glTextureParameteriv = w_glTextureParameteriv;
+	glad_glTextureStorage1D = w_glTextureStorage1D;
+	glad_glTextureStorage2DMultisample = w_glTextureStorage2DMultisample;
+	glad_glTextureStorage3D = w_glTextureStorage3D;
+	glad_glTextureStorage3DMultisample = w_glTextureStorage3DMultisample;
+	glad_glTextureSubImage1D = w_glTextureSubImage1D;
+	glad_glTextureSubImage3D = w_glTextureSubImage3D;
+	glad_glTextureView = w_glTextureView;
+	glad_glTransformFeedbackBufferBase = w_glTransformFeedbackBufferBase;
+	glad_glTransformFeedbackBufferRange = w_glTransformFeedbackBufferRange;
+	glad_glTransformFeedbackVaryings = w_glTransformFeedbackVaryings;
+	glad_glUniformMatrix2x3fv = w_glUniformMatrix2x3fv;
+	glad_glUniformMatrix2x4fv = w_glUniformMatrix2x4fv;
+	glad_glUniformMatrix3x2fv = w_glUniformMatrix3x2fv;
+	glad_glUniformMatrix3x4fv = w_glUniformMatrix3x4fv;
+	glad_glUniformMatrix4x2fv = w_glUniformMatrix4x2fv;
+	glad_glUniformMatrix4x3fv = w_glUniformMatrix4x3fv;
+	glad_glUnmapNamedBuffer = w_glUnmapNamedBuffer;
+	glad_glVertexArrayAttribBinding = w_glVertexArrayAttribBinding;
+	glad_glVertexArrayAttribFormat = w_glVertexArrayAttribFormat;
+	glad_glVertexArrayAttribIFormat = w_glVertexArrayAttribIFormat;
+	glad_glVertexArrayAttribLFormat = w_glVertexArrayAttribLFormat;
+	glad_glVertexArrayBindingDivisor = w_glVertexArrayBindingDivisor;
+	glad_glVertexArrayElementBuffer = w_glVertexArrayElementBuffer;
+	glad_glVertexArrayVertexBuffer = w_glVertexArrayVertexBuffer;
+	glad_glVertexArrayVertexBuffers = w_glVertexArrayVertexBuffers;
+	glad_glVertexAttrib1d = w_glVertexAttrib1d;
+	glad_glVertexAttrib1dv = w_glVertexAttrib1dv;
+	glad_glVertexAttrib1f = w_glVertexAttrib1f;
+	glad_glVertexAttrib1fv = w_glVertexAttrib1fv;
+	glad_glVertexAttrib1s = w_glVertexAttrib1s;
+	glad_glVertexAttrib1sv = w_glVertexAttrib1sv;
+	glad_glVertexAttrib2d = w_glVertexAttrib2d;
+	glad_glVertexAttrib2dv = w_glVertexAttrib2dv;
+	glad_glVertexAttrib2f = w_glVertexAttrib2f;
+	glad_glVertexAttrib2fv = w_glVertexAttrib2fv;
+	glad_glVertexAttrib2s = w_glVertexAttrib2s;
+	glad_glVertexAttrib2sv = w_glVertexAttrib2sv;
+	glad_glVertexAttrib3d = w_glVertexAttrib3d;
+	glad_glVertexAttrib3dv = w_glVertexAttrib3dv;
+	glad_glVertexAttrib3f = w_glVertexAttrib3f;
+	glad_glVertexAttrib3fv = w_glVertexAttrib3fv;
+	glad_glVertexAttrib3s = w_glVertexAttrib3s;
+	glad_glVertexAttrib3sv = w_glVertexAttrib3sv;
+	glad_glVertexAttrib4bv = w_glVertexAttrib4bv;
+	glad_glVertexAttrib4d = w_glVertexAttrib4d;
+	glad_glVertexAttrib4dv = w_glVertexAttrib4dv;
+	glad_glVertexAttrib4f = w_glVertexAttrib4f;
+	glad_glVertexAttrib4iv = w_glVertexAttrib4iv;
+	glad_glVertexAttrib4Nbv = w_glVertexAttrib4Nbv;
+	glad_glVertexAttrib4Niv = w_glVertexAttrib4Niv;
+	glad_glVertexAttrib4Nsv = w_glVertexAttrib4Nsv;
+	glad_glVertexAttrib4Nub = w_glVertexAttrib4Nub;
+	glad_glVertexAttrib4Nubv = w_glVertexAttrib4Nubv;
+	glad_glVertexAttrib4Nuiv = w_glVertexAttrib4Nuiv;
+	glad_glVertexAttrib4Nusv = w_glVertexAttrib4Nusv;
+	glad_glVertexAttrib4s = w_glVertexAttrib4s;
+	glad_glVertexAttrib4sv = w_glVertexAttrib4sv;
+	glad_glVertexAttrib4ubv = w_glVertexAttrib4ubv;
+	glad_glVertexAttrib4uiv = w_glVertexAttrib4uiv;
+	glad_glVertexAttrib4usv = w_glVertexAttrib4usv;
+	glad_glVertexAttribBinding = w_glVertexAttribBinding;
+	glad_glVertexAttribFormat = w_glVertexAttribFormat;
+	glad_glVertexAttribI1i = w_glVertexAttribI1i;
+	glad_glVertexAttribI1iv = w_glVertexAttribI1iv;
+	glad_glVertexAttribI1ui = w_glVertexAttribI1ui;
+	glad_glVertexAttribI1uiv = w_glVertexAttribI1uiv;
+	glad_glVertexAttribI2i = w_glVertexAttribI2i;
+	glad_glVertexAttribI2iv = w_glVertexAttribI2iv;
+	glad_glVertexAttribI2ui = w_glVertexAttribI2ui;
+	glad_glVertexAttribI2uiv = w_glVertexAttribI2uiv;
+	glad_glVertexAttribI3i = w_glVertexAttribI3i;
+	glad_glVertexAttribI3iv = w_glVertexAttribI3iv;
+	glad_glVertexAttribI3ui = w_glVertexAttribI3ui;
+	glad_glVertexAttribI3uiv = w_glVertexAttribI3uiv;
+	glad_glVertexAttribI4bv = w_glVertexAttribI4bv;
+	glad_glVertexAttribI4i = w_glVertexAttribI4i;
+	glad_glVertexAttribI4iv = w_glVertexAttribI4iv;
+	glad_glVertexAttribI4sv = w_glVertexAttribI4sv;
+	glad_glVertexAttribI4ubv = w_glVertexAttribI4ubv;
+	glad_glVertexAttribI4ui = w_glVertexAttribI4ui;
+	glad_glVertexAttribI4uiv = w_glVertexAttribI4uiv;
+	glad_glVertexAttribI4usv = w_glVertexAttribI4usv;
+	glad_glVertexAttribIFormat = w_glVertexAttribIFormat;
+	glad_glVertexAttribLFormat = w_glVertexAttribLFormat;
+	glad_glVertexBindingDivisor = w_glVertexBindingDivisor;
+	glad_glViewportArrayv = w_glViewportArrayv;
+	glad_glViewportIndexedfv = w_glViewportIndexedfv;
+	glad_glWaitSync = w_glWaitSync;
+	glad_glProgramUniform1f = w_glProgramUniform1f;
+	glad_glProgramUniform1iv = w_glProgramUniform1iv;
+	glad_glProgramUniform1ui = w_glProgramUniform1ui;
+	glad_glProgramUniform2i = w_glProgramUniform2i;
+	glad_glProgramUniform3f = w_glProgramUniform3f;
+	glad_glProgramUniform3i = w_glProgramUniform3i;
+	glad_glProgramUniform4f = w_glProgramUniform4f;
+	glad_glProgramUniform4i = w_glProgramUniform4i;
+	glad_glProgramUniformMatrix3fv = w_glProgramUniformMatrix3fv;
+	glad_glGetIntegeri_v = w_glGetIntegeri_v;
+	glad_glGetInteger64i_v = w_glGetInteger64i_v;
+	glad_glGetBooleani_v = w_glGetBooleani_v;
+	glad_glGetFloati_v = w_glGetFloati_v;
+	glad_glGetDoublei_v = w_glGetDoublei_v;
+	glad_glActiveShaderProgram = w_glActiveShaderProgram;
+	glad_glBeginQueryEXT = w_glBeginQueryEXT;
+	glad_glBeginQueryIndexed = w_glBeginQueryIndexed;
+	glad_glBindProgramPipeline = w_glBindProgramPipeline;
+	glad_glBindTransformFeedback = w_glBindTransformFeedback;
+	glad_glBindVertexArrayAPPLE = w_glBindVertexArrayAPPLE;
+	glad_glBindVertexArrayOES = w_glBindVertexArrayOES;
+	glad_glBlendBarrier = w_glBlendBarrier;
+	glad_glBlendEquationi = w_glBlendEquationi;
+	glad_glBlendEquationSeparatei = w_glBlendEquationSeparatei;
+	glad_glBlendFunci = w_glBlendFunci;
+	glad_glBlendFuncSeparatei = w_glBlendFuncSeparatei;
+	glad_glColorMaskIndexedEXT = w_glColorMaskIndexedEXT;
+	glad_glCopyBufferSubData = w_glCopyBufferSubData;
+	glad_glCopyBufferSubDataNV = w_glCopyBufferSubDataNV;
+	glad_glCreateShaderProgramv = w_glCreateShaderProgramv;
+	glad_glDebugMessageCallbackKHR = w_glDebugMessageCallbackKHR;
+	glad_glDebugMessageControlKHR = w_glDebugMessageControlKHR;
+	glad_glDebugMessageInsertKHR = w_glDebugMessageInsertKHR;
+	glad_glDeleteProgramPipelines = w_glDeleteProgramPipelines;
+	glad_glDeleteQueriesEXT = w_glDeleteQueriesEXT;
+	glad_glDeleteTransformFeedbacks = w_glDeleteTransformFeedbacks;
+	glad_glDeleteVertexArraysAPPLE = w_glDeleteVertexArraysAPPLE;
+	glad_glDeleteVertexArraysOES = w_glDeleteVertexArraysOES;
+	glad_glDisableIndexedEXT = w_glDisableIndexedEXT;
+	glad_glDrawArraysIndirect = w_glDrawArraysIndirect;
+	glad_glDrawArraysInstancedARB = w_glDrawArraysInstancedARB;
+	glad_glDrawElementsIndirect = w_glDrawElementsIndirect;
+	glad_glDrawElementsInstancedARB = w_glDrawElementsInstancedARB;
+	glad_glDrawTransformFeedback = w_glDrawTransformFeedback;
+	glad_glDrawTransformFeedbackStream = w_glDrawTransformFeedbackStream;
+	glad_glEnableIndexedEXT = w_glEnableIndexedEXT;
+	glad_glEndQueryEXT = w_glEndQueryEXT;
+	glad_glEndQueryIndexed = w_glEndQueryIndexed;
+	glad_glFramebufferTexture2DMultisampleEXT = w_glFramebufferTexture2DMultisampleEXT;
+	glad_glGenProgramPipelines = w_glGenProgramPipelines;
+	glad_glGenQueriesEXT = w_glGenQueriesEXT;
+	glad_glGenTransformFeedbacks = w_glGenTransformFeedbacks;
+	glad_glGenVertexArraysAPPLE = w_glGenVertexArraysAPPLE;
+	glad_glGenVertexArraysOES = w_glGenVertexArraysOES;
+	glad_glGetActiveSubroutineName = w_glGetActiveSubroutineName;
+	glad_glGetActiveSubroutineUniformiv = w_glGetActiveSubroutineUniformiv;
+	glad_glGetActiveSubroutineUniformName = w_glGetActiveSubroutineUniformName;
+	glad_glGetBooleanIndexedvEXT = w_glGetBooleanIndexedvEXT;
+	glad_glGetDebugMessageLogKHR = w_glGetDebugMessageLogKHR;
+	glad_glGetInteger64vEXT = w_glGetInteger64vEXT;
+	glad_glGetIntegerIndexedvEXT = w_glGetIntegerIndexedvEXT;
+	glad_glGetObjectLabelKHR = w_glGetObjectLabelKHR;
+	glad_glGetObjectPtrLabelKHR = w_glGetObjectPtrLabelKHR;
+	glad_glGetPointervKHR = w_glGetPointervKHR;
+	glad_glGetProgramPipelineInfoLog = w_glGetProgramPipelineInfoLog;
+	glad_glGetProgramPipelineiv = w_glGetProgramPipelineiv;
+	glad_glGetProgramStageiv = w_glGetProgramStageiv;
+	glad_glGetQueryIndexediv = w_glGetQueryIndexediv;
+	glad_glGetQueryivEXT = w_glGetQueryivEXT;
+	glad_glGetQueryObjecti64v = w_glGetQueryObjecti64v;
+	glad_glGetQueryObjecti64vEXT = w_glGetQueryObjecti64vEXT;
+	glad_glGetQueryObjectivEXT = w_glGetQueryObjectivEXT;
+	glad_glGetQueryObjectui64vEXT = w_glGetQueryObjectui64vEXT;
+	glad_glGetQueryObjectuivEXT = w_glGetQueryObjectuivEXT;
+	glad_glGetSubroutineIndex = w_glGetSubroutineIndex;
+	glad_glGetSubroutineUniformLocation = w_glGetSubroutineUniformLocation;
+	glad_glGetTransformFeedbacki64_v = w_glGetTransformFeedbacki64_v;
+	glad_glGetTransformFeedbacki_v = w_glGetTransformFeedbacki_v;
+	glad_glGetUniformdv = w_glGetUniformdv;
+	glad_glGetUniformSubroutineuiv = w_glGetUniformSubroutineuiv;
+	glad_glGetVertexAttribLdv = w_glGetVertexAttribLdv;
+	glad_glIsEnabledIndexedEXT = w_glIsEnabledIndexedEXT;
+	glad_glIsProgramPipeline = w_glIsProgramPipeline;
+	glad_glIsQueryEXT = w_glIsQueryEXT;
+	glad_glIsTransformFeedback = w_glIsTransformFeedback;
+	glad_glIsVertexArrayAPPLE = w_glIsVertexArrayAPPLE;
+	glad_glIsVertexArrayOES = w_glIsVertexArrayOES;
+	glad_glMaxShaderCompilerThreadsARB = w_glMaxShaderCompilerThreadsARB;
+	glad_glMaxShaderCompilerThreadsKHR = w_glMaxShaderCompilerThreadsKHR;
+	glad_glMultiDrawArraysIndirectCount = w_glMultiDrawArraysIndirectCount;
+	glad_glMultiDrawElementsIndirectCount = w_glMultiDrawElementsIndirectCount;
+	glad_glObjectLabelKHR = w_glObjectLabelKHR;
+	glad_glObjectPtrLabelKHR = w_glObjectPtrLabelKHR;
+	glad_glPatchParameterfv = w_glPatchParameterfv;
+	glad_glPatchParameteri = w_glPatchParameteri;
+	glad_glPauseTransformFeedback = w_glPauseTransformFeedback;
+	glad_glPolygonOffsetClamp = w_glPolygonOffsetClamp;
+	glad_glPopDebugGroupKHR = w_glPopDebugGroupKHR;
+	glad_glPrimitiveBoundingBox = w_glPrimitiveBoundingBox;
+	glad_glProgramUniform1d = w_glProgramUniform1d;
+	glad_glProgramUniform1dv = w_glProgramUniform1dv;
+	glad_glProgramUniform1fv = w_glProgramUniform1fv;
+	glad_glProgramUniform1uiv = w_glProgramUniform1uiv;
+	glad_glProgramUniform2d = w_glProgramUniform2d;
+	glad_glProgramUniform2dv = w_glProgramUniform2dv;
+	glad_glProgramUniform2fv = w_glProgramUniform2fv;
+	glad_glProgramUniform2iv = w_glProgramUniform2iv;
+	glad_glProgramUniform2ui = w_glProgramUniform2ui;
+	glad_glProgramUniform2uiv = w_glProgramUniform2uiv;
+	glad_glProgramUniform3d = w_glProgramUniform3d;
+	glad_glProgramUniform3dv = w_glProgramUniform3dv;
+	glad_glProgramUniform3fv = w_glProgramUniform3fv;
+	glad_glProgramUniform3iv = w_glProgramUniform3iv;
+	glad_glProgramUniform3ui = w_glProgramUniform3ui;
+	glad_glProgramUniform3uiv = w_glProgramUniform3uiv;
+	glad_glProgramUniform4d = w_glProgramUniform4d;
+	glad_glProgramUniform4dv = w_glProgramUniform4dv;
+	glad_glProgramUniform4fv = w_glProgramUniform4fv;
+	glad_glProgramUniform4iv = w_glProgramUniform4iv;
+	glad_glProgramUniform4ui = w_glProgramUniform4ui;
+	glad_glProgramUniform4uiv = w_glProgramUniform4uiv;
+	glad_glProgramUniformMatrix2dv = w_glProgramUniformMatrix2dv;
+	glad_glProgramUniformMatrix2fv = w_glProgramUniformMatrix2fv;
+	glad_glProgramUniformMatrix2x3dv = w_glProgramUniformMatrix2x3dv;
+	glad_glProgramUniformMatrix2x3fv = w_glProgramUniformMatrix2x3fv;
+	glad_glProgramUniformMatrix2x4dv = w_glProgramUniformMatrix2x4dv;
+	glad_glProgramUniformMatrix2x4fv = w_glProgramUniformMatrix2x4fv;
+	glad_glProgramUniformMatrix3dv = w_glProgramUniformMatrix3dv;
+	glad_glProgramUniformMatrix3x2dv = w_glProgramUniformMatrix3x2dv;
+	glad_glProgramUniformMatrix3x2fv = w_glProgramUniformMatrix3x2fv;
+	glad_glProgramUniformMatrix3x4dv = w_glProgramUniformMatrix3x4dv;
+	glad_glProgramUniformMatrix3x4fv = w_glProgramUniformMatrix3x4fv;
+	glad_glProgramUniformMatrix4dv = w_glProgramUniformMatrix4dv;
+	glad_glProgramUniformMatrix4fv = w_glProgramUniformMatrix4fv;
+	glad_glProgramUniformMatrix4x2dv = w_glProgramUniformMatrix4x2dv;
+	glad_glProgramUniformMatrix4x2fv = w_glProgramUniformMatrix4x2fv;
+	glad_glProgramUniformMatrix4x3dv = w_glProgramUniformMatrix4x3dv;
+	glad_glProgramUniformMatrix4x3fv = w_glProgramUniformMatrix4x3fv;
+	glad_glPushDebugGroupKHR = w_glPushDebugGroupKHR;
+	glad_glQueryCounter = w_glQueryCounter;
+	glad_glQueryCounterEXT = w_glQueryCounterEXT;
+	glad_glRenderbufferStorageMultisampleEXT = w_glRenderbufferStorageMultisampleEXT;
+	glad_glResumeTransformFeedback = w_glResumeTransformFeedback;
+	glad_glSpecializeShader = w_glSpecializeShader;
+	glad_glUniform1d = w_glUniform1d;
+	glad_glUniform1dv = w_glUniform1dv;
+	glad_glUniform2d = w_glUniform2d;
+	glad_glUniform2dv = w_glUniform2dv;
+	glad_glUniform3d = w_glUniform3d;
+	glad_glUniform3dv = w_glUniform3dv;
+	glad_glUniform4d = w_glUniform4d;
+	glad_glUniform4dv = w_glUniform4dv;
+	glad_glUniformMatrix2dv = w_glUniformMatrix2dv;
+	glad_glUniformMatrix2x3dv = w_glUniformMatrix2x3dv;
+	glad_glUniformMatrix2x4dv = w_glUniformMatrix2x4dv;
+	glad_glUniformMatrix3dv = w_glUniformMatrix3dv;
+	glad_glUniformMatrix3x2dv = w_glUniformMatrix3x2dv;
+	glad_glUniformMatrix3x4dv = w_glUniformMatrix3x4dv;
+	glad_glUniformMatrix4dv = w_glUniformMatrix4dv;
+	glad_glUniformMatrix4x2dv = w_glUniformMatrix4x2dv;
+	glad_glUniformMatrix4x3dv = w_glUniformMatrix4x3dv;
+	glad_glUniformSubroutinesuiv = w_glUniformSubroutinesuiv;
+	glad_glUseProgramStages = w_glUseProgramStages;
+	glad_glValidateProgramPipeline = w_glValidateProgramPipeline;
+	glad_glVertexAttribDivisor = w_glVertexAttribDivisor;
+	glad_glVertexAttribDivisorARB = w_glVertexAttribDivisorARB;
+	glad_glVertexAttribL1d = w_glVertexAttribL1d;
+	glad_glVertexAttribL1dv = w_glVertexAttribL1dv;
+	glad_glVertexAttribL2d = w_glVertexAttribL2d;
+	glad_glVertexAttribL2dv = w_glVertexAttribL2dv;
+	glad_glVertexAttribL3d = w_glVertexAttribL3d;
+	glad_glVertexAttribL3dv = w_glVertexAttribL3dv;
+	glad_glVertexAttribL4d = w_glVertexAttribL4d;
+	glad_glVertexAttribL4dv = w_glVertexAttribL4dv;
+	glad_glVertexAttribLPointer = w_glVertexAttribLPointer;
+	glad_glVertexAttribP1ui = w_glVertexAttribP1ui;
+	glad_glVertexAttribP1uiv = w_glVertexAttribP1uiv;
+	glad_glVertexAttribP2ui = w_glVertexAttribP2ui;
+	glad_glVertexAttribP2uiv = w_glVertexAttribP2uiv;
+	glad_glVertexAttribP3ui = w_glVertexAttribP3ui;
+	glad_glVertexAttribP3uiv = w_glVertexAttribP3uiv;
+	glad_glVertexAttribP4ui = w_glVertexAttribP4ui;
+	glad_glVertexAttribP4uiv = w_glVertexAttribP4uiv;
+	return true;
 }
 
-static void GLAD_API_PTR w_glVertexBindingDivisor(GLuint bindingindex, GLuint divisor)
-{
-	struct ChimeraGlArgs_glVertexBindingDivisor cargs;
-	cargs.bindingindex = bindingindex;
-	cargs.divisor = divisor;
-	g_bridge(CHIMERA_GL_OP_glVertexBindingDivisor, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glViewport(GLint x, GLint y, GLsizei width, GLsizei height)
-{
-	struct ChimeraGlArgs_glViewport cargs;
-	cargs.x = x;
-	cargs.y = y;
-	cargs.width = width;
-	cargs.height = height;
-	g_bridge(CHIMERA_GL_OP_glViewport, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glViewportArrayv(GLuint first, GLsizei count, const GLfloat * v)
-{
-	struct ChimeraGlArgs_glViewportArrayv cargs;
-	cargs.first = first;
-	cargs.count = count;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glViewportArrayv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glViewportIndexedf(GLuint index, GLfloat x, GLfloat y, GLfloat w, GLfloat h)
-{
-	struct ChimeraGlArgs_glViewportIndexedf cargs;
-	cargs.index = index;
-	cargs.x = x;
-	cargs.y = y;
-	cargs.w = w;
-	cargs.h = h;
-	g_bridge(CHIMERA_GL_OP_glViewportIndexedf, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glViewportIndexedfv(GLuint index, const GLfloat * v)
-{
-	struct ChimeraGlArgs_glViewportIndexedfv cargs;
-	cargs.index = index;
-	cargs.v = v;
-	g_bridge(CHIMERA_GL_OP_glViewportIndexedfv, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-static void GLAD_API_PTR w_glWaitSync(GLsync sync, GLbitfield flags, GLuint64 timeout)
-{
-	struct ChimeraGlArgs_glWaitSync cargs;
-	cargs.sync = sync;
-	cargs.flags = flags;
-	cargs.timeout = timeout;
-	g_bridge(CHIMERA_GL_OP_glWaitSync, (uint64_t)(uintptr_t)&cargs, 0, 0, 0, 0);
-}
-
-/* Sorted so the lookup can bisect: wgpu asks for every name it knows, once. */
 struct ChimeraGlEntry { const char *name; void *fn; };
 static const struct ChimeraGlEntry g_entries[] = {
-	{ "glActiveShaderProgram", (void *)w_glActiveShaderProgram },
 	{ "glActiveTexture", (void *)w_glActiveTexture },
 	{ "glAttachShader", (void *)w_glAttachShader },
-	{ "glBeginConditionalRender", (void *)w_glBeginConditionalRender },
 	{ "glBeginQuery", (void *)w_glBeginQuery },
-	{ "glBeginQueryEXT", (void *)w_glBeginQueryEXT },
-	{ "glBeginQueryIndexed", (void *)w_glBeginQueryIndexed },
-	{ "glBeginTransformFeedback", (void *)w_glBeginTransformFeedback },
 	{ "glBindAttribLocation", (void *)w_glBindAttribLocation },
 	{ "glBindBuffer", (void *)w_glBindBuffer },
-	{ "glBindBufferBase", (void *)w_glBindBufferBase },
 	{ "glBindBufferRange", (void *)w_glBindBufferRange },
-	{ "glBindBuffersBase", (void *)w_glBindBuffersBase },
-	{ "glBindBuffersRange", (void *)w_glBindBuffersRange },
 	{ "glBindFragDataLocation", (void *)w_glBindFragDataLocation },
 	{ "glBindFragDataLocationIndexed", (void *)w_glBindFragDataLocationIndexed },
 	{ "glBindFramebuffer", (void *)w_glBindFramebuffer },
 	{ "glBindImageTexture", (void *)w_glBindImageTexture },
-	{ "glBindImageTextures", (void *)w_glBindImageTextures },
-	{ "glBindProgramPipeline", (void *)w_glBindProgramPipeline },
 	{ "glBindRenderbuffer", (void *)w_glBindRenderbuffer },
 	{ "glBindSampler", (void *)w_glBindSampler },
-	{ "glBindSamplers", (void *)w_glBindSamplers },
 	{ "glBindTexture", (void *)w_glBindTexture },
 	{ "glBindTextureUnit", (void *)w_glBindTextureUnit },
-	{ "glBindTextures", (void *)w_glBindTextures },
-	{ "glBindTransformFeedback", (void *)w_glBindTransformFeedback },
 	{ "glBindVertexArray", (void *)w_glBindVertexArray },
-	{ "glBindVertexArrayAPPLE", (void *)w_glBindVertexArrayAPPLE },
-	{ "glBindVertexArrayOES", (void *)w_glBindVertexArrayOES },
-	{ "glBindVertexBuffer", (void *)w_glBindVertexBuffer },
-	{ "glBindVertexBuffers", (void *)w_glBindVertexBuffers },
-	{ "glBlendBarrier", (void *)w_glBlendBarrier },
 	{ "glBlendColor", (void *)w_glBlendColor },
-	{ "glBlendEquation", (void *)w_glBlendEquation },
 	{ "glBlendEquationSeparate", (void *)w_glBlendEquationSeparate },
-	{ "glBlendEquationSeparatei", (void *)w_glBlendEquationSeparatei },
-	{ "glBlendEquationi", (void *)w_glBlendEquationi },
 	{ "glBlendFunc", (void *)w_glBlendFunc },
 	{ "glBlendFuncSeparate", (void *)w_glBlendFuncSeparate },
-	{ "glBlendFuncSeparatei", (void *)w_glBlendFuncSeparatei },
-	{ "glBlendFunci", (void *)w_glBlendFunci },
 	{ "glBlitFramebuffer", (void *)w_glBlitFramebuffer },
-	{ "glBlitNamedFramebuffer", (void *)w_glBlitNamedFramebuffer },
 	{ "glBufferData", (void *)w_glBufferData },
 	{ "glBufferStorage", (void *)w_glBufferStorage },
 	{ "glBufferStorageEXT", (void *)w_glBufferStorageEXT },
 	{ "glBufferSubData", (void *)w_glBufferSubData },
 	{ "glCheckFramebufferStatus", (void *)w_glCheckFramebufferStatus },
-	{ "glCheckNamedFramebufferStatus", (void *)w_glCheckNamedFramebufferStatus },
-	{ "glClampColor", (void *)w_glClampColor },
 	{ "glClear", (void *)w_glClear },
-	{ "glClearBufferData", (void *)w_glClearBufferData },
-	{ "glClearBufferSubData", (void *)w_glClearBufferSubData },
-	{ "glClearBufferfi", (void *)w_glClearBufferfi },
 	{ "glClearBufferfv", (void *)w_glClearBufferfv },
 	{ "glClearBufferiv", (void *)w_glClearBufferiv },
 	{ "glClearBufferuiv", (void *)w_glClearBufferuiv },
 	{ "glClearColor", (void *)w_glClearColor },
-	{ "glClearDepth", (void *)w_glClearDepth },
 	{ "glClearDepthf", (void *)w_glClearDepthf },
+	{ "glClearStencil", (void *)w_glClearStencil },
+	{ "glClientWaitSync", (void *)w_glClientWaitSync },
+	{ "glClipControl", (void *)w_glClipControl },
+	{ "glColorMask", (void *)w_glColorMask },
+	{ "glColorMaski", (void *)w_glColorMaski },
+	{ "glCompileShader", (void *)w_glCompileShader },
+	{ "glCompressedTexSubImage2D", (void *)w_glCompressedTexSubImage2D },
+	{ "glCompressedTextureSubImage2D", (void *)w_glCompressedTextureSubImage2D },
+	{ "glCopyImageSubData", (void *)w_glCopyImageSubData },
+	{ "glCopyTexSubImage2D", (void *)w_glCopyTexSubImage2D },
+	{ "glCopyTextureSubImage2D", (void *)w_glCopyTextureSubImage2D },
+	{ "glCreateProgram", (void *)w_glCreateProgram },
+	{ "glCreateSamplers", (void *)w_glCreateSamplers },
+	{ "glCreateShader", (void *)w_glCreateShader },
+	{ "glCreateTextures", (void *)w_glCreateTextures },
+	{ "glCullFace", (void *)w_glCullFace },
+	{ "glDebugMessageCallback", (void *)w_glDebugMessageCallback },
+	{ "glDebugMessageControl", (void *)w_glDebugMessageControl },
+	{ "glDeleteBuffers", (void *)w_glDeleteBuffers },
+	{ "glDeleteFramebuffers", (void *)w_glDeleteFramebuffers },
+	{ "glDeleteProgram", (void *)w_glDeleteProgram },
+	{ "glDeleteQueries", (void *)w_glDeleteQueries },
+	{ "glDeleteRenderbuffers", (void *)w_glDeleteRenderbuffers },
+	{ "glDeleteSamplers", (void *)w_glDeleteSamplers },
+	{ "glDeleteShader", (void *)w_glDeleteShader },
+	{ "glDeleteSync", (void *)w_glDeleteSync },
+	{ "glDeleteTextures", (void *)w_glDeleteTextures },
+	{ "glDeleteVertexArrays", (void *)w_glDeleteVertexArrays },
+	{ "glDepthFunc", (void *)w_glDepthFunc },
+	{ "glDepthMask", (void *)w_glDepthMask },
+	{ "glDetachShader", (void *)w_glDetachShader },
+	{ "glDisable", (void *)w_glDisable },
+	{ "glDisableVertexAttribArray", (void *)w_glDisableVertexAttribArray },
+	{ "glDispatchCompute", (void *)w_glDispatchCompute },
+	{ "glDrawArrays", (void *)w_glDrawArrays },
+	{ "glDrawBuffers", (void *)w_glDrawBuffers },
+	{ "glDrawElements", (void *)w_glDrawElements },
+	{ "glDrawElementsBaseVertex", (void *)w_glDrawElementsBaseVertex },
+	{ "glEnable", (void *)w_glEnable },
+	{ "glEnableVertexAttribArray", (void *)w_glEnableVertexAttribArray },
+	{ "glEndQuery", (void *)w_glEndQuery },
+	{ "glFenceSync", (void *)w_glFenceSync },
+	{ "glFlushMappedBufferRange", (void *)w_glFlushMappedBufferRange },
+	{ "glFramebufferRenderbuffer", (void *)w_glFramebufferRenderbuffer },
+	{ "glFramebufferTexture2D", (void *)w_glFramebufferTexture2D },
+	{ "glGenBuffers", (void *)w_glGenBuffers },
+	{ "glGenerateMipmap", (void *)w_glGenerateMipmap },
+	{ "glGenerateTextureMipmap", (void *)w_glGenerateTextureMipmap },
+	{ "glGenFramebuffers", (void *)w_glGenFramebuffers },
+	{ "glGenQueries", (void *)w_glGenQueries },
+	{ "glGenRenderbuffers", (void *)w_glGenRenderbuffers },
+	{ "glGenSamplers", (void *)w_glGenSamplers },
+	{ "glGenTextures", (void *)w_glGenTextures },
+	{ "glGenVertexArrays", (void *)w_glGenVertexArrays },
+	{ "glGetError", (void *)w_glGetError },
+	{ "glGetFloatv", (void *)w_glGetFloatv },
+	{ "glGetIntegerv", (void *)w_glGetIntegerv },
+	{ "glGetProgramBinary", (void *)w_glGetProgramBinary },
+	{ "glGetProgramInfoLog", (void *)w_glGetProgramInfoLog },
+	{ "glGetProgramiv", (void *)w_glGetProgramiv },
+	{ "glGetQueryObjectiv", (void *)w_glGetQueryObjectiv },
+	{ "glGetQueryObjectui64v", (void *)w_glGetQueryObjectui64v },
+	{ "glGetShaderInfoLog", (void *)w_glGetShaderInfoLog },
+	{ "glGetShaderiv", (void *)w_glGetShaderiv },
+	{ "glGetShaderPrecisionFormat", (void *)w_glGetShaderPrecisionFormat },
+	{ "glGetString", (void *)w_glGetString },
+	{ "glGetStringi", (void *)w_glGetStringi },
+	{ "glGetTexImage", (void *)w_glGetTexImage },
+	{ "glGetTextureImage", (void *)w_glGetTextureImage },
+	{ "glGetUniformBlockIndex", (void *)w_glGetUniformBlockIndex },
+	{ "glGetUniformLocation", (void *)w_glGetUniformLocation },
+	{ "glHint", (void *)w_glHint },
+	{ "glInvalidateFramebuffer", (void *)w_glInvalidateFramebuffer },
+	{ "glLineWidth", (void *)w_glLineWidth },
+	{ "glLinkProgram", (void *)w_glLinkProgram },
+	{ "glMapBufferRange", (void *)w_glMapBufferRange },
+	{ "glMemoryBarrier", (void *)w_glMemoryBarrier },
+	{ "glPixelStorei", (void *)w_glPixelStorei },
+	{ "glPolygonMode", (void *)w_glPolygonMode },
+	{ "glPrimitiveRestartIndex", (void *)w_glPrimitiveRestartIndex },
+	{ "glProgramBinary", (void *)w_glProgramBinary },
+	{ "glProgramParameteri", (void *)w_glProgramParameteri },
+	{ "glReadBuffer", (void *)w_glReadBuffer },
+	{ "glReadPixels", (void *)w_glReadPixels },
+	{ "glRenderbufferStorage", (void *)w_glRenderbufferStorage },
+	{ "glSamplerParameterf", (void *)w_glSamplerParameterf },
+	{ "glSamplerParameteri", (void *)w_glSamplerParameteri },
+	{ "glScissor", (void *)w_glScissor },
+	{ "glScissorIndexed", (void *)w_glScissorIndexed },
+	{ "glShaderSource", (void *)w_glShaderSource },
+	{ "glStencilFunc", (void *)w_glStencilFunc },
+	{ "glStencilMask", (void *)w_glStencilMask },
+	{ "glStencilOp", (void *)w_glStencilOp },
+	{ "glTexImage2D", (void *)w_glTexImage2D },
+	{ "glTexParameterf", (void *)w_glTexParameterf },
+	{ "glTexParameterfv", (void *)w_glTexParameterfv },
+	{ "glTexParameteri", (void *)w_glTexParameteri },
+	{ "glTexStorage2D", (void *)w_glTexStorage2D },
+	{ "glTexSubImage2D", (void *)w_glTexSubImage2D },
+	{ "glTextureBarrier", (void *)w_glTextureBarrier },
+	{ "glTextureParameteri", (void *)w_glTextureParameteri },
+	{ "glTextureStorage2D", (void *)w_glTextureStorage2D },
+	{ "glTextureSubImage2D", (void *)w_glTextureSubImage2D },
+	{ "glUniform1f", (void *)w_glUniform1f },
+	{ "glUniform1i", (void *)w_glUniform1i },
+	{ "glUniform1ui", (void *)w_glUniform1ui },
+	{ "glUniform2f", (void *)w_glUniform2f },
+	{ "glUniform2fv", (void *)w_glUniform2fv },
+	{ "glUniform2i", (void *)w_glUniform2i },
+	{ "glUniform2iv", (void *)w_glUniform2iv },
+	{ "glUniform2ui", (void *)w_glUniform2ui },
+	{ "glUniform2uiv", (void *)w_glUniform2uiv },
+	{ "glUniform3f", (void *)w_glUniform3f },
+	{ "glUniform3fv", (void *)w_glUniform3fv },
+	{ "glUniform3i", (void *)w_glUniform3i },
+	{ "glUniform3iv", (void *)w_glUniform3iv },
+	{ "glUniform3ui", (void *)w_glUniform3ui },
+	{ "glUniform3uiv", (void *)w_glUniform3uiv },
+	{ "glUniform4f", (void *)w_glUniform4f },
+	{ "glUniform4fv", (void *)w_glUniform4fv },
+	{ "glUniform4i", (void *)w_glUniform4i },
+	{ "glUniform4iv", (void *)w_glUniform4iv },
+	{ "glUniform4ui", (void *)w_glUniform4ui },
+	{ "glUniform4uiv", (void *)w_glUniform4uiv },
+	{ "glUniformBlockBinding", (void *)w_glUniformBlockBinding },
+	{ "glUniformMatrix2fv", (void *)w_glUniformMatrix2fv },
+	{ "glUniformMatrix3fv", (void *)w_glUniformMatrix3fv },
+	{ "glUniformMatrix4fv", (void *)w_glUniformMatrix4fv },
+	{ "glUnmapBuffer", (void *)w_glUnmapBuffer },
+	{ "glUseProgram", (void *)w_glUseProgram },
+	{ "glVertexAttribIPointer", (void *)w_glVertexAttribIPointer },
+	{ "glVertexAttribPointer", (void *)w_glVertexAttribPointer },
+	{ "glViewport", (void *)w_glViewport },
+	{ "glViewportIndexedf", (void *)w_glViewportIndexedf },
+	{ "glBlendEquation", (void *)w_glBlendEquation },
+	{ "glClearDepth", (void *)w_glClearDepth },
+	{ "glDebugMessageInsert", (void *)w_glDebugMessageInsert },
+	{ "glFinish", (void *)w_glFinish },
+	{ "glFrontFace", (void *)w_glFrontFace },
+	{ "glGetQueryObjectuiv", (void *)w_glGetQueryObjectuiv },
+	{ "glMultiDrawArrays", (void *)w_glMultiDrawArrays },
+	{ "glObjectLabel", (void *)w_glObjectLabel },
+	{ "glPopDebugGroup", (void *)w_glPopDebugGroup },
+	{ "glProgramUniform1i", (void *)w_glProgramUniform1i },
+	{ "glProgramUniform2f", (void *)w_glProgramUniform2f },
+	{ "glProvokingVertex", (void *)w_glProvokingVertex },
+	{ "glPushDebugGroup", (void *)w_glPushDebugGroup },
+	{ "glTexImage3D", (void *)w_glTexImage3D },
+	{ "glTexParameteriv", (void *)w_glTexParameteriv },
+	{ "glUniform1fv", (void *)w_glUniform1fv },
+	{ "glUniform1iv", (void *)w_glUniform1iv },
+	{ "glUniform1uiv", (void *)w_glUniform1uiv },
+	{ "glValidateProgram", (void *)w_glValidateProgram },
+	{ "glVertexAttrib4fv", (void *)w_glVertexAttrib4fv },
+	{ "glBeginConditionalRender", (void *)w_glBeginConditionalRender },
+	{ "glBeginTransformFeedback", (void *)w_glBeginTransformFeedback },
+	{ "glBindBufferBase", (void *)w_glBindBufferBase },
+	{ "glBindBuffersBase", (void *)w_glBindBuffersBase },
+	{ "glBindBuffersRange", (void *)w_glBindBuffersRange },
+	{ "glBindImageTextures", (void *)w_glBindImageTextures },
+	{ "glBindSamplers", (void *)w_glBindSamplers },
+	{ "glBindTextures", (void *)w_glBindTextures },
+	{ "glBindVertexBuffer", (void *)w_glBindVertexBuffer },
+	{ "glBindVertexBuffers", (void *)w_glBindVertexBuffers },
+	{ "glBlitNamedFramebuffer", (void *)w_glBlitNamedFramebuffer },
+	{ "glCheckNamedFramebufferStatus", (void *)w_glCheckNamedFramebufferStatus },
+	{ "glClampColor", (void *)w_glClampColor },
+	{ "glClearBufferData", (void *)w_glClearBufferData },
+	{ "glClearBufferfi", (void *)w_glClearBufferfi },
+	{ "glClearBufferSubData", (void *)w_glClearBufferSubData },
 	{ "glClearNamedBufferData", (void *)w_glClearNamedBufferData },
 	{ "glClearNamedBufferSubData", (void *)w_glClearNamedBufferSubData },
 	{ "glClearNamedFramebufferfi", (void *)w_glClearNamedFramebufferfi },
 	{ "glClearNamedFramebufferfv", (void *)w_glClearNamedFramebufferfv },
 	{ "glClearNamedFramebufferiv", (void *)w_glClearNamedFramebufferiv },
 	{ "glClearNamedFramebufferuiv", (void *)w_glClearNamedFramebufferuiv },
-	{ "glClearStencil", (void *)w_glClearStencil },
 	{ "glClearTexImage", (void *)w_glClearTexImage },
 	{ "glClearTexSubImage", (void *)w_glClearTexSubImage },
-	{ "glClientWaitSync", (void *)w_glClientWaitSync },
-	{ "glClipControl", (void *)w_glClipControl },
-	{ "glColorMask", (void *)w_glColorMask },
-	{ "glColorMaskIndexedEXT", (void *)w_glColorMaskIndexedEXT },
-	{ "glColorMaski", (void *)w_glColorMaski },
-	{ "glCompileShader", (void *)w_glCompileShader },
 	{ "glCompressedTexImage1D", (void *)w_glCompressedTexImage1D },
 	{ "glCompressedTexImage2D", (void *)w_glCompressedTexImage2D },
 	{ "glCompressedTexImage3D", (void *)w_glCompressedTexImage3D },
 	{ "glCompressedTexSubImage1D", (void *)w_glCompressedTexSubImage1D },
-	{ "glCompressedTexSubImage2D", (void *)w_glCompressedTexSubImage2D },
 	{ "glCompressedTexSubImage3D", (void *)w_glCompressedTexSubImage3D },
 	{ "glCompressedTextureSubImage1D", (void *)w_glCompressedTextureSubImage1D },
-	{ "glCompressedTextureSubImage2D", (void *)w_glCompressedTextureSubImage2D },
 	{ "glCompressedTextureSubImage3D", (void *)w_glCompressedTextureSubImage3D },
-	{ "glCopyBufferSubData", (void *)w_glCopyBufferSubData },
-	{ "glCopyBufferSubDataNV", (void *)w_glCopyBufferSubDataNV },
-	{ "glCopyImageSubData", (void *)w_glCopyImageSubData },
 	{ "glCopyNamedBufferSubData", (void *)w_glCopyNamedBufferSubData },
 	{ "glCopyTexImage1D", (void *)w_glCopyTexImage1D },
 	{ "glCopyTexImage2D", (void *)w_glCopyTexImage2D },
 	{ "glCopyTexSubImage1D", (void *)w_glCopyTexSubImage1D },
-	{ "glCopyTexSubImage2D", (void *)w_glCopyTexSubImage2D },
 	{ "glCopyTexSubImage3D", (void *)w_glCopyTexSubImage3D },
 	{ "glCopyTextureSubImage1D", (void *)w_glCopyTextureSubImage1D },
-	{ "glCopyTextureSubImage2D", (void *)w_glCopyTextureSubImage2D },
 	{ "glCopyTextureSubImage3D", (void *)w_glCopyTextureSubImage3D },
 	{ "glCreateBuffers", (void *)w_glCreateBuffers },
 	{ "glCreateFramebuffers", (void *)w_glCreateFramebuffers },
-	{ "glCreateProgram", (void *)w_glCreateProgram },
 	{ "glCreateProgramPipelines", (void *)w_glCreateProgramPipelines },
 	{ "glCreateQueries", (void *)w_glCreateQueries },
 	{ "glCreateRenderbuffers", (void *)w_glCreateRenderbuffers },
-	{ "glCreateSamplers", (void *)w_glCreateSamplers },
-	{ "glCreateShader", (void *)w_glCreateShader },
-	{ "glCreateShaderProgramv", (void *)w_glCreateShaderProgramv },
-	{ "glCreateTextures", (void *)w_glCreateTextures },
 	{ "glCreateTransformFeedbacks", (void *)w_glCreateTransformFeedbacks },
 	{ "glCreateVertexArrays", (void *)w_glCreateVertexArrays },
-	{ "glCullFace", (void *)w_glCullFace },
-	{ "glDebugMessageCallback", (void *)w_glDebugMessageCallback },
 	{ "glDebugMessageCallbackARB", (void *)w_glDebugMessageCallbackARB },
-	{ "glDebugMessageCallbackKHR", (void *)w_glDebugMessageCallbackKHR },
-	{ "glDebugMessageControl", (void *)w_glDebugMessageControl },
 	{ "glDebugMessageControlARB", (void *)w_glDebugMessageControlARB },
-	{ "glDebugMessageControlKHR", (void *)w_glDebugMessageControlKHR },
-	{ "glDebugMessageInsert", (void *)w_glDebugMessageInsert },
 	{ "glDebugMessageInsertARB", (void *)w_glDebugMessageInsertARB },
-	{ "glDebugMessageInsertKHR", (void *)w_glDebugMessageInsertKHR },
-	{ "glDeleteBuffers", (void *)w_glDeleteBuffers },
-	{ "glDeleteFramebuffers", (void *)w_glDeleteFramebuffers },
-	{ "glDeleteProgram", (void *)w_glDeleteProgram },
-	{ "glDeleteProgramPipelines", (void *)w_glDeleteProgramPipelines },
-	{ "glDeleteQueries", (void *)w_glDeleteQueries },
-	{ "glDeleteQueriesEXT", (void *)w_glDeleteQueriesEXT },
-	{ "glDeleteRenderbuffers", (void *)w_glDeleteRenderbuffers },
-	{ "glDeleteSamplers", (void *)w_glDeleteSamplers },
-	{ "glDeleteShader", (void *)w_glDeleteShader },
-	{ "glDeleteSync", (void *)w_glDeleteSync },
-	{ "glDeleteTextures", (void *)w_glDeleteTextures },
-	{ "glDeleteTransformFeedbacks", (void *)w_glDeleteTransformFeedbacks },
-	{ "glDeleteVertexArrays", (void *)w_glDeleteVertexArrays },
-	{ "glDeleteVertexArraysAPPLE", (void *)w_glDeleteVertexArraysAPPLE },
-	{ "glDeleteVertexArraysOES", (void *)w_glDeleteVertexArraysOES },
-	{ "glDepthFunc", (void *)w_glDepthFunc },
-	{ "glDepthMask", (void *)w_glDepthMask },
 	{ "glDepthRange", (void *)w_glDepthRange },
 	{ "glDepthRangeArrayv", (void *)w_glDepthRangeArrayv },
-	{ "glDepthRangeIndexed", (void *)w_glDepthRangeIndexed },
 	{ "glDepthRangef", (void *)w_glDepthRangef },
-	{ "glDetachShader", (void *)w_glDetachShader },
-	{ "glDisable", (void *)w_glDisable },
-	{ "glDisableIndexedEXT", (void *)w_glDisableIndexedEXT },
-	{ "glDisableVertexArrayAttrib", (void *)w_glDisableVertexArrayAttrib },
-	{ "glDisableVertexAttribArray", (void *)w_glDisableVertexAttribArray },
+	{ "glDepthRangeIndexed", (void *)w_glDepthRangeIndexed },
 	{ "glDisablei", (void *)w_glDisablei },
-	{ "glDispatchCompute", (void *)w_glDispatchCompute },
+	{ "glDisableVertexArrayAttrib", (void *)w_glDisableVertexArrayAttrib },
 	{ "glDispatchComputeIndirect", (void *)w_glDispatchComputeIndirect },
-	{ "glDrawArrays", (void *)w_glDrawArrays },
-	{ "glDrawArraysIndirect", (void *)w_glDrawArraysIndirect },
 	{ "glDrawArraysInstanced", (void *)w_glDrawArraysInstanced },
-	{ "glDrawArraysInstancedARB", (void *)w_glDrawArraysInstancedARB },
 	{ "glDrawArraysInstancedBaseInstance", (void *)w_glDrawArraysInstancedBaseInstance },
 	{ "glDrawBuffer", (void *)w_glDrawBuffer },
-	{ "glDrawBuffers", (void *)w_glDrawBuffers },
-	{ "glDrawElements", (void *)w_glDrawElements },
-	{ "glDrawElementsBaseVertex", (void *)w_glDrawElementsBaseVertex },
-	{ "glDrawElementsIndirect", (void *)w_glDrawElementsIndirect },
 	{ "glDrawElementsInstanced", (void *)w_glDrawElementsInstanced },
-	{ "glDrawElementsInstancedARB", (void *)w_glDrawElementsInstancedARB },
 	{ "glDrawElementsInstancedBaseInstance", (void *)w_glDrawElementsInstancedBaseInstance },
 	{ "glDrawElementsInstancedBaseVertex", (void *)w_glDrawElementsInstancedBaseVertex },
 	{ "glDrawElementsInstancedBaseVertexBaseInstance", (void *)w_glDrawElementsInstancedBaseVertexBaseInstance },
 	{ "glDrawRangeElements", (void *)w_glDrawRangeElements },
 	{ "glDrawRangeElementsBaseVertex", (void *)w_glDrawRangeElementsBaseVertex },
-	{ "glDrawTransformFeedback", (void *)w_glDrawTransformFeedback },
 	{ "glDrawTransformFeedbackInstanced", (void *)w_glDrawTransformFeedbackInstanced },
-	{ "glDrawTransformFeedbackStream", (void *)w_glDrawTransformFeedbackStream },
 	{ "glDrawTransformFeedbackStreamInstanced", (void *)w_glDrawTransformFeedbackStreamInstanced },
-	{ "glEnable", (void *)w_glEnable },
-	{ "glEnableIndexedEXT", (void *)w_glEnableIndexedEXT },
-	{ "glEnableVertexArrayAttrib", (void *)w_glEnableVertexArrayAttrib },
-	{ "glEnableVertexAttribArray", (void *)w_glEnableVertexAttribArray },
 	{ "glEnablei", (void *)w_glEnablei },
+	{ "glEnableVertexArrayAttrib", (void *)w_glEnableVertexArrayAttrib },
 	{ "glEndConditionalRender", (void *)w_glEndConditionalRender },
-	{ "glEndQuery", (void *)w_glEndQuery },
-	{ "glEndQueryEXT", (void *)w_glEndQueryEXT },
-	{ "glEndQueryIndexed", (void *)w_glEndQueryIndexed },
 	{ "glEndTransformFeedback", (void *)w_glEndTransformFeedback },
-	{ "glFenceSync", (void *)w_glFenceSync },
-	{ "glFinish", (void *)w_glFinish },
 	{ "glFlush", (void *)w_glFlush },
-	{ "glFlushMappedBufferRange", (void *)chimera_gl_flush_mapped_buffer_range },
 	{ "glFlushMappedNamedBufferRange", (void *)w_glFlushMappedNamedBufferRange },
 	{ "glFramebufferParameteri", (void *)w_glFramebufferParameteri },
-	{ "glFramebufferRenderbuffer", (void *)w_glFramebufferRenderbuffer },
 	{ "glFramebufferTexture", (void *)w_glFramebufferTexture },
 	{ "glFramebufferTexture1D", (void *)w_glFramebufferTexture1D },
-	{ "glFramebufferTexture2D", (void *)w_glFramebufferTexture2D },
-	{ "glFramebufferTexture2DMultisampleEXT", (void *)w_glFramebufferTexture2DMultisampleEXT },
 	{ "glFramebufferTexture3D", (void *)w_glFramebufferTexture3D },
 	{ "glFramebufferTextureLayer", (void *)w_glFramebufferTextureLayer },
-	{ "glFrontFace", (void *)w_glFrontFace },
-	{ "glGenBuffers", (void *)w_glGenBuffers },
-	{ "glGenFramebuffers", (void *)w_glGenFramebuffers },
-	{ "glGenProgramPipelines", (void *)w_glGenProgramPipelines },
-	{ "glGenQueries", (void *)w_glGenQueries },
-	{ "glGenQueriesEXT", (void *)w_glGenQueriesEXT },
-	{ "glGenRenderbuffers", (void *)w_glGenRenderbuffers },
-	{ "glGenSamplers", (void *)w_glGenSamplers },
-	{ "glGenTextures", (void *)w_glGenTextures },
-	{ "glGenTransformFeedbacks", (void *)w_glGenTransformFeedbacks },
-	{ "glGenVertexArrays", (void *)w_glGenVertexArrays },
-	{ "glGenVertexArraysAPPLE", (void *)w_glGenVertexArraysAPPLE },
-	{ "glGenVertexArraysOES", (void *)w_glGenVertexArraysOES },
-	{ "glGenerateMipmap", (void *)w_glGenerateMipmap },
-	{ "glGenerateTextureMipmap", (void *)w_glGenerateTextureMipmap },
 	{ "glGetActiveAtomicCounterBufferiv", (void *)w_glGetActiveAtomicCounterBufferiv },
 	{ "glGetActiveAttrib", (void *)w_glGetActiveAttrib },
-	{ "glGetActiveSubroutineName", (void *)w_glGetActiveSubroutineName },
-	{ "glGetActiveSubroutineUniformName", (void *)w_glGetActiveSubroutineUniformName },
-	{ "glGetActiveSubroutineUniformiv", (void *)w_glGetActiveSubroutineUniformiv },
 	{ "glGetActiveUniform", (void *)w_glGetActiveUniform },
-	{ "glGetActiveUniformBlockName", (void *)w_glGetActiveUniformBlockName },
 	{ "glGetActiveUniformBlockiv", (void *)w_glGetActiveUniformBlockiv },
+	{ "glGetActiveUniformBlockName", (void *)w_glGetActiveUniformBlockName },
 	{ "glGetActiveUniformName", (void *)w_glGetActiveUniformName },
 	{ "glGetActiveUniformsiv", (void *)w_glGetActiveUniformsiv },
 	{ "glGetAttachedShaders", (void *)w_glGetAttachedShaders },
 	{ "glGetAttribLocation", (void *)w_glGetAttribLocation },
-	{ "glGetBooleanIndexedvEXT", (void *)w_glGetBooleanIndexedvEXT },
-	{ "glGetBooleani_v", (void *)w_glGetBooleani_v },
 	{ "glGetBooleanv", (void *)w_glGetBooleanv },
 	{ "glGetBufferParameteri64v", (void *)w_glGetBufferParameteri64v },
 	{ "glGetBufferParameteriv", (void *)w_glGetBufferParameteriv },
-	{ "glGetBufferPointerv", (void *)chimera_gl_get_buffer_pointerv },
+	{ "glGetBufferPointerv", (void *)w_glGetBufferPointerv },
 	{ "glGetBufferSubData", (void *)w_glGetBufferSubData },
 	{ "glGetCompressedTexImage", (void *)w_glGetCompressedTexImage },
 	{ "glGetCompressedTextureImage", (void *)w_glGetCompressedTextureImage },
 	{ "glGetCompressedTextureSubImage", (void *)w_glGetCompressedTextureSubImage },
 	{ "glGetDebugMessageLog", (void *)w_glGetDebugMessageLog },
 	{ "glGetDebugMessageLogARB", (void *)w_glGetDebugMessageLogARB },
-	{ "glGetDebugMessageLogKHR", (void *)w_glGetDebugMessageLogKHR },
-	{ "glGetDoublei_v", (void *)w_glGetDoublei_v },
 	{ "glGetDoublev", (void *)w_glGetDoublev },
-	{ "glGetError", (void *)w_glGetError },
-	{ "glGetFloati_v", (void *)w_glGetFloati_v },
-	{ "glGetFloatv", (void *)w_glGetFloatv },
 	{ "glGetFragDataIndex", (void *)w_glGetFragDataIndex },
 	{ "glGetFragDataLocation", (void *)w_glGetFragDataLocation },
 	{ "glGetFramebufferAttachmentParameteriv", (void *)w_glGetFramebufferAttachmentParameteriv },
 	{ "glGetFramebufferParameteriv", (void *)w_glGetFramebufferParameteriv },
 	{ "glGetGraphicsResetStatus", (void *)w_glGetGraphicsResetStatus },
-	{ "glGetInteger64i_v", (void *)w_glGetInteger64i_v },
 	{ "glGetInteger64v", (void *)w_glGetInteger64v },
-	{ "glGetInteger64vEXT", (void *)w_glGetInteger64vEXT },
-	{ "glGetIntegerIndexedvEXT", (void *)w_glGetIntegerIndexedvEXT },
-	{ "glGetIntegeri_v", (void *)w_glGetIntegeri_v },
-	{ "glGetIntegerv", (void *)w_glGetIntegerv },
 	{ "glGetInternalformati64v", (void *)w_glGetInternalformati64v },
 	{ "glGetInternalformativ", (void *)w_glGetInternalformativ },
 	{ "glGetMultisamplefv", (void *)w_glGetMultisamplefv },
@@ -6970,100 +7770,63 @@ static const struct ChimeraGlEntry g_entries[] = {
 	{ "glGetNamedFramebufferAttachmentParameteriv", (void *)w_glGetNamedFramebufferAttachmentParameteriv },
 	{ "glGetNamedFramebufferParameteriv", (void *)w_glGetNamedFramebufferParameteriv },
 	{ "glGetNamedRenderbufferParameteriv", (void *)w_glGetNamedRenderbufferParameteriv },
-	{ "glGetObjectLabel", (void *)w_glGetObjectLabel },
-	{ "glGetObjectLabelKHR", (void *)w_glGetObjectLabelKHR },
-	{ "glGetObjectPtrLabel", (void *)w_glGetObjectPtrLabel },
-	{ "glGetObjectPtrLabelKHR", (void *)w_glGetObjectPtrLabelKHR },
-	{ "glGetPointerv", (void *)w_glGetPointerv },
-	{ "glGetPointervKHR", (void *)w_glGetPointervKHR },
-	{ "glGetProgramBinary", (void *)w_glGetProgramBinary },
-	{ "glGetProgramInfoLog", (void *)w_glGetProgramInfoLog },
-	{ "glGetProgramInterfaceiv", (void *)w_glGetProgramInterfaceiv },
-	{ "glGetProgramPipelineInfoLog", (void *)w_glGetProgramPipelineInfoLog },
-	{ "glGetProgramPipelineiv", (void *)w_glGetProgramPipelineiv },
-	{ "glGetProgramResourceIndex", (void *)w_glGetProgramResourceIndex },
-	{ "glGetProgramResourceLocation", (void *)w_glGetProgramResourceLocation },
-	{ "glGetProgramResourceLocationIndex", (void *)w_glGetProgramResourceLocationIndex },
-	{ "glGetProgramResourceName", (void *)w_glGetProgramResourceName },
-	{ "glGetProgramResourceiv", (void *)w_glGetProgramResourceiv },
-	{ "glGetProgramStageiv", (void *)w_glGetProgramStageiv },
-	{ "glGetProgramiv", (void *)w_glGetProgramiv },
-	{ "glGetQueryBufferObjecti64v", (void *)w_glGetQueryBufferObjecti64v },
-	{ "glGetQueryBufferObjectiv", (void *)w_glGetQueryBufferObjectiv },
-	{ "glGetQueryBufferObjectui64v", (void *)w_glGetQueryBufferObjectui64v },
-	{ "glGetQueryBufferObjectuiv", (void *)w_glGetQueryBufferObjectuiv },
-	{ "glGetQueryIndexediv", (void *)w_glGetQueryIndexediv },
-	{ "glGetQueryObjecti64v", (void *)w_glGetQueryObjecti64v },
-	{ "glGetQueryObjecti64vEXT", (void *)w_glGetQueryObjecti64vEXT },
-	{ "glGetQueryObjectiv", (void *)w_glGetQueryObjectiv },
-	{ "glGetQueryObjectivEXT", (void *)w_glGetQueryObjectivEXT },
-	{ "glGetQueryObjectui64v", (void *)w_glGetQueryObjectui64v },
-	{ "glGetQueryObjectui64vEXT", (void *)w_glGetQueryObjectui64vEXT },
-	{ "glGetQueryObjectuiv", (void *)w_glGetQueryObjectuiv },
-	{ "glGetQueryObjectuivEXT", (void *)w_glGetQueryObjectuivEXT },
-	{ "glGetQueryiv", (void *)w_glGetQueryiv },
-	{ "glGetQueryivEXT", (void *)w_glGetQueryivEXT },
-	{ "glGetRenderbufferParameteriv", (void *)w_glGetRenderbufferParameteriv },
-	{ "glGetSamplerParameterIiv", (void *)w_glGetSamplerParameterIiv },
-	{ "glGetSamplerParameterIuiv", (void *)w_glGetSamplerParameterIuiv },
-	{ "glGetSamplerParameterfv", (void *)w_glGetSamplerParameterfv },
-	{ "glGetSamplerParameteriv", (void *)w_glGetSamplerParameteriv },
-	{ "glGetShaderInfoLog", (void *)w_glGetShaderInfoLog },
-	{ "glGetShaderPrecisionFormat", (void *)w_glGetShaderPrecisionFormat },
-	{ "glGetShaderSource", (void *)w_glGetShaderSource },
-	{ "glGetShaderiv", (void *)w_glGetShaderiv },
-	{ "glGetString", (void *)w_glGetString },
-	{ "glGetStringi", (void *)w_glGetStringi },
-	{ "glGetSubroutineIndex", (void *)w_glGetSubroutineIndex },
-	{ "glGetSubroutineUniformLocation", (void *)w_glGetSubroutineUniformLocation },
-	{ "glGetSynciv", (void *)w_glGetSynciv },
-	{ "glGetTexImage", (void *)w_glGetTexImage },
-	{ "glGetTexLevelParameterfv", (void *)w_glGetTexLevelParameterfv },
-	{ "glGetTexLevelParameteriv", (void *)w_glGetTexLevelParameteriv },
-	{ "glGetTexParameterIiv", (void *)w_glGetTexParameterIiv },
-	{ "glGetTexParameterIuiv", (void *)w_glGetTexParameterIuiv },
-	{ "glGetTexParameterfv", (void *)w_glGetTexParameterfv },
-	{ "glGetTexParameteriv", (void *)w_glGetTexParameteriv },
-	{ "glGetTextureImage", (void *)w_glGetTextureImage },
-	{ "glGetTextureLevelParameterfv", (void *)w_glGetTextureLevelParameterfv },
-	{ "glGetTextureLevelParameteriv", (void *)w_glGetTextureLevelParameteriv },
-	{ "glGetTextureParameterIiv", (void *)w_glGetTextureParameterIiv },
-	{ "glGetTextureParameterIuiv", (void *)w_glGetTextureParameterIuiv },
-	{ "glGetTextureParameterfv", (void *)w_glGetTextureParameterfv },
-	{ "glGetTextureParameteriv", (void *)w_glGetTextureParameteriv },
-	{ "glGetTextureSubImage", (void *)w_glGetTextureSubImage },
-	{ "glGetTransformFeedbackVarying", (void *)w_glGetTransformFeedbackVarying },
-	{ "glGetTransformFeedbacki64_v", (void *)w_glGetTransformFeedbacki64_v },
-	{ "glGetTransformFeedbacki_v", (void *)w_glGetTransformFeedbacki_v },
-	{ "glGetTransformFeedbackiv", (void *)w_glGetTransformFeedbackiv },
-	{ "glGetUniformBlockIndex", (void *)w_glGetUniformBlockIndex },
-	{ "glGetUniformIndices", (void *)w_glGetUniformIndices },
-	{ "glGetUniformLocation", (void *)w_glGetUniformLocation },
-	{ "glGetUniformSubroutineuiv", (void *)w_glGetUniformSubroutineuiv },
-	{ "glGetUniformdv", (void *)w_glGetUniformdv },
-	{ "glGetUniformfv", (void *)w_glGetUniformfv },
-	{ "glGetUniformiv", (void *)w_glGetUniformiv },
-	{ "glGetUniformuiv", (void *)w_glGetUniformuiv },
-	{ "glGetVertexArrayIndexed64iv", (void *)w_glGetVertexArrayIndexed64iv },
-	{ "glGetVertexArrayIndexediv", (void *)w_glGetVertexArrayIndexediv },
-	{ "glGetVertexArrayiv", (void *)w_glGetVertexArrayiv },
-	{ "glGetVertexAttribIiv", (void *)w_glGetVertexAttribIiv },
-	{ "glGetVertexAttribIuiv", (void *)w_glGetVertexAttribIuiv },
-	{ "glGetVertexAttribLdv", (void *)w_glGetVertexAttribLdv },
-	{ "glGetVertexAttribPointerv", (void *)w_glGetVertexAttribPointerv },
-	{ "glGetVertexAttribdv", (void *)w_glGetVertexAttribdv },
-	{ "glGetVertexAttribfv", (void *)w_glGetVertexAttribfv },
-	{ "glGetVertexAttribiv", (void *)w_glGetVertexAttribiv },
 	{ "glGetnCompressedTexImage", (void *)w_glGetnCompressedTexImage },
 	{ "glGetnTexImage", (void *)w_glGetnTexImage },
 	{ "glGetnUniformdv", (void *)w_glGetnUniformdv },
 	{ "glGetnUniformfv", (void *)w_glGetnUniformfv },
 	{ "glGetnUniformiv", (void *)w_glGetnUniformiv },
 	{ "glGetnUniformuiv", (void *)w_glGetnUniformuiv },
-	{ "glHint", (void *)w_glHint },
+	{ "glGetObjectLabel", (void *)w_glGetObjectLabel },
+	{ "glGetObjectPtrLabel", (void *)w_glGetObjectPtrLabel },
+	{ "glGetPointerv", (void *)w_glGetPointerv },
+	{ "glGetProgramInterfaceiv", (void *)w_glGetProgramInterfaceiv },
+	{ "glGetProgramResourceIndex", (void *)w_glGetProgramResourceIndex },
+	{ "glGetProgramResourceiv", (void *)w_glGetProgramResourceiv },
+	{ "glGetProgramResourceLocation", (void *)w_glGetProgramResourceLocation },
+	{ "glGetProgramResourceLocationIndex", (void *)w_glGetProgramResourceLocationIndex },
+	{ "glGetProgramResourceName", (void *)w_glGetProgramResourceName },
+	{ "glGetQueryBufferObjecti64v", (void *)w_glGetQueryBufferObjecti64v },
+	{ "glGetQueryBufferObjectiv", (void *)w_glGetQueryBufferObjectiv },
+	{ "glGetQueryBufferObjectui64v", (void *)w_glGetQueryBufferObjectui64v },
+	{ "glGetQueryBufferObjectuiv", (void *)w_glGetQueryBufferObjectuiv },
+	{ "glGetQueryiv", (void *)w_glGetQueryiv },
+	{ "glGetRenderbufferParameteriv", (void *)w_glGetRenderbufferParameteriv },
+	{ "glGetSamplerParameterfv", (void *)w_glGetSamplerParameterfv },
+	{ "glGetSamplerParameterIiv", (void *)w_glGetSamplerParameterIiv },
+	{ "glGetSamplerParameterIuiv", (void *)w_glGetSamplerParameterIuiv },
+	{ "glGetSamplerParameteriv", (void *)w_glGetSamplerParameteriv },
+	{ "glGetShaderSource", (void *)w_glGetShaderSource },
+	{ "glGetSynciv", (void *)w_glGetSynciv },
+	{ "glGetTexLevelParameterfv", (void *)w_glGetTexLevelParameterfv },
+	{ "glGetTexLevelParameteriv", (void *)w_glGetTexLevelParameteriv },
+	{ "glGetTexParameterfv", (void *)w_glGetTexParameterfv },
+	{ "glGetTexParameterIiv", (void *)w_glGetTexParameterIiv },
+	{ "glGetTexParameterIuiv", (void *)w_glGetTexParameterIuiv },
+	{ "glGetTexParameteriv", (void *)w_glGetTexParameteriv },
+	{ "glGetTextureLevelParameterfv", (void *)w_glGetTextureLevelParameterfv },
+	{ "glGetTextureLevelParameteriv", (void *)w_glGetTextureLevelParameteriv },
+	{ "glGetTextureParameterfv", (void *)w_glGetTextureParameterfv },
+	{ "glGetTextureParameterIiv", (void *)w_glGetTextureParameterIiv },
+	{ "glGetTextureParameterIuiv", (void *)w_glGetTextureParameterIuiv },
+	{ "glGetTextureParameteriv", (void *)w_glGetTextureParameteriv },
+	{ "glGetTextureSubImage", (void *)w_glGetTextureSubImage },
+	{ "glGetTransformFeedbackiv", (void *)w_glGetTransformFeedbackiv },
+	{ "glGetTransformFeedbackVarying", (void *)w_glGetTransformFeedbackVarying },
+	{ "glGetUniformfv", (void *)w_glGetUniformfv },
+	{ "glGetUniformIndices", (void *)w_glGetUniformIndices },
+	{ "glGetUniformiv", (void *)w_glGetUniformiv },
+	{ "glGetUniformuiv", (void *)w_glGetUniformuiv },
+	{ "glGetVertexArrayIndexed64iv", (void *)w_glGetVertexArrayIndexed64iv },
+	{ "glGetVertexArrayIndexediv", (void *)w_glGetVertexArrayIndexediv },
+	{ "glGetVertexArrayiv", (void *)w_glGetVertexArrayiv },
+	{ "glGetVertexAttribdv", (void *)w_glGetVertexAttribdv },
+	{ "glGetVertexAttribfv", (void *)w_glGetVertexAttribfv },
+	{ "glGetVertexAttribIiv", (void *)w_glGetVertexAttribIiv },
+	{ "glGetVertexAttribIuiv", (void *)w_glGetVertexAttribIuiv },
+	{ "glGetVertexAttribiv", (void *)w_glGetVertexAttribiv },
+	{ "glGetVertexAttribPointerv", (void *)w_glGetVertexAttribPointerv },
 	{ "glInvalidateBufferData", (void *)w_glInvalidateBufferData },
 	{ "glInvalidateBufferSubData", (void *)w_glInvalidateBufferSubData },
-	{ "glInvalidateFramebuffer", (void *)w_glInvalidateFramebuffer },
 	{ "glInvalidateNamedFramebufferData", (void *)w_glInvalidateNamedFramebufferData },
 	{ "glInvalidateNamedFramebufferSubData", (void *)w_glInvalidateNamedFramebufferSubData },
 	{ "glInvalidateSubFramebuffer", (void *)w_glInvalidateSubFramebuffer },
@@ -7071,41 +7834,26 @@ static const struct ChimeraGlEntry g_entries[] = {
 	{ "glInvalidateTexSubImage", (void *)w_glInvalidateTexSubImage },
 	{ "glIsBuffer", (void *)w_glIsBuffer },
 	{ "glIsEnabled", (void *)w_glIsEnabled },
-	{ "glIsEnabledIndexedEXT", (void *)w_glIsEnabledIndexedEXT },
 	{ "glIsEnabledi", (void *)w_glIsEnabledi },
 	{ "glIsFramebuffer", (void *)w_glIsFramebuffer },
 	{ "glIsProgram", (void *)w_glIsProgram },
-	{ "glIsProgramPipeline", (void *)w_glIsProgramPipeline },
 	{ "glIsQuery", (void *)w_glIsQuery },
-	{ "glIsQueryEXT", (void *)w_glIsQueryEXT },
 	{ "glIsRenderbuffer", (void *)w_glIsRenderbuffer },
 	{ "glIsSampler", (void *)w_glIsSampler },
 	{ "glIsShader", (void *)w_glIsShader },
 	{ "glIsSync", (void *)w_glIsSync },
 	{ "glIsTexture", (void *)w_glIsTexture },
-	{ "glIsTransformFeedback", (void *)w_glIsTransformFeedback },
 	{ "glIsVertexArray", (void *)w_glIsVertexArray },
-	{ "glIsVertexArrayAPPLE", (void *)w_glIsVertexArrayAPPLE },
-	{ "glIsVertexArrayOES", (void *)w_glIsVertexArrayOES },
-	{ "glLineWidth", (void *)w_glLineWidth },
-	{ "glLinkProgram", (void *)w_glLinkProgram },
 	{ "glLogicOp", (void *)w_glLogicOp },
-	{ "glMapBuffer", (void *)chimera_gl_map_buffer },
-	{ "glMapBufferRange", (void *)chimera_gl_map_buffer_range },
+	{ "glMapBuffer", (void *)w_glMapBuffer },
 	{ "glMapNamedBuffer", (void *)w_glMapNamedBuffer },
 	{ "glMapNamedBufferRange", (void *)w_glMapNamedBufferRange },
-	{ "glMaxShaderCompilerThreadsARB", (void *)w_glMaxShaderCompilerThreadsARB },
-	{ "glMaxShaderCompilerThreadsKHR", (void *)w_glMaxShaderCompilerThreadsKHR },
-	{ "glMemoryBarrier", (void *)w_glMemoryBarrier },
 	{ "glMemoryBarrierByRegion", (void *)w_glMemoryBarrierByRegion },
 	{ "glMinSampleShading", (void *)w_glMinSampleShading },
-	{ "glMultiDrawArrays", (void *)w_glMultiDrawArrays },
 	{ "glMultiDrawArraysIndirect", (void *)w_glMultiDrawArraysIndirect },
-	{ "glMultiDrawArraysIndirectCount", (void *)w_glMultiDrawArraysIndirectCount },
 	{ "glMultiDrawElements", (void *)w_glMultiDrawElements },
 	{ "glMultiDrawElementsBaseVertex", (void *)w_glMultiDrawElementsBaseVertex },
 	{ "glMultiDrawElementsIndirect", (void *)w_glMultiDrawElementsIndirect },
-	{ "glMultiDrawElementsIndirectCount", (void *)w_glMultiDrawElementsIndirectCount },
 	{ "glNamedBufferData", (void *)w_glNamedBufferData },
 	{ "glNamedBufferStorage", (void *)w_glNamedBufferStorage },
 	{ "glNamedBufferSubData", (void *)w_glNamedBufferSubData },
@@ -7118,214 +7866,67 @@ static const struct ChimeraGlEntry g_entries[] = {
 	{ "glNamedFramebufferTextureLayer", (void *)w_glNamedFramebufferTextureLayer },
 	{ "glNamedRenderbufferStorage", (void *)w_glNamedRenderbufferStorage },
 	{ "glNamedRenderbufferStorageMultisample", (void *)w_glNamedRenderbufferStorageMultisample },
-	{ "glObjectLabel", (void *)w_glObjectLabel },
-	{ "glObjectLabelKHR", (void *)w_glObjectLabelKHR },
 	{ "glObjectPtrLabel", (void *)w_glObjectPtrLabel },
-	{ "glObjectPtrLabelKHR", (void *)w_glObjectPtrLabelKHR },
-	{ "glPatchParameterfv", (void *)w_glPatchParameterfv },
-	{ "glPatchParameteri", (void *)w_glPatchParameteri },
-	{ "glPauseTransformFeedback", (void *)w_glPauseTransformFeedback },
 	{ "glPixelStoref", (void *)w_glPixelStoref },
-	{ "glPixelStorei", (void *)w_glPixelStorei },
 	{ "glPointParameterf", (void *)w_glPointParameterf },
 	{ "glPointParameterfv", (void *)w_glPointParameterfv },
 	{ "glPointParameteri", (void *)w_glPointParameteri },
 	{ "glPointParameteriv", (void *)w_glPointParameteriv },
 	{ "glPointSize", (void *)w_glPointSize },
-	{ "glPolygonMode", (void *)w_glPolygonMode },
 	{ "glPolygonOffset", (void *)w_glPolygonOffset },
-	{ "glPolygonOffsetClamp", (void *)w_glPolygonOffsetClamp },
-	{ "glPopDebugGroup", (void *)w_glPopDebugGroup },
-	{ "glPopDebugGroupKHR", (void *)w_glPopDebugGroupKHR },
-	{ "glPrimitiveBoundingBox", (void *)w_glPrimitiveBoundingBox },
-	{ "glPrimitiveRestartIndex", (void *)w_glPrimitiveRestartIndex },
-	{ "glProgramBinary", (void *)w_glProgramBinary },
-	{ "glProgramParameteri", (void *)w_glProgramParameteri },
-	{ "glProgramUniform1d", (void *)w_glProgramUniform1d },
-	{ "glProgramUniform1dv", (void *)w_glProgramUniform1dv },
-	{ "glProgramUniform1f", (void *)w_glProgramUniform1f },
-	{ "glProgramUniform1fv", (void *)w_glProgramUniform1fv },
-	{ "glProgramUniform1i", (void *)w_glProgramUniform1i },
-	{ "glProgramUniform1iv", (void *)w_glProgramUniform1iv },
-	{ "glProgramUniform1ui", (void *)w_glProgramUniform1ui },
-	{ "glProgramUniform1uiv", (void *)w_glProgramUniform1uiv },
-	{ "glProgramUniform2d", (void *)w_glProgramUniform2d },
-	{ "glProgramUniform2dv", (void *)w_glProgramUniform2dv },
-	{ "glProgramUniform2f", (void *)w_glProgramUniform2f },
-	{ "glProgramUniform2fv", (void *)w_glProgramUniform2fv },
-	{ "glProgramUniform2i", (void *)w_glProgramUniform2i },
-	{ "glProgramUniform2iv", (void *)w_glProgramUniform2iv },
-	{ "glProgramUniform2ui", (void *)w_glProgramUniform2ui },
-	{ "glProgramUniform2uiv", (void *)w_glProgramUniform2uiv },
-	{ "glProgramUniform3d", (void *)w_glProgramUniform3d },
-	{ "glProgramUniform3dv", (void *)w_glProgramUniform3dv },
-	{ "glProgramUniform3f", (void *)w_glProgramUniform3f },
-	{ "glProgramUniform3fv", (void *)w_glProgramUniform3fv },
-	{ "glProgramUniform3i", (void *)w_glProgramUniform3i },
-	{ "glProgramUniform3iv", (void *)w_glProgramUniform3iv },
-	{ "glProgramUniform3ui", (void *)w_glProgramUniform3ui },
-	{ "glProgramUniform3uiv", (void *)w_glProgramUniform3uiv },
-	{ "glProgramUniform4d", (void *)w_glProgramUniform4d },
-	{ "glProgramUniform4dv", (void *)w_glProgramUniform4dv },
-	{ "glProgramUniform4f", (void *)w_glProgramUniform4f },
-	{ "glProgramUniform4fv", (void *)w_glProgramUniform4fv },
-	{ "glProgramUniform4i", (void *)w_glProgramUniform4i },
-	{ "glProgramUniform4iv", (void *)w_glProgramUniform4iv },
-	{ "glProgramUniform4ui", (void *)w_glProgramUniform4ui },
-	{ "glProgramUniform4uiv", (void *)w_glProgramUniform4uiv },
-	{ "glProgramUniformMatrix2dv", (void *)w_glProgramUniformMatrix2dv },
-	{ "glProgramUniformMatrix2fv", (void *)w_glProgramUniformMatrix2fv },
-	{ "glProgramUniformMatrix2x3dv", (void *)w_glProgramUniformMatrix2x3dv },
-	{ "glProgramUniformMatrix2x3fv", (void *)w_glProgramUniformMatrix2x3fv },
-	{ "glProgramUniformMatrix2x4dv", (void *)w_glProgramUniformMatrix2x4dv },
-	{ "glProgramUniformMatrix2x4fv", (void *)w_glProgramUniformMatrix2x4fv },
-	{ "glProgramUniformMatrix3dv", (void *)w_glProgramUniformMatrix3dv },
-	{ "glProgramUniformMatrix3fv", (void *)w_glProgramUniformMatrix3fv },
-	{ "glProgramUniformMatrix3x2dv", (void *)w_glProgramUniformMatrix3x2dv },
-	{ "glProgramUniformMatrix3x2fv", (void *)w_glProgramUniformMatrix3x2fv },
-	{ "glProgramUniformMatrix3x4dv", (void *)w_glProgramUniformMatrix3x4dv },
-	{ "glProgramUniformMatrix3x4fv", (void *)w_glProgramUniformMatrix3x4fv },
-	{ "glProgramUniformMatrix4dv", (void *)w_glProgramUniformMatrix4dv },
-	{ "glProgramUniformMatrix4fv", (void *)w_glProgramUniformMatrix4fv },
-	{ "glProgramUniformMatrix4x2dv", (void *)w_glProgramUniformMatrix4x2dv },
-	{ "glProgramUniformMatrix4x2fv", (void *)w_glProgramUniformMatrix4x2fv },
-	{ "glProgramUniformMatrix4x3dv", (void *)w_glProgramUniformMatrix4x3dv },
-	{ "glProgramUniformMatrix4x3fv", (void *)w_glProgramUniformMatrix4x3fv },
-	{ "glProvokingVertex", (void *)w_glProvokingVertex },
-	{ "glPushDebugGroup", (void *)w_glPushDebugGroup },
-	{ "glPushDebugGroupKHR", (void *)w_glPushDebugGroupKHR },
-	{ "glQueryCounter", (void *)w_glQueryCounter },
-	{ "glQueryCounterEXT", (void *)w_glQueryCounterEXT },
-	{ "glReadBuffer", (void *)w_glReadBuffer },
-	{ "glReadPixels", (void *)w_glReadPixels },
 	{ "glReadnPixels", (void *)w_glReadnPixels },
 	{ "glReleaseShaderCompiler", (void *)w_glReleaseShaderCompiler },
-	{ "glRenderbufferStorage", (void *)w_glRenderbufferStorage },
 	{ "glRenderbufferStorageMultisample", (void *)w_glRenderbufferStorageMultisample },
-	{ "glRenderbufferStorageMultisampleEXT", (void *)w_glRenderbufferStorageMultisampleEXT },
-	{ "glResumeTransformFeedback", (void *)w_glResumeTransformFeedback },
 	{ "glSampleCoverage", (void *)w_glSampleCoverage },
 	{ "glSampleMaski", (void *)w_glSampleMaski },
+	{ "glSamplerParameterfv", (void *)w_glSamplerParameterfv },
 	{ "glSamplerParameterIiv", (void *)w_glSamplerParameterIiv },
 	{ "glSamplerParameterIuiv", (void *)w_glSamplerParameterIuiv },
-	{ "glSamplerParameterf", (void *)w_glSamplerParameterf },
-	{ "glSamplerParameterfv", (void *)w_glSamplerParameterfv },
-	{ "glSamplerParameteri", (void *)w_glSamplerParameteri },
 	{ "glSamplerParameteriv", (void *)w_glSamplerParameteriv },
-	{ "glScissor", (void *)w_glScissor },
 	{ "glScissorArrayv", (void *)w_glScissorArrayv },
-	{ "glScissorIndexed", (void *)w_glScissorIndexed },
 	{ "glScissorIndexedv", (void *)w_glScissorIndexedv },
 	{ "glShaderBinary", (void *)w_glShaderBinary },
-	{ "glShaderSource", (void *)w_glShaderSource },
 	{ "glShaderStorageBlockBinding", (void *)w_glShaderStorageBlockBinding },
-	{ "glSpecializeShader", (void *)w_glSpecializeShader },
-	{ "glStencilFunc", (void *)w_glStencilFunc },
 	{ "glStencilFuncSeparate", (void *)w_glStencilFuncSeparate },
-	{ "glStencilMask", (void *)w_glStencilMask },
 	{ "glStencilMaskSeparate", (void *)w_glStencilMaskSeparate },
-	{ "glStencilOp", (void *)w_glStencilOp },
 	{ "glStencilOpSeparate", (void *)w_glStencilOpSeparate },
 	{ "glTexBuffer", (void *)w_glTexBuffer },
 	{ "glTexBufferRange", (void *)w_glTexBufferRange },
 	{ "glTexImage1D", (void *)w_glTexImage1D },
-	{ "glTexImage2D", (void *)w_glTexImage2D },
 	{ "glTexImage2DMultisample", (void *)w_glTexImage2DMultisample },
-	{ "glTexImage3D", (void *)w_glTexImage3D },
 	{ "glTexImage3DMultisample", (void *)w_glTexImage3DMultisample },
 	{ "glTexParameterIiv", (void *)w_glTexParameterIiv },
 	{ "glTexParameterIuiv", (void *)w_glTexParameterIuiv },
-	{ "glTexParameterf", (void *)w_glTexParameterf },
-	{ "glTexParameterfv", (void *)w_glTexParameterfv },
-	{ "glTexParameteri", (void *)w_glTexParameteri },
-	{ "glTexParameteriv", (void *)w_glTexParameteriv },
 	{ "glTexStorage1D", (void *)w_glTexStorage1D },
-	{ "glTexStorage2D", (void *)w_glTexStorage2D },
 	{ "glTexStorage2DMultisample", (void *)w_glTexStorage2DMultisample },
 	{ "glTexStorage3D", (void *)w_glTexStorage3D },
 	{ "glTexStorage3DMultisample", (void *)w_glTexStorage3DMultisample },
 	{ "glTexSubImage1D", (void *)w_glTexSubImage1D },
-	{ "glTexSubImage2D", (void *)w_glTexSubImage2D },
 	{ "glTexSubImage3D", (void *)w_glTexSubImage3D },
-	{ "glTextureBarrier", (void *)w_glTextureBarrier },
 	{ "glTextureBuffer", (void *)w_glTextureBuffer },
 	{ "glTextureBufferRange", (void *)w_glTextureBufferRange },
-	{ "glTextureParameterIiv", (void *)w_glTextureParameterIiv },
-	{ "glTextureParameterIuiv", (void *)w_glTextureParameterIuiv },
 	{ "glTextureParameterf", (void *)w_glTextureParameterf },
 	{ "glTextureParameterfv", (void *)w_glTextureParameterfv },
-	{ "glTextureParameteri", (void *)w_glTextureParameteri },
+	{ "glTextureParameterIiv", (void *)w_glTextureParameterIiv },
+	{ "glTextureParameterIuiv", (void *)w_glTextureParameterIuiv },
 	{ "glTextureParameteriv", (void *)w_glTextureParameteriv },
 	{ "glTextureStorage1D", (void *)w_glTextureStorage1D },
-	{ "glTextureStorage2D", (void *)w_glTextureStorage2D },
 	{ "glTextureStorage2DMultisample", (void *)w_glTextureStorage2DMultisample },
 	{ "glTextureStorage3D", (void *)w_glTextureStorage3D },
 	{ "glTextureStorage3DMultisample", (void *)w_glTextureStorage3DMultisample },
 	{ "glTextureSubImage1D", (void *)w_glTextureSubImage1D },
-	{ "glTextureSubImage2D", (void *)w_glTextureSubImage2D },
 	{ "glTextureSubImage3D", (void *)w_glTextureSubImage3D },
 	{ "glTextureView", (void *)w_glTextureView },
 	{ "glTransformFeedbackBufferBase", (void *)w_glTransformFeedbackBufferBase },
 	{ "glTransformFeedbackBufferRange", (void *)w_glTransformFeedbackBufferRange },
 	{ "glTransformFeedbackVaryings", (void *)w_glTransformFeedbackVaryings },
-	{ "glUniform1d", (void *)w_glUniform1d },
-	{ "glUniform1dv", (void *)w_glUniform1dv },
-	{ "glUniform1f", (void *)w_glUniform1f },
-	{ "glUniform1fv", (void *)w_glUniform1fv },
-	{ "glUniform1i", (void *)w_glUniform1i },
-	{ "glUniform1iv", (void *)w_glUniform1iv },
-	{ "glUniform1ui", (void *)w_glUniform1ui },
-	{ "glUniform1uiv", (void *)w_glUniform1uiv },
-	{ "glUniform2d", (void *)w_glUniform2d },
-	{ "glUniform2dv", (void *)w_glUniform2dv },
-	{ "glUniform2f", (void *)w_glUniform2f },
-	{ "glUniform2fv", (void *)w_glUniform2fv },
-	{ "glUniform2i", (void *)w_glUniform2i },
-	{ "glUniform2iv", (void *)w_glUniform2iv },
-	{ "glUniform2ui", (void *)w_glUniform2ui },
-	{ "glUniform2uiv", (void *)w_glUniform2uiv },
-	{ "glUniform3d", (void *)w_glUniform3d },
-	{ "glUniform3dv", (void *)w_glUniform3dv },
-	{ "glUniform3f", (void *)w_glUniform3f },
-	{ "glUniform3fv", (void *)w_glUniform3fv },
-	{ "glUniform3i", (void *)w_glUniform3i },
-	{ "glUniform3iv", (void *)w_glUniform3iv },
-	{ "glUniform3ui", (void *)w_glUniform3ui },
-	{ "glUniform3uiv", (void *)w_glUniform3uiv },
-	{ "glUniform4d", (void *)w_glUniform4d },
-	{ "glUniform4dv", (void *)w_glUniform4dv },
-	{ "glUniform4f", (void *)w_glUniform4f },
-	{ "glUniform4fv", (void *)w_glUniform4fv },
-	{ "glUniform4i", (void *)w_glUniform4i },
-	{ "glUniform4iv", (void *)w_glUniform4iv },
-	{ "glUniform4ui", (void *)w_glUniform4ui },
-	{ "glUniform4uiv", (void *)w_glUniform4uiv },
-	{ "glUniformBlockBinding", (void *)w_glUniformBlockBinding },
-	{ "glUniformMatrix2dv", (void *)w_glUniformMatrix2dv },
-	{ "glUniformMatrix2fv", (void *)w_glUniformMatrix2fv },
-	{ "glUniformMatrix2x3dv", (void *)w_glUniformMatrix2x3dv },
 	{ "glUniformMatrix2x3fv", (void *)w_glUniformMatrix2x3fv },
-	{ "glUniformMatrix2x4dv", (void *)w_glUniformMatrix2x4dv },
 	{ "glUniformMatrix2x4fv", (void *)w_glUniformMatrix2x4fv },
-	{ "glUniformMatrix3dv", (void *)w_glUniformMatrix3dv },
-	{ "glUniformMatrix3fv", (void *)w_glUniformMatrix3fv },
-	{ "glUniformMatrix3x2dv", (void *)w_glUniformMatrix3x2dv },
 	{ "glUniformMatrix3x2fv", (void *)w_glUniformMatrix3x2fv },
-	{ "glUniformMatrix3x4dv", (void *)w_glUniformMatrix3x4dv },
 	{ "glUniformMatrix3x4fv", (void *)w_glUniformMatrix3x4fv },
-	{ "glUniformMatrix4dv", (void *)w_glUniformMatrix4dv },
-	{ "glUniformMatrix4fv", (void *)w_glUniformMatrix4fv },
-	{ "glUniformMatrix4x2dv", (void *)w_glUniformMatrix4x2dv },
 	{ "glUniformMatrix4x2fv", (void *)w_glUniformMatrix4x2fv },
-	{ "glUniformMatrix4x3dv", (void *)w_glUniformMatrix4x3dv },
 	{ "glUniformMatrix4x3fv", (void *)w_glUniformMatrix4x3fv },
-	{ "glUniformSubroutinesuiv", (void *)w_glUniformSubroutinesuiv },
-	{ "glUnmapBuffer", (void *)chimera_gl_unmap_buffer },
 	{ "glUnmapNamedBuffer", (void *)w_glUnmapNamedBuffer },
-	{ "glUseProgram", (void *)w_glUseProgram },
-	{ "glUseProgramStages", (void *)w_glUseProgramStages },
-	{ "glValidateProgram", (void *)w_glValidateProgram },
-	{ "glValidateProgramPipeline", (void *)w_glValidateProgramPipeline },
 	{ "glVertexArrayAttribBinding", (void *)w_glVertexArrayAttribBinding },
 	{ "glVertexArrayAttribFormat", (void *)w_glVertexArrayAttribFormat },
 	{ "glVertexArrayAttribIFormat", (void *)w_glVertexArrayAttribIFormat },
@@ -7352,6 +7953,11 @@ static const struct ChimeraGlEntry g_entries[] = {
 	{ "glVertexAttrib3fv", (void *)w_glVertexAttrib3fv },
 	{ "glVertexAttrib3s", (void *)w_glVertexAttrib3s },
 	{ "glVertexAttrib3sv", (void *)w_glVertexAttrib3sv },
+	{ "glVertexAttrib4bv", (void *)w_glVertexAttrib4bv },
+	{ "glVertexAttrib4d", (void *)w_glVertexAttrib4d },
+	{ "glVertexAttrib4dv", (void *)w_glVertexAttrib4dv },
+	{ "glVertexAttrib4f", (void *)w_glVertexAttrib4f },
+	{ "glVertexAttrib4iv", (void *)w_glVertexAttrib4iv },
 	{ "glVertexAttrib4Nbv", (void *)w_glVertexAttrib4Nbv },
 	{ "glVertexAttrib4Niv", (void *)w_glVertexAttrib4Niv },
 	{ "glVertexAttrib4Nsv", (void *)w_glVertexAttrib4Nsv },
@@ -7359,20 +7965,12 @@ static const struct ChimeraGlEntry g_entries[] = {
 	{ "glVertexAttrib4Nubv", (void *)w_glVertexAttrib4Nubv },
 	{ "glVertexAttrib4Nuiv", (void *)w_glVertexAttrib4Nuiv },
 	{ "glVertexAttrib4Nusv", (void *)w_glVertexAttrib4Nusv },
-	{ "glVertexAttrib4bv", (void *)w_glVertexAttrib4bv },
-	{ "glVertexAttrib4d", (void *)w_glVertexAttrib4d },
-	{ "glVertexAttrib4dv", (void *)w_glVertexAttrib4dv },
-	{ "glVertexAttrib4f", (void *)w_glVertexAttrib4f },
-	{ "glVertexAttrib4fv", (void *)w_glVertexAttrib4fv },
-	{ "glVertexAttrib4iv", (void *)w_glVertexAttrib4iv },
 	{ "glVertexAttrib4s", (void *)w_glVertexAttrib4s },
 	{ "glVertexAttrib4sv", (void *)w_glVertexAttrib4sv },
 	{ "glVertexAttrib4ubv", (void *)w_glVertexAttrib4ubv },
 	{ "glVertexAttrib4uiv", (void *)w_glVertexAttrib4uiv },
 	{ "glVertexAttrib4usv", (void *)w_glVertexAttrib4usv },
 	{ "glVertexAttribBinding", (void *)w_glVertexAttribBinding },
-	{ "glVertexAttribDivisor", (void *)w_glVertexAttribDivisor },
-	{ "glVertexAttribDivisorARB", (void *)w_glVertexAttribDivisorARB },
 	{ "glVertexAttribFormat", (void *)w_glVertexAttribFormat },
 	{ "glVertexAttribI1i", (void *)w_glVertexAttribI1i },
 	{ "glVertexAttribI1iv", (void *)w_glVertexAttribI1iv },
@@ -7395,7 +7993,177 @@ static const struct ChimeraGlEntry g_entries[] = {
 	{ "glVertexAttribI4uiv", (void *)w_glVertexAttribI4uiv },
 	{ "glVertexAttribI4usv", (void *)w_glVertexAttribI4usv },
 	{ "glVertexAttribIFormat", (void *)w_glVertexAttribIFormat },
-	{ "glVertexAttribIPointer", (void *)w_glVertexAttribIPointer },
+	{ "glVertexAttribLFormat", (void *)w_glVertexAttribLFormat },
+	{ "glVertexBindingDivisor", (void *)w_glVertexBindingDivisor },
+	{ "glViewportArrayv", (void *)w_glViewportArrayv },
+	{ "glViewportIndexedfv", (void *)w_glViewportIndexedfv },
+	{ "glWaitSync", (void *)w_glWaitSync },
+	{ "glProgramUniform1f", (void *)w_glProgramUniform1f },
+	{ "glProgramUniform1iv", (void *)w_glProgramUniform1iv },
+	{ "glProgramUniform1ui", (void *)w_glProgramUniform1ui },
+	{ "glProgramUniform2i", (void *)w_glProgramUniform2i },
+	{ "glProgramUniform3f", (void *)w_glProgramUniform3f },
+	{ "glProgramUniform3i", (void *)w_glProgramUniform3i },
+	{ "glProgramUniform4f", (void *)w_glProgramUniform4f },
+	{ "glProgramUniform4i", (void *)w_glProgramUniform4i },
+	{ "glProgramUniformMatrix3fv", (void *)w_glProgramUniformMatrix3fv },
+	{ "glGetIntegeri_v", (void *)w_glGetIntegeri_v },
+	{ "glGetInteger64i_v", (void *)w_glGetInteger64i_v },
+	{ "glGetBooleani_v", (void *)w_glGetBooleani_v },
+	{ "glGetFloati_v", (void *)w_glGetFloati_v },
+	{ "glGetDoublei_v", (void *)w_glGetDoublei_v },
+	{ "glActiveShaderProgram", (void *)w_glActiveShaderProgram },
+	{ "glBeginQueryEXT", (void *)w_glBeginQueryEXT },
+	{ "glBeginQueryIndexed", (void *)w_glBeginQueryIndexed },
+	{ "glBindProgramPipeline", (void *)w_glBindProgramPipeline },
+	{ "glBindTransformFeedback", (void *)w_glBindTransformFeedback },
+	{ "glBindVertexArrayAPPLE", (void *)w_glBindVertexArrayAPPLE },
+	{ "glBindVertexArrayOES", (void *)w_glBindVertexArrayOES },
+	{ "glBlendBarrier", (void *)w_glBlendBarrier },
+	{ "glBlendEquationi", (void *)w_glBlendEquationi },
+	{ "glBlendEquationSeparatei", (void *)w_glBlendEquationSeparatei },
+	{ "glBlendFunci", (void *)w_glBlendFunci },
+	{ "glBlendFuncSeparatei", (void *)w_glBlendFuncSeparatei },
+	{ "glColorMaskIndexedEXT", (void *)w_glColorMaskIndexedEXT },
+	{ "glCopyBufferSubData", (void *)w_glCopyBufferSubData },
+	{ "glCopyBufferSubDataNV", (void *)w_glCopyBufferSubDataNV },
+	{ "glCreateShaderProgramv", (void *)w_glCreateShaderProgramv },
+	{ "glDebugMessageCallbackKHR", (void *)w_glDebugMessageCallbackKHR },
+	{ "glDebugMessageControlKHR", (void *)w_glDebugMessageControlKHR },
+	{ "glDebugMessageInsertKHR", (void *)w_glDebugMessageInsertKHR },
+	{ "glDeleteProgramPipelines", (void *)w_glDeleteProgramPipelines },
+	{ "glDeleteQueriesEXT", (void *)w_glDeleteQueriesEXT },
+	{ "glDeleteTransformFeedbacks", (void *)w_glDeleteTransformFeedbacks },
+	{ "glDeleteVertexArraysAPPLE", (void *)w_glDeleteVertexArraysAPPLE },
+	{ "glDeleteVertexArraysOES", (void *)w_glDeleteVertexArraysOES },
+	{ "glDisableIndexedEXT", (void *)w_glDisableIndexedEXT },
+	{ "glDrawArraysIndirect", (void *)w_glDrawArraysIndirect },
+	{ "glDrawArraysInstancedARB", (void *)w_glDrawArraysInstancedARB },
+	{ "glDrawElementsIndirect", (void *)w_glDrawElementsIndirect },
+	{ "glDrawElementsInstancedARB", (void *)w_glDrawElementsInstancedARB },
+	{ "glDrawTransformFeedback", (void *)w_glDrawTransformFeedback },
+	{ "glDrawTransformFeedbackStream", (void *)w_glDrawTransformFeedbackStream },
+	{ "glEnableIndexedEXT", (void *)w_glEnableIndexedEXT },
+	{ "glEndQueryEXT", (void *)w_glEndQueryEXT },
+	{ "glEndQueryIndexed", (void *)w_glEndQueryIndexed },
+	{ "glFramebufferTexture2DMultisampleEXT", (void *)w_glFramebufferTexture2DMultisampleEXT },
+	{ "glGenProgramPipelines", (void *)w_glGenProgramPipelines },
+	{ "glGenQueriesEXT", (void *)w_glGenQueriesEXT },
+	{ "glGenTransformFeedbacks", (void *)w_glGenTransformFeedbacks },
+	{ "glGenVertexArraysAPPLE", (void *)w_glGenVertexArraysAPPLE },
+	{ "glGenVertexArraysOES", (void *)w_glGenVertexArraysOES },
+	{ "glGetActiveSubroutineName", (void *)w_glGetActiveSubroutineName },
+	{ "glGetActiveSubroutineUniformiv", (void *)w_glGetActiveSubroutineUniformiv },
+	{ "glGetActiveSubroutineUniformName", (void *)w_glGetActiveSubroutineUniformName },
+	{ "glGetBooleanIndexedvEXT", (void *)w_glGetBooleanIndexedvEXT },
+	{ "glGetDebugMessageLogKHR", (void *)w_glGetDebugMessageLogKHR },
+	{ "glGetInteger64vEXT", (void *)w_glGetInteger64vEXT },
+	{ "glGetIntegerIndexedvEXT", (void *)w_glGetIntegerIndexedvEXT },
+	{ "glGetObjectLabelKHR", (void *)w_glGetObjectLabelKHR },
+	{ "glGetObjectPtrLabelKHR", (void *)w_glGetObjectPtrLabelKHR },
+	{ "glGetPointervKHR", (void *)w_glGetPointervKHR },
+	{ "glGetProgramPipelineInfoLog", (void *)w_glGetProgramPipelineInfoLog },
+	{ "glGetProgramPipelineiv", (void *)w_glGetProgramPipelineiv },
+	{ "glGetProgramStageiv", (void *)w_glGetProgramStageiv },
+	{ "glGetQueryIndexediv", (void *)w_glGetQueryIndexediv },
+	{ "glGetQueryivEXT", (void *)w_glGetQueryivEXT },
+	{ "glGetQueryObjecti64v", (void *)w_glGetQueryObjecti64v },
+	{ "glGetQueryObjecti64vEXT", (void *)w_glGetQueryObjecti64vEXT },
+	{ "glGetQueryObjectivEXT", (void *)w_glGetQueryObjectivEXT },
+	{ "glGetQueryObjectui64vEXT", (void *)w_glGetQueryObjectui64vEXT },
+	{ "glGetQueryObjectuivEXT", (void *)w_glGetQueryObjectuivEXT },
+	{ "glGetSubroutineIndex", (void *)w_glGetSubroutineIndex },
+	{ "glGetSubroutineUniformLocation", (void *)w_glGetSubroutineUniformLocation },
+	{ "glGetTransformFeedbacki64_v", (void *)w_glGetTransformFeedbacki64_v },
+	{ "glGetTransformFeedbacki_v", (void *)w_glGetTransformFeedbacki_v },
+	{ "glGetUniformdv", (void *)w_glGetUniformdv },
+	{ "glGetUniformSubroutineuiv", (void *)w_glGetUniformSubroutineuiv },
+	{ "glGetVertexAttribLdv", (void *)w_glGetVertexAttribLdv },
+	{ "glIsEnabledIndexedEXT", (void *)w_glIsEnabledIndexedEXT },
+	{ "glIsProgramPipeline", (void *)w_glIsProgramPipeline },
+	{ "glIsQueryEXT", (void *)w_glIsQueryEXT },
+	{ "glIsTransformFeedback", (void *)w_glIsTransformFeedback },
+	{ "glIsVertexArrayAPPLE", (void *)w_glIsVertexArrayAPPLE },
+	{ "glIsVertexArrayOES", (void *)w_glIsVertexArrayOES },
+	{ "glMaxShaderCompilerThreadsARB", (void *)w_glMaxShaderCompilerThreadsARB },
+	{ "glMaxShaderCompilerThreadsKHR", (void *)w_glMaxShaderCompilerThreadsKHR },
+	{ "glMultiDrawArraysIndirectCount", (void *)w_glMultiDrawArraysIndirectCount },
+	{ "glMultiDrawElementsIndirectCount", (void *)w_glMultiDrawElementsIndirectCount },
+	{ "glObjectLabelKHR", (void *)w_glObjectLabelKHR },
+	{ "glObjectPtrLabelKHR", (void *)w_glObjectPtrLabelKHR },
+	{ "glPatchParameterfv", (void *)w_glPatchParameterfv },
+	{ "glPatchParameteri", (void *)w_glPatchParameteri },
+	{ "glPauseTransformFeedback", (void *)w_glPauseTransformFeedback },
+	{ "glPolygonOffsetClamp", (void *)w_glPolygonOffsetClamp },
+	{ "glPopDebugGroupKHR", (void *)w_glPopDebugGroupKHR },
+	{ "glPrimitiveBoundingBox", (void *)w_glPrimitiveBoundingBox },
+	{ "glProgramUniform1d", (void *)w_glProgramUniform1d },
+	{ "glProgramUniform1dv", (void *)w_glProgramUniform1dv },
+	{ "glProgramUniform1fv", (void *)w_glProgramUniform1fv },
+	{ "glProgramUniform1uiv", (void *)w_glProgramUniform1uiv },
+	{ "glProgramUniform2d", (void *)w_glProgramUniform2d },
+	{ "glProgramUniform2dv", (void *)w_glProgramUniform2dv },
+	{ "glProgramUniform2fv", (void *)w_glProgramUniform2fv },
+	{ "glProgramUniform2iv", (void *)w_glProgramUniform2iv },
+	{ "glProgramUniform2ui", (void *)w_glProgramUniform2ui },
+	{ "glProgramUniform2uiv", (void *)w_glProgramUniform2uiv },
+	{ "glProgramUniform3d", (void *)w_glProgramUniform3d },
+	{ "glProgramUniform3dv", (void *)w_glProgramUniform3dv },
+	{ "glProgramUniform3fv", (void *)w_glProgramUniform3fv },
+	{ "glProgramUniform3iv", (void *)w_glProgramUniform3iv },
+	{ "glProgramUniform3ui", (void *)w_glProgramUniform3ui },
+	{ "glProgramUniform3uiv", (void *)w_glProgramUniform3uiv },
+	{ "glProgramUniform4d", (void *)w_glProgramUniform4d },
+	{ "glProgramUniform4dv", (void *)w_glProgramUniform4dv },
+	{ "glProgramUniform4fv", (void *)w_glProgramUniform4fv },
+	{ "glProgramUniform4iv", (void *)w_glProgramUniform4iv },
+	{ "glProgramUniform4ui", (void *)w_glProgramUniform4ui },
+	{ "glProgramUniform4uiv", (void *)w_glProgramUniform4uiv },
+	{ "glProgramUniformMatrix2dv", (void *)w_glProgramUniformMatrix2dv },
+	{ "glProgramUniformMatrix2fv", (void *)w_glProgramUniformMatrix2fv },
+	{ "glProgramUniformMatrix2x3dv", (void *)w_glProgramUniformMatrix2x3dv },
+	{ "glProgramUniformMatrix2x3fv", (void *)w_glProgramUniformMatrix2x3fv },
+	{ "glProgramUniformMatrix2x4dv", (void *)w_glProgramUniformMatrix2x4dv },
+	{ "glProgramUniformMatrix2x4fv", (void *)w_glProgramUniformMatrix2x4fv },
+	{ "glProgramUniformMatrix3dv", (void *)w_glProgramUniformMatrix3dv },
+	{ "glProgramUniformMatrix3x2dv", (void *)w_glProgramUniformMatrix3x2dv },
+	{ "glProgramUniformMatrix3x2fv", (void *)w_glProgramUniformMatrix3x2fv },
+	{ "glProgramUniformMatrix3x4dv", (void *)w_glProgramUniformMatrix3x4dv },
+	{ "glProgramUniformMatrix3x4fv", (void *)w_glProgramUniformMatrix3x4fv },
+	{ "glProgramUniformMatrix4dv", (void *)w_glProgramUniformMatrix4dv },
+	{ "glProgramUniformMatrix4fv", (void *)w_glProgramUniformMatrix4fv },
+	{ "glProgramUniformMatrix4x2dv", (void *)w_glProgramUniformMatrix4x2dv },
+	{ "glProgramUniformMatrix4x2fv", (void *)w_glProgramUniformMatrix4x2fv },
+	{ "glProgramUniformMatrix4x3dv", (void *)w_glProgramUniformMatrix4x3dv },
+	{ "glProgramUniformMatrix4x3fv", (void *)w_glProgramUniformMatrix4x3fv },
+	{ "glPushDebugGroupKHR", (void *)w_glPushDebugGroupKHR },
+	{ "glQueryCounter", (void *)w_glQueryCounter },
+	{ "glQueryCounterEXT", (void *)w_glQueryCounterEXT },
+	{ "glRenderbufferStorageMultisampleEXT", (void *)w_glRenderbufferStorageMultisampleEXT },
+	{ "glResumeTransformFeedback", (void *)w_glResumeTransformFeedback },
+	{ "glSpecializeShader", (void *)w_glSpecializeShader },
+	{ "glUniform1d", (void *)w_glUniform1d },
+	{ "glUniform1dv", (void *)w_glUniform1dv },
+	{ "glUniform2d", (void *)w_glUniform2d },
+	{ "glUniform2dv", (void *)w_glUniform2dv },
+	{ "glUniform3d", (void *)w_glUniform3d },
+	{ "glUniform3dv", (void *)w_glUniform3dv },
+	{ "glUniform4d", (void *)w_glUniform4d },
+	{ "glUniform4dv", (void *)w_glUniform4dv },
+	{ "glUniformMatrix2dv", (void *)w_glUniformMatrix2dv },
+	{ "glUniformMatrix2x3dv", (void *)w_glUniformMatrix2x3dv },
+	{ "glUniformMatrix2x4dv", (void *)w_glUniformMatrix2x4dv },
+	{ "glUniformMatrix3dv", (void *)w_glUniformMatrix3dv },
+	{ "glUniformMatrix3x2dv", (void *)w_glUniformMatrix3x2dv },
+	{ "glUniformMatrix3x4dv", (void *)w_glUniformMatrix3x4dv },
+	{ "glUniformMatrix4dv", (void *)w_glUniformMatrix4dv },
+	{ "glUniformMatrix4x2dv", (void *)w_glUniformMatrix4x2dv },
+	{ "glUniformMatrix4x3dv", (void *)w_glUniformMatrix4x3dv },
+	{ "glUniformSubroutinesuiv", (void *)w_glUniformSubroutinesuiv },
+	{ "glUseProgramStages", (void *)w_glUseProgramStages },
+	{ "glValidateProgramPipeline", (void *)w_glValidateProgramPipeline },
+	{ "glVertexAttribDivisor", (void *)w_glVertexAttribDivisor },
+	{ "glVertexAttribDivisorARB", (void *)w_glVertexAttribDivisorARB },
 	{ "glVertexAttribL1d", (void *)w_glVertexAttribL1d },
 	{ "glVertexAttribL1dv", (void *)w_glVertexAttribL1dv },
 	{ "glVertexAttribL2d", (void *)w_glVertexAttribL2d },
@@ -7404,7 +8172,6 @@ static const struct ChimeraGlEntry g_entries[] = {
 	{ "glVertexAttribL3dv", (void *)w_glVertexAttribL3dv },
 	{ "glVertexAttribL4d", (void *)w_glVertexAttribL4d },
 	{ "glVertexAttribL4dv", (void *)w_glVertexAttribL4dv },
-	{ "glVertexAttribLFormat", (void *)w_glVertexAttribLFormat },
 	{ "glVertexAttribLPointer", (void *)w_glVertexAttribLPointer },
 	{ "glVertexAttribP1ui", (void *)w_glVertexAttribP1ui },
 	{ "glVertexAttribP1uiv", (void *)w_glVertexAttribP1uiv },
@@ -7414,34 +8181,17 @@ static const struct ChimeraGlEntry g_entries[] = {
 	{ "glVertexAttribP3uiv", (void *)w_glVertexAttribP3uiv },
 	{ "glVertexAttribP4ui", (void *)w_glVertexAttribP4ui },
 	{ "glVertexAttribP4uiv", (void *)w_glVertexAttribP4uiv },
-	{ "glVertexAttribPointer", (void *)w_glVertexAttribPointer },
-	{ "glVertexBindingDivisor", (void *)w_glVertexBindingDivisor },
-	{ "glViewport", (void *)w_glViewport },
-	{ "glViewportArrayv", (void *)w_glViewportArrayv },
-	{ "glViewportIndexedf", (void *)w_glViewportIndexedf },
-	{ "glViewportIndexedfv", (void *)w_glViewportIndexedfv },
-	{ "glWaitSync", (void *)w_glWaitSync },
 };
 
-static int chimera_gl_entry_cmp(const void *key, const void *el)
+/* What a glad loader asks for. Unknown names answer null, which is what glad
+ * expects for an entry point the driver does not have. */
+void *chimera_gl_lookup(const char *name)
 {
-	return strcmp((const char *)key, ((const struct ChimeraGlEntry *)el)->name);
-}
+	for (size_t i = 0; i < sizeof g_entries / sizeof *g_entries; i++)
+	{
+		if (std::strcmp(g_entries[i].name, name) == 0)
+			return g_entries[i].fn;
+	}
 
-extern "C" void chimera_gl_install(chimera_gl_bridge_fn bridge)
-{
-	g_bridge = bridge;
-}
-
-/* The loader wgpu is handed. A name we do not carry answers NULL, which is
- * what a driver does for an entry point it does not have; wgpu then treats
- * that extension as absent rather than calling into nothing. */
-extern "C" void *chimera_gl_lookup(const char *name)
-{
-	if (!g_bridge || !name)
-		return NULL;
-	const struct ChimeraGlEntry *hit = (const struct ChimeraGlEntry *)bsearch(
-		name, g_entries, sizeof g_entries / sizeof g_entries[0],
-		sizeof g_entries[0], chimera_gl_entry_cmp);
-	return hit ? hit->fn : NULL;
+	return nullptr;
 }

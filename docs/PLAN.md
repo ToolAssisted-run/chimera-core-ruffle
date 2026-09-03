@@ -225,3 +225,44 @@ snapshots at once while the graphics driver is itself allocating, and the
 handler re-enters the allocator on a held lock. The failure was mute (a fault
 inside the handler is delivered with SIGSEGV blocked, so the process is killed
 with no diagnosis). Snapshots now come from pages miniBox maps itself.
+
+
+## M7 - the core in Chimera (DONE)
+
+`ruffle.chimeraCore` builds, loads in the frontend's engine, and draws.
+
+`tests/run-frontend.sh`, 3/3:
+  * **package** - core.wbx, waterbox.config, default_keybinds.json,
+    file_slots.json, licences, provenance; packaged deterministically, so the
+    SHA1 is the core's identity and a movie can cite it.
+  * **keybinds** - all 103 buttons and both axes have a default binding.
+    Flash is played with the keyboard and mouse a desktop already has, so the
+    default is the identity: every key drives the key of the same name.
+  * **engine:picture** - chimera-run (the same session the GUI drives) plays a
+    movie and writes a frame that matches ruffle's own expected PNG to 0.356%
+    of pixels - the same figure the core's own image gate reports.
+
+What the engine needed that the core did not have:
+
+  * **the movie from the VFS.** The engine mounts the game as a file named by
+    `romFile`; Init now reads it, and AllocSwf remains for the gate's runner.
+  * **the shared opcode table.** The core generated its own numbering at
+    first, which meant nothing to the engine: opcodes live in miniBox
+    (source/gl) precisely because a package is a guest binary while the host
+    half lives in whatever runs it. 169 entry points a wgpu renderer names
+    were appended there (append-only), and the core now generates against it.
+  * **the frame rate per movie.** A SWF carries its own, and it is not always
+    whole, so GetVsyncNumerator/Denominator report a ratio.
+  * **the pointer, normalised.** The frontend sends a position across the
+    range the config declares and the core scales it to the movie's stage,
+    which is the same shape as a light gun's screen axes on other cores. The
+    gate keeps exact stage pixels through SetMousePixels.
+  * **memory domains, honestly empty.** A movie's state is a garbage collected
+    object graph; there is no address that means the same thing twice, and
+    publishing the guest heap as "RAM" would look searchable and quietly lie.
+
+And one bug the engine found that the core's own gate could not: the GL
+extension filter (buffer_storage) had been implemented in the gate's host, so
+it did not apply under the engine's context and every upload failed there.
+It now lives in the guest, where it belongs - the core knows it cannot use a
+persistent mapping across the bridge, whoever is hosting it.

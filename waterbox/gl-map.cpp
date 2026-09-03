@@ -20,7 +20,7 @@
 #include <cstring>
 #include <cstdio>
 
-extern "C" void *chimera_gl_lookup(const char *name);
+extern "C" void *chimera_gl_lookup(const char *name);   /* the generated table */
 
 namespace {
 
@@ -184,4 +184,54 @@ extern "C" void chimera_gl_get_buffer_pointerv(GLenum target, GLenum pname, void
 		return;
 	Mapping *m = find(target);
 	*params = (pname == GL_BUFFER_MAP_POINTER && m) ? m->staging : nullptr;
+}
+
+
+/* Extensions this core must not believe in, whoever is hosting it.
+ *
+ * buffer_storage makes a buffer IMMUTABLE and is the gateway to persistent
+ * mapping - a pointer into the driver's memory, held for the buffer's life,
+ * which is the one thing this bridge can never carry. Worse, wgpu takes the
+ * extension as licence to allocate with glBufferStorage and then still write
+ * through glBufferSubData, which an immutable buffer rejects: every upload
+ * fails with GL_INVALID_OPERATION and the frame comes out empty with nothing
+ * anywhere saying why.
+ *
+ * The filtering belongs HERE rather than in a host, because every host would
+ * otherwise have to know this core's business. Across this seam the driver
+ * genuinely cannot offer the extension, so the core is told a truth about
+ * itself: renamed rather than blanked, because an empty string makes the
+ * generated wrapper answer NULL and the caller runs strlen on it.
+ */
+static bool withheld(const char *ext)
+{
+	return std::strcmp(ext, "GL_ARB_buffer_storage") == 0
+	    || std::strcmp(ext, "GL_EXT_buffer_storage") == 0;
+}
+
+extern "C" const GLubyte *chimera_gl_get_stringi(GLenum name, GLuint index)
+{
+	auto real = (const GLubyte *(*)(GLenum, GLuint))chimera_gl_lookup("glGetStringi");
+	const GLubyte *s = real ? real(name, index) : nullptr;
+	if (s && name == GL_EXTENSIONS && withheld((const char *)s))
+		return (const GLubyte *)"GL_CHIMERA_withheld";
+	return s;
+}
+
+/* The loader the renderer is actually handed.
+ *
+ * Buffer mapping is answered here rather than across the bridge, so it has to
+ * displace the generated wrappers for those five names. Everything else falls
+ * through to the shared table unchanged. */
+extern "C" void *chimera_gl_lookup_guest(const char *name)
+{
+	if (!name)
+		return nullptr;
+	if (std::strcmp(name, "glMapBufferRange") == 0)         return (void *)chimera_gl_map_buffer_range;
+	if (std::strcmp(name, "glMapBuffer") == 0)              return (void *)chimera_gl_map_buffer;
+	if (std::strcmp(name, "glUnmapBuffer") == 0)            return (void *)chimera_gl_unmap_buffer;
+	if (std::strcmp(name, "glFlushMappedBufferRange") == 0) return (void *)chimera_gl_flush_mapped_buffer_range;
+	if (std::strcmp(name, "glGetBufferPointerv") == 0)      return (void *)chimera_gl_get_buffer_pointerv;
+	if (std::strcmp(name, "glGetStringi") == 0)             return (void *)chimera_gl_get_stringi;
+	return chimera_gl_lookup(name);
 }

@@ -26,7 +26,7 @@
  * system GL header, so the two platforms cannot disagree about either. */
 #include <glad/gl.h>
 
-#include "gl-bridge.h"
+#include "gl-bridge.h"   /* miniBox/source/gl: the shared protocol */
 #include "generated/gl-bridge-ops.h"
 
 #include <stdio.h>
@@ -273,31 +273,6 @@ const char *chimera_gl_host_description(void)
 static uintptr_t chimera_gl_dispatch_inner(uintptr_t op, uintptr_t a, uintptr_t b,
                                            uintptr_t c, uintptr_t d, uintptr_t e);
 
-/* Extensions the guest must not be told about.
- *
- * buffer_storage makes a buffer IMMUTABLE and is the gateway to persistent
- * mapping - a pointer into the driver's memory, held for the buffer's life.
- * That pointer is the one thing this bridge can never carry. Worse, wgpu takes
- * the extension as licence to allocate with glBufferStorage and then still
- * write through glBufferSubData, which an immutable buffer rejects: every
- * upload fails with GL_INVALID_OPERATION and the frame comes out empty, with
- * nothing anywhere saying why.
- *
- * Hiding the extension is the honest answer rather than a workaround: across
- * this seam the driver genuinely cannot offer it, so we describe a driver that
- * does not. wgpu then allocates mutable buffers and uploads with sub-data,
- * which crosses perfectly well. */
-static void chimera_gl_hide_unsupportable(uintptr_t op, uintptr_t buf)
-{
-	if (op != CHIMERA_GL_OP_glGetStringi || !buf)
-		return;
-	char *s = (char *)buf;
-	/* Renamed, not blanked: an empty string makes the guest's wrapper hand
-	 * back NULL, and the caller runs strlen on it. The guest sees an
-	 * extension nobody looks for. */
-	if (strcmp(s, "GL_ARB_buffer_storage") == 0 || strcmp(s, "GL_EXT_buffer_storage") == 0)
-		snprintf(s, 22, "GL_CHIMERA_withheld");
-}
 
 /* CHIMERA_GL_CHECK=1 asks the driver, after every crossing, whether that call
  * upset it. A bridge hides GL errors otherwise: the guest never sees them and
@@ -308,13 +283,10 @@ uintptr_t BRIDGE_ABI chimera_gl_host_dispatch(uintptr_t op, uintptr_t a, uintptr
 	static int check = -1;
 	if (check < 0) { const char *v = getenv("CHIMERA_GL_CHECK"); check = v && *v && *v != '0'; }
 	if (!check) {
-		uintptr_t rv = chimera_gl_dispatch_inner(op, a, b, c, d, e);
-		chimera_gl_hide_unsupportable(op, b);
-		return rv;
+		return chimera_gl_dispatch_inner(op, a, b, c, d, e);
 	}
 	while (glGetError() != GL_NO_ERROR) { }
 	uintptr_t r = chimera_gl_dispatch_inner(op, a, b, c, d, e);
-	chimera_gl_hide_unsupportable(op, b);
 	GLenum err = glGetError();
 	if (err != GL_NO_ERROR) {
 		fprintf(stderr, "[gl!] op=%lu raised %#x\n", (unsigned long)op, err);
@@ -339,6 +311,12 @@ static uintptr_t chimera_gl_dispatch_inner(uintptr_t op, uintptr_t a, uintptr_t 
 
 	switch (op)
 	{
+		case GL_OP_LIST_LENGTH:
+			/* How many entry points this host knows. The guest compares it with
+			 * what it was built against and declines us if we are behind; the
+			 * list being append-only is what makes that check sufficient. */
+			return CHIMERA_GL_OP_LIST_LENGTH;
+
 		case GL_OP_VERSION:
 		{
 			/* Never hand a host pointer back: the guest cannot read host

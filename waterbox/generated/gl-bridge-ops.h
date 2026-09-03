@@ -2,63 +2,32 @@
  * Do not edit; edit the generator or the name list beside it. */
 #pragma once
 
-/* void glActiveShaderProgram(GLuint pipeline, GLuint program) */
-#define CHIMERA_GL_OP_glActiveShaderProgram 100
-struct ChimeraGlArgs_glActiveShaderProgram {
-	GLuint pipeline;
-	GLuint program;
-};
+/* How many entry points the MASTER list holds. A guest built
+ * against a longer one than the host has refuses to start. */
+#define CHIMERA_GL_OP_LIST_LENGTH 752
 
 /* void glActiveTexture(GLenum texture) */
-#define CHIMERA_GL_OP_glActiveTexture 101
+#define CHIMERA_GL_OP_glActiveTexture 100
 struct ChimeraGlArgs_glActiveTexture {
 	GLenum texture;
 };
 
 /* void glAttachShader(GLuint program, GLuint shader) */
-#define CHIMERA_GL_OP_glAttachShader 102
+#define CHIMERA_GL_OP_glAttachShader 101
 struct ChimeraGlArgs_glAttachShader {
 	GLuint program;
 	GLuint shader;
 };
 
-/* void glBeginConditionalRender(GLuint id, GLenum mode) */
-#define CHIMERA_GL_OP_glBeginConditionalRender 103
-struct ChimeraGlArgs_glBeginConditionalRender {
-	GLuint id;
-	GLenum mode;
-};
-
 /* void glBeginQuery(GLenum target, GLuint id) */
-#define CHIMERA_GL_OP_glBeginQuery 104
+#define CHIMERA_GL_OP_glBeginQuery 102
 struct ChimeraGlArgs_glBeginQuery {
 	GLenum target;
 	GLuint id;
 };
 
-/* void glBeginQueryEXT(GLenum target, GLuint id) */
-#define CHIMERA_GL_OP_glBeginQueryEXT 105
-struct ChimeraGlArgs_glBeginQueryEXT {
-	GLenum target;
-	GLuint id;
-};
-
-/* void glBeginQueryIndexed(GLenum target, GLuint index, GLuint id) */
-#define CHIMERA_GL_OP_glBeginQueryIndexed 106
-struct ChimeraGlArgs_glBeginQueryIndexed {
-	GLenum target;
-	GLuint index;
-	GLuint id;
-};
-
-/* void glBeginTransformFeedback(GLenum primitiveMode) */
-#define CHIMERA_GL_OP_glBeginTransformFeedback 107
-struct ChimeraGlArgs_glBeginTransformFeedback {
-	GLenum primitiveMode;
-};
-
 /* void glBindAttribLocation(GLuint program, GLuint index, const GLchar * name) */
-#define CHIMERA_GL_OP_glBindAttribLocation 108
+#define CHIMERA_GL_OP_glBindAttribLocation 103
 struct ChimeraGlArgs_glBindAttribLocation {
 	GLuint program;
 	GLuint index;
@@ -66,22 +35,14 @@ struct ChimeraGlArgs_glBindAttribLocation {
 };
 
 /* void glBindBuffer(GLenum target, GLuint buffer) */
-#define CHIMERA_GL_OP_glBindBuffer 109
+#define CHIMERA_GL_OP_glBindBuffer 104
 struct ChimeraGlArgs_glBindBuffer {
 	GLenum target;
 	GLuint buffer;
 };
 
-/* void glBindBufferBase(GLenum target, GLuint index, GLuint buffer) */
-#define CHIMERA_GL_OP_glBindBufferBase 110
-struct ChimeraGlArgs_glBindBufferBase {
-	GLenum target;
-	GLuint index;
-	GLuint buffer;
-};
-
 /* void glBindBufferRange(GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size) */
-#define CHIMERA_GL_OP_glBindBufferRange 111
+#define CHIMERA_GL_OP_glBindBufferRange 105
 struct ChimeraGlArgs_glBindBufferRange {
 	GLenum target;
 	GLuint index;
@@ -90,28 +51,8 @@ struct ChimeraGlArgs_glBindBufferRange {
 	GLsizeiptr size;
 };
 
-/* void glBindBuffersBase(GLenum target, GLuint first, GLsizei count, const GLuint * buffers) */
-#define CHIMERA_GL_OP_glBindBuffersBase 112
-struct ChimeraGlArgs_glBindBuffersBase {
-	GLenum target;
-	GLuint first;
-	GLsizei count;
-	const GLuint * buffers;
-};
-
-/* void glBindBuffersRange(GLenum target, GLuint first, GLsizei count, const GLuint * buffers, const GLintptr * offsets, const GLsizeiptr * sizes) */
-#define CHIMERA_GL_OP_glBindBuffersRange 113
-struct ChimeraGlArgs_glBindBuffersRange {
-	GLenum target;
-	GLuint first;
-	GLsizei count;
-	const GLuint * buffers;
-	const GLintptr * offsets;
-	const GLsizeiptr * sizes;
-};
-
 /* void glBindFragDataLocation(GLuint program, GLuint color, const GLchar * name) */
-#define CHIMERA_GL_OP_glBindFragDataLocation 114
+#define CHIMERA_GL_OP_glBindFragDataLocation 106
 struct ChimeraGlArgs_glBindFragDataLocation {
 	GLuint program;
 	GLuint color;
@@ -119,7 +60,7 @@ struct ChimeraGlArgs_glBindFragDataLocation {
 };
 
 /* void glBindFragDataLocationIndexed(GLuint program, GLuint colorNumber, GLuint index, const GLchar * name) */
-#define CHIMERA_GL_OP_glBindFragDataLocationIndexed 115
+#define CHIMERA_GL_OP_glBindFragDataLocationIndexed 107
 struct ChimeraGlArgs_glBindFragDataLocationIndexed {
 	GLuint program;
 	GLuint colorNumber;
@@ -128,14 +69,14 @@ struct ChimeraGlArgs_glBindFragDataLocationIndexed {
 };
 
 /* void glBindFramebuffer(GLenum target, GLuint framebuffer) */
-#define CHIMERA_GL_OP_glBindFramebuffer 116
+#define CHIMERA_GL_OP_glBindFramebuffer 109
 struct ChimeraGlArgs_glBindFramebuffer {
 	GLenum target;
 	GLuint framebuffer;
 };
 
 /* void glBindImageTexture(GLuint unit, GLuint texture, GLint level, GLboolean layered, GLint layer, GLenum access, GLenum format) */
-#define CHIMERA_GL_OP_glBindImageTexture 117
+#define CHIMERA_GL_OP_glBindImageTexture 110
 struct ChimeraGlArgs_glBindImageTexture {
 	GLuint unit;
 	GLuint texture;
@@ -146,113 +87,42 @@ struct ChimeraGlArgs_glBindImageTexture {
 	GLenum format;
 };
 
-/* void glBindImageTextures(GLuint first, GLsizei count, const GLuint * textures) */
-#define CHIMERA_GL_OP_glBindImageTextures 118
-struct ChimeraGlArgs_glBindImageTextures {
-	GLuint first;
-	GLsizei count;
-	const GLuint * textures;
-};
-
-/* void glBindProgramPipeline(GLuint pipeline) */
-#define CHIMERA_GL_OP_glBindProgramPipeline 119
-struct ChimeraGlArgs_glBindProgramPipeline {
-	GLuint pipeline;
-};
-
 /* void glBindRenderbuffer(GLenum target, GLuint renderbuffer) */
-#define CHIMERA_GL_OP_glBindRenderbuffer 120
+#define CHIMERA_GL_OP_glBindRenderbuffer 111
 struct ChimeraGlArgs_glBindRenderbuffer {
 	GLenum target;
 	GLuint renderbuffer;
 };
 
 /* void glBindSampler(GLuint unit, GLuint sampler) */
-#define CHIMERA_GL_OP_glBindSampler 121
+#define CHIMERA_GL_OP_glBindSampler 112
 struct ChimeraGlArgs_glBindSampler {
 	GLuint unit;
 	GLuint sampler;
 };
 
-/* void glBindSamplers(GLuint first, GLsizei count, const GLuint * samplers) */
-#define CHIMERA_GL_OP_glBindSamplers 122
-struct ChimeraGlArgs_glBindSamplers {
-	GLuint first;
-	GLsizei count;
-	const GLuint * samplers;
-};
-
 /* void glBindTexture(GLenum target, GLuint texture) */
-#define CHIMERA_GL_OP_glBindTexture 123
+#define CHIMERA_GL_OP_glBindTexture 113
 struct ChimeraGlArgs_glBindTexture {
 	GLenum target;
 	GLuint texture;
 };
 
-/* void glBindTextures(GLuint first, GLsizei count, const GLuint * textures) */
-#define CHIMERA_GL_OP_glBindTextures 124
-struct ChimeraGlArgs_glBindTextures {
-	GLuint first;
-	GLsizei count;
-	const GLuint * textures;
-};
-
 /* void glBindTextureUnit(GLuint unit, GLuint texture) */
-#define CHIMERA_GL_OP_glBindTextureUnit 125
+#define CHIMERA_GL_OP_glBindTextureUnit 114
 struct ChimeraGlArgs_glBindTextureUnit {
 	GLuint unit;
 	GLuint texture;
 };
 
-/* void glBindTransformFeedback(GLenum target, GLuint id) */
-#define CHIMERA_GL_OP_glBindTransformFeedback 126
-struct ChimeraGlArgs_glBindTransformFeedback {
-	GLenum target;
-	GLuint id;
-};
-
 /* void glBindVertexArray(GLuint array) */
-#define CHIMERA_GL_OP_glBindVertexArray 127
+#define CHIMERA_GL_OP_glBindVertexArray 115
 struct ChimeraGlArgs_glBindVertexArray {
 	GLuint array;
 };
 
-/* void glBindVertexArrayAPPLE(GLuint array) */
-#define CHIMERA_GL_OP_glBindVertexArrayAPPLE 128
-struct ChimeraGlArgs_glBindVertexArrayAPPLE {
-	GLuint array;
-};
-
-/* void glBindVertexArrayOES(GLuint array) */
-#define CHIMERA_GL_OP_glBindVertexArrayOES 129
-struct ChimeraGlArgs_glBindVertexArrayOES {
-	GLuint array;
-};
-
-/* void glBindVertexBuffer(GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride) */
-#define CHIMERA_GL_OP_glBindVertexBuffer 130
-struct ChimeraGlArgs_glBindVertexBuffer {
-	GLuint bindingindex;
-	GLuint buffer;
-	GLintptr offset;
-	GLsizei stride;
-};
-
-/* void glBindVertexBuffers(GLuint first, GLsizei count, const GLuint * buffers, const GLintptr * offsets, const GLsizei * strides) */
-#define CHIMERA_GL_OP_glBindVertexBuffers 131
-struct ChimeraGlArgs_glBindVertexBuffers {
-	GLuint first;
-	GLsizei count;
-	const GLuint * buffers;
-	const GLintptr * offsets;
-	const GLsizei * strides;
-};
-
-/* void glBlendBarrier(void) */
-#define CHIMERA_GL_OP_glBlendBarrier 132
-
 /* void glBlendColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) */
-#define CHIMERA_GL_OP_glBlendColor 133
+#define CHIMERA_GL_OP_glBlendColor 116
 struct ChimeraGlArgs_glBlendColor {
 	GLfloat red;
 	GLfloat green;
@@ -260,51 +130,22 @@ struct ChimeraGlArgs_glBlendColor {
 	GLfloat alpha;
 };
 
-/* void glBlendEquation(GLenum mode) */
-#define CHIMERA_GL_OP_glBlendEquation 134
-struct ChimeraGlArgs_glBlendEquation {
-	GLenum mode;
-};
-
-/* void glBlendEquationi(GLuint buf, GLenum mode) */
-#define CHIMERA_GL_OP_glBlendEquationi 135
-struct ChimeraGlArgs_glBlendEquationi {
-	GLuint buf;
-	GLenum mode;
-};
-
 /* void glBlendEquationSeparate(GLenum modeRGB, GLenum modeAlpha) */
-#define CHIMERA_GL_OP_glBlendEquationSeparate 136
+#define CHIMERA_GL_OP_glBlendEquationSeparate 117
 struct ChimeraGlArgs_glBlendEquationSeparate {
 	GLenum modeRGB;
 	GLenum modeAlpha;
 };
 
-/* void glBlendEquationSeparatei(GLuint buf, GLenum modeRGB, GLenum modeAlpha) */
-#define CHIMERA_GL_OP_glBlendEquationSeparatei 137
-struct ChimeraGlArgs_glBlendEquationSeparatei {
-	GLuint buf;
-	GLenum modeRGB;
-	GLenum modeAlpha;
-};
-
 /* void glBlendFunc(GLenum sfactor, GLenum dfactor) */
-#define CHIMERA_GL_OP_glBlendFunc 138
+#define CHIMERA_GL_OP_glBlendFunc 118
 struct ChimeraGlArgs_glBlendFunc {
 	GLenum sfactor;
 	GLenum dfactor;
 };
 
-/* void glBlendFunci(GLuint buf, GLenum src, GLenum dst) */
-#define CHIMERA_GL_OP_glBlendFunci 139
-struct ChimeraGlArgs_glBlendFunci {
-	GLuint buf;
-	GLenum src;
-	GLenum dst;
-};
-
 /* void glBlendFuncSeparate(GLenum sfactorRGB, GLenum dfactorRGB, GLenum sfactorAlpha, GLenum dfactorAlpha) */
-#define CHIMERA_GL_OP_glBlendFuncSeparate 140
+#define CHIMERA_GL_OP_glBlendFuncSeparate 119
 struct ChimeraGlArgs_glBlendFuncSeparate {
 	GLenum sfactorRGB;
 	GLenum dfactorRGB;
@@ -312,18 +153,8 @@ struct ChimeraGlArgs_glBlendFuncSeparate {
 	GLenum dfactorAlpha;
 };
 
-/* void glBlendFuncSeparatei(GLuint buf, GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha) */
-#define CHIMERA_GL_OP_glBlendFuncSeparatei 141
-struct ChimeraGlArgs_glBlendFuncSeparatei {
-	GLuint buf;
-	GLenum srcRGB;
-	GLenum dstRGB;
-	GLenum srcAlpha;
-	GLenum dstAlpha;
-};
-
 /* void glBlitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter) */
-#define CHIMERA_GL_OP_glBlitFramebuffer 142
+#define CHIMERA_GL_OP_glBlitFramebuffer 120
 struct ChimeraGlArgs_glBlitFramebuffer {
 	GLint srcX0;
 	GLint srcY0;
@@ -337,25 +168,8 @@ struct ChimeraGlArgs_glBlitFramebuffer {
 	GLenum filter;
 };
 
-/* void glBlitNamedFramebuffer(GLuint readFramebuffer, GLuint drawFramebuffer, GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter) */
-#define CHIMERA_GL_OP_glBlitNamedFramebuffer 143
-struct ChimeraGlArgs_glBlitNamedFramebuffer {
-	GLuint readFramebuffer;
-	GLuint drawFramebuffer;
-	GLint srcX0;
-	GLint srcY0;
-	GLint srcX1;
-	GLint srcY1;
-	GLint dstX0;
-	GLint dstY0;
-	GLint dstX1;
-	GLint dstY1;
-	GLbitfield mask;
-	GLenum filter;
-};
-
 /* void glBufferData(GLenum target, GLsizeiptr size, const void * data, GLenum usage) */
-#define CHIMERA_GL_OP_glBufferData 144
+#define CHIMERA_GL_OP_glBufferData 121
 struct ChimeraGlArgs_glBufferData {
 	GLenum target;
 	GLsizeiptr size;
@@ -364,7 +178,7 @@ struct ChimeraGlArgs_glBufferData {
 };
 
 /* void glBufferStorage(GLenum target, GLsizeiptr size, const void * data, GLbitfield flags) */
-#define CHIMERA_GL_OP_glBufferStorage 145
+#define CHIMERA_GL_OP_glBufferStorage 122
 struct ChimeraGlArgs_glBufferStorage {
 	GLenum target;
 	GLsizeiptr size;
@@ -373,7 +187,7 @@ struct ChimeraGlArgs_glBufferStorage {
 };
 
 /* void glBufferStorageEXT(GLenum target, GLsizeiptr size, const void * data, GLbitfield flags) */
-#define CHIMERA_GL_OP_glBufferStorageEXT 146
+#define CHIMERA_GL_OP_glBufferStorageEXT 123
 struct ChimeraGlArgs_glBufferStorageEXT {
 	GLenum target;
 	GLsizeiptr size;
@@ -382,7 +196,7 @@ struct ChimeraGlArgs_glBufferStorageEXT {
 };
 
 /* void glBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const void * data) */
-#define CHIMERA_GL_OP_glBufferSubData 147
+#define CHIMERA_GL_OP_glBufferSubData 124
 struct ChimeraGlArgs_glBufferSubData {
 	GLenum target;
 	GLintptr offset;
@@ -391,52 +205,19 @@ struct ChimeraGlArgs_glBufferSubData {
 };
 
 /* GLenum glCheckFramebufferStatus(GLenum target) */
-#define CHIMERA_GL_OP_glCheckFramebufferStatus 148
+#define CHIMERA_GL_OP_glCheckFramebufferStatus 125
 struct ChimeraGlArgs_glCheckFramebufferStatus {
 	GLenum target;
 };
 
-/* GLenum glCheckNamedFramebufferStatus(GLuint framebuffer, GLenum target) */
-#define CHIMERA_GL_OP_glCheckNamedFramebufferStatus 149
-struct ChimeraGlArgs_glCheckNamedFramebufferStatus {
-	GLuint framebuffer;
-	GLenum target;
-};
-
-/* void glClampColor(GLenum target, GLenum clamp) */
-#define CHIMERA_GL_OP_glClampColor 150
-struct ChimeraGlArgs_glClampColor {
-	GLenum target;
-	GLenum clamp;
-};
-
 /* void glClear(GLbitfield mask) */
-#define CHIMERA_GL_OP_glClear 151
+#define CHIMERA_GL_OP_glClear 126
 struct ChimeraGlArgs_glClear {
 	GLbitfield mask;
 };
 
-/* void glClearBufferData(GLenum target, GLenum internalformat, GLenum format, GLenum type, const void * data) */
-#define CHIMERA_GL_OP_glClearBufferData 152
-struct ChimeraGlArgs_glClearBufferData {
-	GLenum target;
-	GLenum internalformat;
-	GLenum format;
-	GLenum type;
-	const void * data;
-};
-
-/* void glClearBufferfi(GLenum buffer, GLint drawbuffer, GLfloat depth, GLint stencil) */
-#define CHIMERA_GL_OP_glClearBufferfi 153
-struct ChimeraGlArgs_glClearBufferfi {
-	GLenum buffer;
-	GLint drawbuffer;
-	GLfloat depth;
-	GLint stencil;
-};
-
 /* void glClearBufferfv(GLenum buffer, GLint drawbuffer, const GLfloat * value) */
-#define CHIMERA_GL_OP_glClearBufferfv 154
+#define CHIMERA_GL_OP_glClearBufferfv 127
 struct ChimeraGlArgs_glClearBufferfv {
 	GLenum buffer;
 	GLint drawbuffer;
@@ -444,27 +225,15 @@ struct ChimeraGlArgs_glClearBufferfv {
 };
 
 /* void glClearBufferiv(GLenum buffer, GLint drawbuffer, const GLint * value) */
-#define CHIMERA_GL_OP_glClearBufferiv 155
+#define CHIMERA_GL_OP_glClearBufferiv 128
 struct ChimeraGlArgs_glClearBufferiv {
 	GLenum buffer;
 	GLint drawbuffer;
 	const GLint * value;
 };
 
-/* void glClearBufferSubData(GLenum target, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void * data) */
-#define CHIMERA_GL_OP_glClearBufferSubData 156
-struct ChimeraGlArgs_glClearBufferSubData {
-	GLenum target;
-	GLenum internalformat;
-	GLintptr offset;
-	GLsizeiptr size;
-	GLenum format;
-	GLenum type;
-	const void * data;
-};
-
 /* void glClearBufferuiv(GLenum buffer, GLint drawbuffer, const GLuint * value) */
-#define CHIMERA_GL_OP_glClearBufferuiv 157
+#define CHIMERA_GL_OP_glClearBufferuiv 129
 struct ChimeraGlArgs_glClearBufferuiv {
 	GLenum buffer;
 	GLint drawbuffer;
@@ -472,7 +241,7 @@ struct ChimeraGlArgs_glClearBufferuiv {
 };
 
 /* void glClearColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) */
-#define CHIMERA_GL_OP_glClearColor 158
+#define CHIMERA_GL_OP_glClearColor 130
 struct ChimeraGlArgs_glClearColor {
 	GLfloat red;
 	GLfloat green;
@@ -480,111 +249,20 @@ struct ChimeraGlArgs_glClearColor {
 	GLfloat alpha;
 };
 
-/* void glClearDepth(GLdouble depth) */
-#define CHIMERA_GL_OP_glClearDepth 159
-struct ChimeraGlArgs_glClearDepth {
-	GLdouble depth;
-};
-
 /* void glClearDepthf(GLfloat d) */
-#define CHIMERA_GL_OP_glClearDepthf 160
+#define CHIMERA_GL_OP_glClearDepthf 131
 struct ChimeraGlArgs_glClearDepthf {
 	GLfloat d;
 };
 
-/* void glClearNamedBufferData(GLuint buffer, GLenum internalformat, GLenum format, GLenum type, const void * data) */
-#define CHIMERA_GL_OP_glClearNamedBufferData 161
-struct ChimeraGlArgs_glClearNamedBufferData {
-	GLuint buffer;
-	GLenum internalformat;
-	GLenum format;
-	GLenum type;
-	const void * data;
-};
-
-/* void glClearNamedBufferSubData(GLuint buffer, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void * data) */
-#define CHIMERA_GL_OP_glClearNamedBufferSubData 162
-struct ChimeraGlArgs_glClearNamedBufferSubData {
-	GLuint buffer;
-	GLenum internalformat;
-	GLintptr offset;
-	GLsizeiptr size;
-	GLenum format;
-	GLenum type;
-	const void * data;
-};
-
-/* void glClearNamedFramebufferfi(GLuint framebuffer, GLenum buffer, GLint drawbuffer, GLfloat depth, GLint stencil) */
-#define CHIMERA_GL_OP_glClearNamedFramebufferfi 163
-struct ChimeraGlArgs_glClearNamedFramebufferfi {
-	GLuint framebuffer;
-	GLenum buffer;
-	GLint drawbuffer;
-	GLfloat depth;
-	GLint stencil;
-};
-
-/* void glClearNamedFramebufferfv(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLfloat * value) */
-#define CHIMERA_GL_OP_glClearNamedFramebufferfv 164
-struct ChimeraGlArgs_glClearNamedFramebufferfv {
-	GLuint framebuffer;
-	GLenum buffer;
-	GLint drawbuffer;
-	const GLfloat * value;
-};
-
-/* void glClearNamedFramebufferiv(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLint * value) */
-#define CHIMERA_GL_OP_glClearNamedFramebufferiv 165
-struct ChimeraGlArgs_glClearNamedFramebufferiv {
-	GLuint framebuffer;
-	GLenum buffer;
-	GLint drawbuffer;
-	const GLint * value;
-};
-
-/* void glClearNamedFramebufferuiv(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLuint * value) */
-#define CHIMERA_GL_OP_glClearNamedFramebufferuiv 166
-struct ChimeraGlArgs_glClearNamedFramebufferuiv {
-	GLuint framebuffer;
-	GLenum buffer;
-	GLint drawbuffer;
-	const GLuint * value;
-};
-
 /* void glClearStencil(GLint s) */
-#define CHIMERA_GL_OP_glClearStencil 167
+#define CHIMERA_GL_OP_glClearStencil 132
 struct ChimeraGlArgs_glClearStencil {
 	GLint s;
 };
 
-/* void glClearTexImage(GLuint texture, GLint level, GLenum format, GLenum type, const void * data) */
-#define CHIMERA_GL_OP_glClearTexImage 168
-struct ChimeraGlArgs_glClearTexImage {
-	GLuint texture;
-	GLint level;
-	GLenum format;
-	GLenum type;
-	const void * data;
-};
-
-/* void glClearTexSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void * data) */
-#define CHIMERA_GL_OP_glClearTexSubImage 169
-struct ChimeraGlArgs_glClearTexSubImage {
-	GLuint texture;
-	GLint level;
-	GLint xoffset;
-	GLint yoffset;
-	GLint zoffset;
-	GLsizei width;
-	GLsizei height;
-	GLsizei depth;
-	GLenum format;
-	GLenum type;
-	const void * data;
-};
-
 /* GLenum glClientWaitSync(GLsync sync, GLbitfield flags, GLuint64 timeout) */
-#define CHIMERA_GL_OP_glClientWaitSync 170
+#define CHIMERA_GL_OP_glClientWaitSync 133
 struct ChimeraGlArgs_glClientWaitSync {
 	GLsync sync;
 	GLbitfield flags;
@@ -592,14 +270,14 @@ struct ChimeraGlArgs_glClientWaitSync {
 };
 
 /* void glClipControl(GLenum origin, GLenum depth) */
-#define CHIMERA_GL_OP_glClipControl 171
+#define CHIMERA_GL_OP_glClipControl 134
 struct ChimeraGlArgs_glClipControl {
 	GLenum origin;
 	GLenum depth;
 };
 
 /* void glColorMask(GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha) */
-#define CHIMERA_GL_OP_glColorMask 172
+#define CHIMERA_GL_OP_glColorMask 135
 struct ChimeraGlArgs_glColorMask {
 	GLboolean red;
 	GLboolean green;
@@ -608,7 +286,7 @@ struct ChimeraGlArgs_glColorMask {
 };
 
 /* void glColorMaski(GLuint index, GLboolean r, GLboolean g, GLboolean b, GLboolean a) */
-#define CHIMERA_GL_OP_glColorMaski 173
+#define CHIMERA_GL_OP_glColorMaski 136
 struct ChimeraGlArgs_glColorMaski {
 	GLuint index;
 	GLboolean r;
@@ -617,75 +295,14 @@ struct ChimeraGlArgs_glColorMaski {
 	GLboolean a;
 };
 
-/* void glColorMaskIndexedEXT(GLuint index, GLboolean r, GLboolean g, GLboolean b, GLboolean a) */
-#define CHIMERA_GL_OP_glColorMaskIndexedEXT 174
-struct ChimeraGlArgs_glColorMaskIndexedEXT {
-	GLuint index;
-	GLboolean r;
-	GLboolean g;
-	GLboolean b;
-	GLboolean a;
-};
-
 /* void glCompileShader(GLuint shader) */
-#define CHIMERA_GL_OP_glCompileShader 175
+#define CHIMERA_GL_OP_glCompileShader 137
 struct ChimeraGlArgs_glCompileShader {
 	GLuint shader;
 };
 
-/* void glCompressedTexImage1D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLint border, GLsizei imageSize, const void * data) */
-#define CHIMERA_GL_OP_glCompressedTexImage1D 176
-struct ChimeraGlArgs_glCompressedTexImage1D {
-	GLenum target;
-	GLint level;
-	GLenum internalformat;
-	GLsizei width;
-	GLint border;
-	GLsizei imageSize;
-	const void * data;
-};
-
-/* void glCompressedTexImage2D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const void * data) */
-#define CHIMERA_GL_OP_glCompressedTexImage2D 177
-struct ChimeraGlArgs_glCompressedTexImage2D {
-	GLenum target;
-	GLint level;
-	GLenum internalformat;
-	GLsizei width;
-	GLsizei height;
-	GLint border;
-	GLsizei imageSize;
-	const void * data;
-};
-
-/* void glCompressedTexImage3D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLsizei imageSize, const void * data) */
-#define CHIMERA_GL_OP_glCompressedTexImage3D 178
-struct ChimeraGlArgs_glCompressedTexImage3D {
-	GLenum target;
-	GLint level;
-	GLenum internalformat;
-	GLsizei width;
-	GLsizei height;
-	GLsizei depth;
-	GLint border;
-	GLsizei imageSize;
-	const void * data;
-};
-
-/* void glCompressedTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void * data) */
-#define CHIMERA_GL_OP_glCompressedTexSubImage1D 179
-struct ChimeraGlArgs_glCompressedTexSubImage1D {
-	GLenum target;
-	GLint level;
-	GLint xoffset;
-	GLsizei width;
-	GLenum format;
-	GLsizei imageSize;
-	const void * data;
-};
-
 /* void glCompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void * data) */
-#define CHIMERA_GL_OP_glCompressedTexSubImage2D 180
+#define CHIMERA_GL_OP_glCompressedTexSubImage2D 138
 struct ChimeraGlArgs_glCompressedTexSubImage2D {
 	GLenum target;
 	GLint level;
@@ -698,36 +315,8 @@ struct ChimeraGlArgs_glCompressedTexSubImage2D {
 	const void * data;
 };
 
-/* void glCompressedTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void * data) */
-#define CHIMERA_GL_OP_glCompressedTexSubImage3D 181
-struct ChimeraGlArgs_glCompressedTexSubImage3D {
-	GLenum target;
-	GLint level;
-	GLint xoffset;
-	GLint yoffset;
-	GLint zoffset;
-	GLsizei width;
-	GLsizei height;
-	GLsizei depth;
-	GLenum format;
-	GLsizei imageSize;
-	const void * data;
-};
-
-/* void glCompressedTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void * data) */
-#define CHIMERA_GL_OP_glCompressedTextureSubImage1D 182
-struct ChimeraGlArgs_glCompressedTextureSubImage1D {
-	GLuint texture;
-	GLint level;
-	GLint xoffset;
-	GLsizei width;
-	GLenum format;
-	GLsizei imageSize;
-	const void * data;
-};
-
 /* void glCompressedTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void * data) */
-#define CHIMERA_GL_OP_glCompressedTextureSubImage2D 183
+#define CHIMERA_GL_OP_glCompressedTextureSubImage2D 139
 struct ChimeraGlArgs_glCompressedTextureSubImage2D {
 	GLuint texture;
 	GLint level;
@@ -740,44 +329,8 @@ struct ChimeraGlArgs_glCompressedTextureSubImage2D {
 	const void * data;
 };
 
-/* void glCompressedTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void * data) */
-#define CHIMERA_GL_OP_glCompressedTextureSubImage3D 184
-struct ChimeraGlArgs_glCompressedTextureSubImage3D {
-	GLuint texture;
-	GLint level;
-	GLint xoffset;
-	GLint yoffset;
-	GLint zoffset;
-	GLsizei width;
-	GLsizei height;
-	GLsizei depth;
-	GLenum format;
-	GLsizei imageSize;
-	const void * data;
-};
-
-/* void glCopyBufferSubData(GLenum readTarget, GLenum writeTarget, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size) */
-#define CHIMERA_GL_OP_glCopyBufferSubData 185
-struct ChimeraGlArgs_glCopyBufferSubData {
-	GLenum readTarget;
-	GLenum writeTarget;
-	GLintptr readOffset;
-	GLintptr writeOffset;
-	GLsizeiptr size;
-};
-
-/* void glCopyBufferSubDataNV(GLenum readTarget, GLenum writeTarget, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size) */
-#define CHIMERA_GL_OP_glCopyBufferSubDataNV 186
-struct ChimeraGlArgs_glCopyBufferSubDataNV {
-	GLenum readTarget;
-	GLenum writeTarget;
-	GLintptr readOffset;
-	GLintptr writeOffset;
-	GLsizeiptr size;
-};
-
 /* void glCopyImageSubData(GLuint srcName, GLenum srcTarget, GLint srcLevel, GLint srcX, GLint srcY, GLint srcZ, GLuint dstName, GLenum dstTarget, GLint dstLevel, GLint dstX, GLint dstY, GLint dstZ, GLsizei srcWidth, GLsizei srcHeight, GLsizei srcDepth) */
-#define CHIMERA_GL_OP_glCopyImageSubData 187
+#define CHIMERA_GL_OP_glCopyImageSubData 140
 struct ChimeraGlArgs_glCopyImageSubData {
 	GLuint srcName;
 	GLenum srcTarget;
@@ -796,8 +349,1478 @@ struct ChimeraGlArgs_glCopyImageSubData {
 	GLsizei srcDepth;
 };
 
+/* void glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height) */
+#define CHIMERA_GL_OP_glCopyTexSubImage2D 143
+struct ChimeraGlArgs_glCopyTexSubImage2D {
+	GLenum target;
+	GLint level;
+	GLint xoffset;
+	GLint yoffset;
+	GLint x;
+	GLint y;
+	GLsizei width;
+	GLsizei height;
+};
+
+/* void glCopyTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height) */
+#define CHIMERA_GL_OP_glCopyTextureSubImage2D 144
+struct ChimeraGlArgs_glCopyTextureSubImage2D {
+	GLuint texture;
+	GLint level;
+	GLint xoffset;
+	GLint yoffset;
+	GLint x;
+	GLint y;
+	GLsizei width;
+	GLsizei height;
+};
+
+/* GLuint glCreateProgram(void) */
+#define CHIMERA_GL_OP_glCreateProgram 145
+
+/* void glCreateSamplers(GLsizei n, GLuint * samplers) */
+#define CHIMERA_GL_OP_glCreateSamplers 146
+struct ChimeraGlArgs_glCreateSamplers {
+	GLsizei n;
+	GLuint * samplers;
+};
+
+/* GLuint glCreateShader(GLenum type) */
+#define CHIMERA_GL_OP_glCreateShader 147
+struct ChimeraGlArgs_glCreateShader {
+	GLenum type;
+};
+
+/* void glCreateTextures(GLenum target, GLsizei n, GLuint * textures) */
+#define CHIMERA_GL_OP_glCreateTextures 148
+struct ChimeraGlArgs_glCreateTextures {
+	GLenum target;
+	GLsizei n;
+	GLuint * textures;
+};
+
+/* void glCullFace(GLenum mode) */
+#define CHIMERA_GL_OP_glCullFace 149
+struct ChimeraGlArgs_glCullFace {
+	GLenum mode;
+};
+
+/* void glDebugMessageCallback(GLDEBUGPROC callback, const void * userParam) */
+#define CHIMERA_GL_OP_glDebugMessageCallback 150
+struct ChimeraGlArgs_glDebugMessageCallback {
+	GLDEBUGPROC callback;
+	const void * userParam;
+};
+
+/* void glDebugMessageControl(GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint * ids, GLboolean enabled) */
+#define CHIMERA_GL_OP_glDebugMessageControl 151
+struct ChimeraGlArgs_glDebugMessageControl {
+	GLenum source;
+	GLenum type;
+	GLenum severity;
+	GLsizei count;
+	const GLuint * ids;
+	GLboolean enabled;
+};
+
+/* void glDeleteBuffers(GLsizei n, const GLuint * buffers) */
+#define CHIMERA_GL_OP_glDeleteBuffers 152
+struct ChimeraGlArgs_glDeleteBuffers {
+	GLsizei n;
+	const GLuint * buffers;
+};
+
+/* void glDeleteFramebuffers(GLsizei n, const GLuint * framebuffers) */
+#define CHIMERA_GL_OP_glDeleteFramebuffers 153
+struct ChimeraGlArgs_glDeleteFramebuffers {
+	GLsizei n;
+	const GLuint * framebuffers;
+};
+
+/* void glDeleteProgram(GLuint program) */
+#define CHIMERA_GL_OP_glDeleteProgram 154
+struct ChimeraGlArgs_glDeleteProgram {
+	GLuint program;
+};
+
+/* void glDeleteQueries(GLsizei n, const GLuint * ids) */
+#define CHIMERA_GL_OP_glDeleteQueries 155
+struct ChimeraGlArgs_glDeleteQueries {
+	GLsizei n;
+	const GLuint * ids;
+};
+
+/* void glDeleteRenderbuffers(GLsizei n, const GLuint * renderbuffers) */
+#define CHIMERA_GL_OP_glDeleteRenderbuffers 156
+struct ChimeraGlArgs_glDeleteRenderbuffers {
+	GLsizei n;
+	const GLuint * renderbuffers;
+};
+
+/* void glDeleteSamplers(GLsizei count, const GLuint * samplers) */
+#define CHIMERA_GL_OP_glDeleteSamplers 157
+struct ChimeraGlArgs_glDeleteSamplers {
+	GLsizei count;
+	const GLuint * samplers;
+};
+
+/* void glDeleteShader(GLuint shader) */
+#define CHIMERA_GL_OP_glDeleteShader 158
+struct ChimeraGlArgs_glDeleteShader {
+	GLuint shader;
+};
+
+/* void glDeleteSync(GLsync sync) */
+#define CHIMERA_GL_OP_glDeleteSync 159
+struct ChimeraGlArgs_glDeleteSync {
+	GLsync sync;
+};
+
+/* void glDeleteTextures(GLsizei n, const GLuint * textures) */
+#define CHIMERA_GL_OP_glDeleteTextures 160
+struct ChimeraGlArgs_glDeleteTextures {
+	GLsizei n;
+	const GLuint * textures;
+};
+
+/* void glDeleteVertexArrays(GLsizei n, const GLuint * arrays) */
+#define CHIMERA_GL_OP_glDeleteVertexArrays 161
+struct ChimeraGlArgs_glDeleteVertexArrays {
+	GLsizei n;
+	const GLuint * arrays;
+};
+
+/* void glDepthFunc(GLenum func) */
+#define CHIMERA_GL_OP_glDepthFunc 162
+struct ChimeraGlArgs_glDepthFunc {
+	GLenum func;
+};
+
+/* void glDepthMask(GLboolean flag) */
+#define CHIMERA_GL_OP_glDepthMask 163
+struct ChimeraGlArgs_glDepthMask {
+	GLboolean flag;
+};
+
+/* void glDetachShader(GLuint program, GLuint shader) */
+#define CHIMERA_GL_OP_glDetachShader 164
+struct ChimeraGlArgs_glDetachShader {
+	GLuint program;
+	GLuint shader;
+};
+
+/* void glDisable(GLenum cap) */
+#define CHIMERA_GL_OP_glDisable 165
+struct ChimeraGlArgs_glDisable {
+	GLenum cap;
+};
+
+/* void glDisableVertexAttribArray(GLuint index) */
+#define CHIMERA_GL_OP_glDisableVertexAttribArray 166
+struct ChimeraGlArgs_glDisableVertexAttribArray {
+	GLuint index;
+};
+
+/* void glDispatchCompute(GLuint num_groups_x, GLuint num_groups_y, GLuint num_groups_z) */
+#define CHIMERA_GL_OP_glDispatchCompute 167
+struct ChimeraGlArgs_glDispatchCompute {
+	GLuint num_groups_x;
+	GLuint num_groups_y;
+	GLuint num_groups_z;
+};
+
+/* void glDrawArrays(GLenum mode, GLint first, GLsizei count) */
+#define CHIMERA_GL_OP_glDrawArrays 168
+struct ChimeraGlArgs_glDrawArrays {
+	GLenum mode;
+	GLint first;
+	GLsizei count;
+};
+
+/* void glDrawBuffers(GLsizei n, const GLenum * bufs) */
+#define CHIMERA_GL_OP_glDrawBuffers 169
+struct ChimeraGlArgs_glDrawBuffers {
+	GLsizei n;
+	const GLenum * bufs;
+};
+
+/* void glDrawElements(GLenum mode, GLsizei count, GLenum type, const void * indices) */
+#define CHIMERA_GL_OP_glDrawElements 170
+struct ChimeraGlArgs_glDrawElements {
+	GLenum mode;
+	GLsizei count;
+	GLenum type;
+	const void * indices;
+};
+
+/* void glDrawElementsBaseVertex(GLenum mode, GLsizei count, GLenum type, const void * indices, GLint basevertex) */
+#define CHIMERA_GL_OP_glDrawElementsBaseVertex 171
+struct ChimeraGlArgs_glDrawElementsBaseVertex {
+	GLenum mode;
+	GLsizei count;
+	GLenum type;
+	const void * indices;
+	GLint basevertex;
+};
+
+/* void glEnable(GLenum cap) */
+#define CHIMERA_GL_OP_glEnable 172
+struct ChimeraGlArgs_glEnable {
+	GLenum cap;
+};
+
+/* void glEnableVertexAttribArray(GLuint index) */
+#define CHIMERA_GL_OP_glEnableVertexAttribArray 173
+struct ChimeraGlArgs_glEnableVertexAttribArray {
+	GLuint index;
+};
+
+/* void glEndQuery(GLenum target) */
+#define CHIMERA_GL_OP_glEndQuery 174
+struct ChimeraGlArgs_glEndQuery {
+	GLenum target;
+};
+
+/* GLsync glFenceSync(GLenum condition, GLbitfield flags) */
+#define CHIMERA_GL_OP_glFenceSync 175
+struct ChimeraGlArgs_glFenceSync {
+	GLenum condition;
+	GLbitfield flags;
+};
+
+/* void glFlushMappedBufferRange(GLenum target, GLintptr offset, GLsizeiptr length) */
+#define CHIMERA_GL_OP_glFlushMappedBufferRange 176
+struct ChimeraGlArgs_glFlushMappedBufferRange {
+	GLenum target;
+	GLintptr offset;
+	GLsizeiptr length;
+};
+
+/* void glFramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer) */
+#define CHIMERA_GL_OP_glFramebufferRenderbuffer 177
+struct ChimeraGlArgs_glFramebufferRenderbuffer {
+	GLenum target;
+	GLenum attachment;
+	GLenum renderbuffertarget;
+	GLuint renderbuffer;
+};
+
+/* void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level) */
+#define CHIMERA_GL_OP_glFramebufferTexture2D 178
+struct ChimeraGlArgs_glFramebufferTexture2D {
+	GLenum target;
+	GLenum attachment;
+	GLenum textarget;
+	GLuint texture;
+	GLint level;
+};
+
+/* void glGenBuffers(GLsizei n, GLuint * buffers) */
+#define CHIMERA_GL_OP_glGenBuffers 179
+struct ChimeraGlArgs_glGenBuffers {
+	GLsizei n;
+	GLuint * buffers;
+};
+
+/* void glGenerateMipmap(GLenum target) */
+#define CHIMERA_GL_OP_glGenerateMipmap 180
+struct ChimeraGlArgs_glGenerateMipmap {
+	GLenum target;
+};
+
+/* void glGenerateTextureMipmap(GLuint texture) */
+#define CHIMERA_GL_OP_glGenerateTextureMipmap 181
+struct ChimeraGlArgs_glGenerateTextureMipmap {
+	GLuint texture;
+};
+
+/* void glGenFramebuffers(GLsizei n, GLuint * framebuffers) */
+#define CHIMERA_GL_OP_glGenFramebuffers 182
+struct ChimeraGlArgs_glGenFramebuffers {
+	GLsizei n;
+	GLuint * framebuffers;
+};
+
+/* void glGenQueries(GLsizei n, GLuint * ids) */
+#define CHIMERA_GL_OP_glGenQueries 183
+struct ChimeraGlArgs_glGenQueries {
+	GLsizei n;
+	GLuint * ids;
+};
+
+/* void glGenRenderbuffers(GLsizei n, GLuint * renderbuffers) */
+#define CHIMERA_GL_OP_glGenRenderbuffers 184
+struct ChimeraGlArgs_glGenRenderbuffers {
+	GLsizei n;
+	GLuint * renderbuffers;
+};
+
+/* void glGenSamplers(GLsizei count, GLuint * samplers) */
+#define CHIMERA_GL_OP_glGenSamplers 185
+struct ChimeraGlArgs_glGenSamplers {
+	GLsizei count;
+	GLuint * samplers;
+};
+
+/* void glGenTextures(GLsizei n, GLuint * textures) */
+#define CHIMERA_GL_OP_glGenTextures 186
+struct ChimeraGlArgs_glGenTextures {
+	GLsizei n;
+	GLuint * textures;
+};
+
+/* void glGenVertexArrays(GLsizei n, GLuint * arrays) */
+#define CHIMERA_GL_OP_glGenVertexArrays 187
+struct ChimeraGlArgs_glGenVertexArrays {
+	GLsizei n;
+	GLuint * arrays;
+};
+
+/* GLenum glGetError(void) */
+#define CHIMERA_GL_OP_glGetError 188
+
+/* void glGetFloatv(GLenum pname, GLfloat * data) */
+#define CHIMERA_GL_OP_glGetFloatv 189
+struct ChimeraGlArgs_glGetFloatv {
+	GLenum pname;
+	GLfloat * data;
+};
+
+/* void glGetIntegerv(GLenum pname, GLint * data) */
+#define CHIMERA_GL_OP_glGetIntegerv 190
+struct ChimeraGlArgs_glGetIntegerv {
+	GLenum pname;
+	GLint * data;
+};
+
+/* void glGetProgramBinary(GLuint program, GLsizei bufSize, GLsizei * length, GLenum * binaryFormat, void * binary) */
+#define CHIMERA_GL_OP_glGetProgramBinary 191
+struct ChimeraGlArgs_glGetProgramBinary {
+	GLuint program;
+	GLsizei bufSize;
+	GLsizei * length;
+	GLenum * binaryFormat;
+	void * binary;
+};
+
+/* void glGetProgramInfoLog(GLuint program, GLsizei bufSize, GLsizei * length, GLchar * infoLog) */
+#define CHIMERA_GL_OP_glGetProgramInfoLog 192
+struct ChimeraGlArgs_glGetProgramInfoLog {
+	GLuint program;
+	GLsizei bufSize;
+	GLsizei * length;
+	GLchar * infoLog;
+};
+
+/* void glGetProgramiv(GLuint program, GLenum pname, GLint * params) */
+#define CHIMERA_GL_OP_glGetProgramiv 193
+struct ChimeraGlArgs_glGetProgramiv {
+	GLuint program;
+	GLenum pname;
+	GLint * params;
+};
+
+/* void glGetQueryObjectiv(GLuint id, GLenum pname, GLint * params) */
+#define CHIMERA_GL_OP_glGetQueryObjectiv 194
+struct ChimeraGlArgs_glGetQueryObjectiv {
+	GLuint id;
+	GLenum pname;
+	GLint * params;
+};
+
+/* void glGetQueryObjectui64v(GLuint id, GLenum pname, GLuint64 * params) */
+#define CHIMERA_GL_OP_glGetQueryObjectui64v 195
+struct ChimeraGlArgs_glGetQueryObjectui64v {
+	GLuint id;
+	GLenum pname;
+	GLuint64 * params;
+};
+
+/* void glGetShaderInfoLog(GLuint shader, GLsizei bufSize, GLsizei * length, GLchar * infoLog) */
+#define CHIMERA_GL_OP_glGetShaderInfoLog 196
+struct ChimeraGlArgs_glGetShaderInfoLog {
+	GLuint shader;
+	GLsizei bufSize;
+	GLsizei * length;
+	GLchar * infoLog;
+};
+
+/* void glGetShaderiv(GLuint shader, GLenum pname, GLint * params) */
+#define CHIMERA_GL_OP_glGetShaderiv 197
+struct ChimeraGlArgs_glGetShaderiv {
+	GLuint shader;
+	GLenum pname;
+	GLint * params;
+};
+
+/* void glGetShaderPrecisionFormat(GLenum shadertype, GLenum precisiontype, GLint * range, GLint * precision) */
+#define CHIMERA_GL_OP_glGetShaderPrecisionFormat 198
+struct ChimeraGlArgs_glGetShaderPrecisionFormat {
+	GLenum shadertype;
+	GLenum precisiontype;
+	GLint * range;
+	GLint * precision;
+};
+
+/* const GLubyte * glGetString(GLenum name) */
+#define CHIMERA_GL_OP_glGetString 199
+struct ChimeraGlArgs_glGetString {
+	GLenum name;
+};
+
+/* const GLubyte * glGetStringi(GLenum name, GLuint index) */
+#define CHIMERA_GL_OP_glGetStringi 200
+struct ChimeraGlArgs_glGetStringi {
+	GLenum name;
+	GLuint index;
+};
+
+/* void glGetTexImage(GLenum target, GLint level, GLenum format, GLenum type, void * pixels) */
+#define CHIMERA_GL_OP_glGetTexImage 201
+struct ChimeraGlArgs_glGetTexImage {
+	GLenum target;
+	GLint level;
+	GLenum format;
+	GLenum type;
+	void * pixels;
+};
+
+/* void glGetTextureImage(GLuint texture, GLint level, GLenum format, GLenum type, GLsizei bufSize, void * pixels) */
+#define CHIMERA_GL_OP_glGetTextureImage 202
+struct ChimeraGlArgs_glGetTextureImage {
+	GLuint texture;
+	GLint level;
+	GLenum format;
+	GLenum type;
+	GLsizei bufSize;
+	void * pixels;
+};
+
+/* GLuint glGetUniformBlockIndex(GLuint program, const GLchar * uniformBlockName) */
+#define CHIMERA_GL_OP_glGetUniformBlockIndex 203
+struct ChimeraGlArgs_glGetUniformBlockIndex {
+	GLuint program;
+	const GLchar * uniformBlockName;
+};
+
+/* GLint glGetUniformLocation(GLuint program, const GLchar * name) */
+#define CHIMERA_GL_OP_glGetUniformLocation 204
+struct ChimeraGlArgs_glGetUniformLocation {
+	GLuint program;
+	const GLchar * name;
+};
+
+/* void glHint(GLenum target, GLenum mode) */
+#define CHIMERA_GL_OP_glHint 205
+struct ChimeraGlArgs_glHint {
+	GLenum target;
+	GLenum mode;
+};
+
+/* void glInvalidateFramebuffer(GLenum target, GLsizei numAttachments, const GLenum * attachments) */
+#define CHIMERA_GL_OP_glInvalidateFramebuffer 206
+struct ChimeraGlArgs_glInvalidateFramebuffer {
+	GLenum target;
+	GLsizei numAttachments;
+	const GLenum * attachments;
+};
+
+/* void glLineWidth(GLfloat width) */
+#define CHIMERA_GL_OP_glLineWidth 207
+struct ChimeraGlArgs_glLineWidth {
+	GLfloat width;
+};
+
+/* void glLinkProgram(GLuint program) */
+#define CHIMERA_GL_OP_glLinkProgram 208
+struct ChimeraGlArgs_glLinkProgram {
+	GLuint program;
+};
+
+/* void * glMapBufferRange(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access) */
+#define CHIMERA_GL_OP_glMapBufferRange 209
+struct ChimeraGlArgs_glMapBufferRange {
+	GLenum target;
+	GLintptr offset;
+	GLsizeiptr length;
+	GLbitfield access;
+};
+
+/* void glMemoryBarrier(GLbitfield barriers) */
+#define CHIMERA_GL_OP_glMemoryBarrier 210
+struct ChimeraGlArgs_glMemoryBarrier {
+	GLbitfield barriers;
+};
+
+/* void glPixelStorei(GLenum pname, GLint param) */
+#define CHIMERA_GL_OP_glPixelStorei 211
+struct ChimeraGlArgs_glPixelStorei {
+	GLenum pname;
+	GLint param;
+};
+
+/* void glPolygonMode(GLenum face, GLenum mode) */
+#define CHIMERA_GL_OP_glPolygonMode 212
+struct ChimeraGlArgs_glPolygonMode {
+	GLenum face;
+	GLenum mode;
+};
+
+/* void glPrimitiveRestartIndex(GLuint index) */
+#define CHIMERA_GL_OP_glPrimitiveRestartIndex 213
+struct ChimeraGlArgs_glPrimitiveRestartIndex {
+	GLuint index;
+};
+
+/* void glProgramBinary(GLuint program, GLenum binaryFormat, const void * binary, GLsizei length) */
+#define CHIMERA_GL_OP_glProgramBinary 214
+struct ChimeraGlArgs_glProgramBinary {
+	GLuint program;
+	GLenum binaryFormat;
+	const void * binary;
+	GLsizei length;
+};
+
+/* void glProgramParameteri(GLuint program, GLenum pname, GLint value) */
+#define CHIMERA_GL_OP_glProgramParameteri 215
+struct ChimeraGlArgs_glProgramParameteri {
+	GLuint program;
+	GLenum pname;
+	GLint value;
+};
+
+/* void glReadBuffer(GLenum src) */
+#define CHIMERA_GL_OP_glReadBuffer 216
+struct ChimeraGlArgs_glReadBuffer {
+	GLenum src;
+};
+
+/* void glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, void * pixels) */
+#define CHIMERA_GL_OP_glReadPixels 217
+struct ChimeraGlArgs_glReadPixels {
+	GLint x;
+	GLint y;
+	GLsizei width;
+	GLsizei height;
+	GLenum format;
+	GLenum type;
+	void * pixels;
+};
+
+/* void glRenderbufferStorage(GLenum target, GLenum internalformat, GLsizei width, GLsizei height) */
+#define CHIMERA_GL_OP_glRenderbufferStorage 218
+struct ChimeraGlArgs_glRenderbufferStorage {
+	GLenum target;
+	GLenum internalformat;
+	GLsizei width;
+	GLsizei height;
+};
+
+/* void glSamplerParameterf(GLuint sampler, GLenum pname, GLfloat param) */
+#define CHIMERA_GL_OP_glSamplerParameterf 219
+struct ChimeraGlArgs_glSamplerParameterf {
+	GLuint sampler;
+	GLenum pname;
+	GLfloat param;
+};
+
+/* void glSamplerParameteri(GLuint sampler, GLenum pname, GLint param) */
+#define CHIMERA_GL_OP_glSamplerParameteri 220
+struct ChimeraGlArgs_glSamplerParameteri {
+	GLuint sampler;
+	GLenum pname;
+	GLint param;
+};
+
+/* void glScissor(GLint x, GLint y, GLsizei width, GLsizei height) */
+#define CHIMERA_GL_OP_glScissor 221
+struct ChimeraGlArgs_glScissor {
+	GLint x;
+	GLint y;
+	GLsizei width;
+	GLsizei height;
+};
+
+/* void glScissorIndexed(GLuint index, GLint left, GLint bottom, GLsizei width, GLsizei height) */
+#define CHIMERA_GL_OP_glScissorIndexed 222
+struct ChimeraGlArgs_glScissorIndexed {
+	GLuint index;
+	GLint left;
+	GLint bottom;
+	GLsizei width;
+	GLsizei height;
+};
+
+/* void glShaderSource(GLuint shader, GLsizei count, const GLchar *const* string, const GLint * length) */
+#define CHIMERA_GL_OP_glShaderSource 223
+struct ChimeraGlArgs_glShaderSource {
+	GLuint shader;
+	GLsizei count;
+	const GLchar *const* string;
+	const GLint * length;
+};
+
+/* void glStencilFunc(GLenum func, GLint ref, GLuint mask) */
+#define CHIMERA_GL_OP_glStencilFunc 224
+struct ChimeraGlArgs_glStencilFunc {
+	GLenum func;
+	GLint ref;
+	GLuint mask;
+};
+
+/* void glStencilMask(GLuint mask) */
+#define CHIMERA_GL_OP_glStencilMask 225
+struct ChimeraGlArgs_glStencilMask {
+	GLuint mask;
+};
+
+/* void glStencilOp(GLenum fail, GLenum zfail, GLenum zpass) */
+#define CHIMERA_GL_OP_glStencilOp 226
+struct ChimeraGlArgs_glStencilOp {
+	GLenum fail;
+	GLenum zfail;
+	GLenum zpass;
+};
+
+/* void glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void * pixels) */
+#define CHIMERA_GL_OP_glTexImage2D 227
+struct ChimeraGlArgs_glTexImage2D {
+	GLenum target;
+	GLint level;
+	GLint internalformat;
+	GLsizei width;
+	GLsizei height;
+	GLint border;
+	GLenum format;
+	GLenum type;
+	const void * pixels;
+};
+
+/* void glTexParameterf(GLenum target, GLenum pname, GLfloat param) */
+#define CHIMERA_GL_OP_glTexParameterf 228
+struct ChimeraGlArgs_glTexParameterf {
+	GLenum target;
+	GLenum pname;
+	GLfloat param;
+};
+
+/* void glTexParameterfv(GLenum target, GLenum pname, const GLfloat * params) */
+#define CHIMERA_GL_OP_glTexParameterfv 229
+struct ChimeraGlArgs_glTexParameterfv {
+	GLenum target;
+	GLenum pname;
+	const GLfloat * params;
+};
+
+/* void glTexParameteri(GLenum target, GLenum pname, GLint param) */
+#define CHIMERA_GL_OP_glTexParameteri 230
+struct ChimeraGlArgs_glTexParameteri {
+	GLenum target;
+	GLenum pname;
+	GLint param;
+};
+
+/* void glTexStorage2D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height) */
+#define CHIMERA_GL_OP_glTexStorage2D 231
+struct ChimeraGlArgs_glTexStorage2D {
+	GLenum target;
+	GLsizei levels;
+	GLenum internalformat;
+	GLsizei width;
+	GLsizei height;
+};
+
+/* void glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void * pixels) */
+#define CHIMERA_GL_OP_glTexSubImage2D 232
+struct ChimeraGlArgs_glTexSubImage2D {
+	GLenum target;
+	GLint level;
+	GLint xoffset;
+	GLint yoffset;
+	GLsizei width;
+	GLsizei height;
+	GLenum format;
+	GLenum type;
+	const void * pixels;
+};
+
+/* void glTextureBarrier(void) */
+#define CHIMERA_GL_OP_glTextureBarrier 233
+
+/* void glTextureParameteri(GLuint texture, GLenum pname, GLint param) */
+#define CHIMERA_GL_OP_glTextureParameteri 235
+struct ChimeraGlArgs_glTextureParameteri {
+	GLuint texture;
+	GLenum pname;
+	GLint param;
+};
+
+/* void glTextureStorage2D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height) */
+#define CHIMERA_GL_OP_glTextureStorage2D 236
+struct ChimeraGlArgs_glTextureStorage2D {
+	GLuint texture;
+	GLsizei levels;
+	GLenum internalformat;
+	GLsizei width;
+	GLsizei height;
+};
+
+/* void glTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void * pixels) */
+#define CHIMERA_GL_OP_glTextureSubImage2D 237
+struct ChimeraGlArgs_glTextureSubImage2D {
+	GLuint texture;
+	GLint level;
+	GLint xoffset;
+	GLint yoffset;
+	GLsizei width;
+	GLsizei height;
+	GLenum format;
+	GLenum type;
+	const void * pixels;
+};
+
+/* void glUniform1f(GLint location, GLfloat v0) */
+#define CHIMERA_GL_OP_glUniform1f 238
+struct ChimeraGlArgs_glUniform1f {
+	GLint location;
+	GLfloat v0;
+};
+
+/* void glUniform1i(GLint location, GLint v0) */
+#define CHIMERA_GL_OP_glUniform1i 239
+struct ChimeraGlArgs_glUniform1i {
+	GLint location;
+	GLint v0;
+};
+
+/* void glUniform1ui(GLint location, GLuint v0) */
+#define CHIMERA_GL_OP_glUniform1ui 240
+struct ChimeraGlArgs_glUniform1ui {
+	GLint location;
+	GLuint v0;
+};
+
+/* void glUniform2f(GLint location, GLfloat v0, GLfloat v1) */
+#define CHIMERA_GL_OP_glUniform2f 241
+struct ChimeraGlArgs_glUniform2f {
+	GLint location;
+	GLfloat v0;
+	GLfloat v1;
+};
+
+/* void glUniform2fv(GLint location, GLsizei count, const GLfloat * value) */
+#define CHIMERA_GL_OP_glUniform2fv 242
+struct ChimeraGlArgs_glUniform2fv {
+	GLint location;
+	GLsizei count;
+	const GLfloat * value;
+};
+
+/* void glUniform2i(GLint location, GLint v0, GLint v1) */
+#define CHIMERA_GL_OP_glUniform2i 243
+struct ChimeraGlArgs_glUniform2i {
+	GLint location;
+	GLint v0;
+	GLint v1;
+};
+
+/* void glUniform2iv(GLint location, GLsizei count, const GLint * value) */
+#define CHIMERA_GL_OP_glUniform2iv 244
+struct ChimeraGlArgs_glUniform2iv {
+	GLint location;
+	GLsizei count;
+	const GLint * value;
+};
+
+/* void glUniform2ui(GLint location, GLuint v0, GLuint v1) */
+#define CHIMERA_GL_OP_glUniform2ui 245
+struct ChimeraGlArgs_glUniform2ui {
+	GLint location;
+	GLuint v0;
+	GLuint v1;
+};
+
+/* void glUniform2uiv(GLint location, GLsizei count, const GLuint * value) */
+#define CHIMERA_GL_OP_glUniform2uiv 246
+struct ChimeraGlArgs_glUniform2uiv {
+	GLint location;
+	GLsizei count;
+	const GLuint * value;
+};
+
+/* void glUniform3f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2) */
+#define CHIMERA_GL_OP_glUniform3f 247
+struct ChimeraGlArgs_glUniform3f {
+	GLint location;
+	GLfloat v0;
+	GLfloat v1;
+	GLfloat v2;
+};
+
+/* void glUniform3fv(GLint location, GLsizei count, const GLfloat * value) */
+#define CHIMERA_GL_OP_glUniform3fv 248
+struct ChimeraGlArgs_glUniform3fv {
+	GLint location;
+	GLsizei count;
+	const GLfloat * value;
+};
+
+/* void glUniform3i(GLint location, GLint v0, GLint v1, GLint v2) */
+#define CHIMERA_GL_OP_glUniform3i 249
+struct ChimeraGlArgs_glUniform3i {
+	GLint location;
+	GLint v0;
+	GLint v1;
+	GLint v2;
+};
+
+/* void glUniform3iv(GLint location, GLsizei count, const GLint * value) */
+#define CHIMERA_GL_OP_glUniform3iv 250
+struct ChimeraGlArgs_glUniform3iv {
+	GLint location;
+	GLsizei count;
+	const GLint * value;
+};
+
+/* void glUniform3ui(GLint location, GLuint v0, GLuint v1, GLuint v2) */
+#define CHIMERA_GL_OP_glUniform3ui 251
+struct ChimeraGlArgs_glUniform3ui {
+	GLint location;
+	GLuint v0;
+	GLuint v1;
+	GLuint v2;
+};
+
+/* void glUniform3uiv(GLint location, GLsizei count, const GLuint * value) */
+#define CHIMERA_GL_OP_glUniform3uiv 252
+struct ChimeraGlArgs_glUniform3uiv {
+	GLint location;
+	GLsizei count;
+	const GLuint * value;
+};
+
+/* void glUniform4f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3) */
+#define CHIMERA_GL_OP_glUniform4f 253
+struct ChimeraGlArgs_glUniform4f {
+	GLint location;
+	GLfloat v0;
+	GLfloat v1;
+	GLfloat v2;
+	GLfloat v3;
+};
+
+/* void glUniform4fv(GLint location, GLsizei count, const GLfloat * value) */
+#define CHIMERA_GL_OP_glUniform4fv 254
+struct ChimeraGlArgs_glUniform4fv {
+	GLint location;
+	GLsizei count;
+	const GLfloat * value;
+};
+
+/* void glUniform4i(GLint location, GLint v0, GLint v1, GLint v2, GLint v3) */
+#define CHIMERA_GL_OP_glUniform4i 255
+struct ChimeraGlArgs_glUniform4i {
+	GLint location;
+	GLint v0;
+	GLint v1;
+	GLint v2;
+	GLint v3;
+};
+
+/* void glUniform4iv(GLint location, GLsizei count, const GLint * value) */
+#define CHIMERA_GL_OP_glUniform4iv 256
+struct ChimeraGlArgs_glUniform4iv {
+	GLint location;
+	GLsizei count;
+	const GLint * value;
+};
+
+/* void glUniform4ui(GLint location, GLuint v0, GLuint v1, GLuint v2, GLuint v3) */
+#define CHIMERA_GL_OP_glUniform4ui 257
+struct ChimeraGlArgs_glUniform4ui {
+	GLint location;
+	GLuint v0;
+	GLuint v1;
+	GLuint v2;
+	GLuint v3;
+};
+
+/* void glUniform4uiv(GLint location, GLsizei count, const GLuint * value) */
+#define CHIMERA_GL_OP_glUniform4uiv 258
+struct ChimeraGlArgs_glUniform4uiv {
+	GLint location;
+	GLsizei count;
+	const GLuint * value;
+};
+
+/* void glUniformBlockBinding(GLuint program, GLuint uniformBlockIndex, GLuint uniformBlockBinding) */
+#define CHIMERA_GL_OP_glUniformBlockBinding 259
+struct ChimeraGlArgs_glUniformBlockBinding {
+	GLuint program;
+	GLuint uniformBlockIndex;
+	GLuint uniformBlockBinding;
+};
+
+/* void glUniformMatrix2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat * value) */
+#define CHIMERA_GL_OP_glUniformMatrix2fv 260
+struct ChimeraGlArgs_glUniformMatrix2fv {
+	GLint location;
+	GLsizei count;
+	GLboolean transpose;
+	const GLfloat * value;
+};
+
+/* void glUniformMatrix3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat * value) */
+#define CHIMERA_GL_OP_glUniformMatrix3fv 261
+struct ChimeraGlArgs_glUniformMatrix3fv {
+	GLint location;
+	GLsizei count;
+	GLboolean transpose;
+	const GLfloat * value;
+};
+
+/* void glUniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat * value) */
+#define CHIMERA_GL_OP_glUniformMatrix4fv 262
+struct ChimeraGlArgs_glUniformMatrix4fv {
+	GLint location;
+	GLsizei count;
+	GLboolean transpose;
+	const GLfloat * value;
+};
+
+/* GLboolean glUnmapBuffer(GLenum target) */
+#define CHIMERA_GL_OP_glUnmapBuffer 263
+struct ChimeraGlArgs_glUnmapBuffer {
+	GLenum target;
+};
+
+/* void glUseProgram(GLuint program) */
+#define CHIMERA_GL_OP_glUseProgram 264
+struct ChimeraGlArgs_glUseProgram {
+	GLuint program;
+};
+
+/* void glVertexAttribIPointer(GLuint index, GLint size, GLenum type, GLsizei stride, const void * pointer) */
+#define CHIMERA_GL_OP_glVertexAttribIPointer 265
+struct ChimeraGlArgs_glVertexAttribIPointer {
+	GLuint index;
+	GLint size;
+	GLenum type;
+	GLsizei stride;
+	const void * pointer;
+};
+
+/* void glVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void * pointer) */
+#define CHIMERA_GL_OP_glVertexAttribPointer 266
+struct ChimeraGlArgs_glVertexAttribPointer {
+	GLuint index;
+	GLint size;
+	GLenum type;
+	GLboolean normalized;
+	GLsizei stride;
+	const void * pointer;
+};
+
+/* void glViewport(GLint x, GLint y, GLsizei width, GLsizei height) */
+#define CHIMERA_GL_OP_glViewport 267
+struct ChimeraGlArgs_glViewport {
+	GLint x;
+	GLint y;
+	GLsizei width;
+	GLsizei height;
+};
+
+/* void glViewportIndexedf(GLuint index, GLfloat x, GLfloat y, GLfloat w, GLfloat h) */
+#define CHIMERA_GL_OP_glViewportIndexedf 268
+struct ChimeraGlArgs_glViewportIndexedf {
+	GLuint index;
+	GLfloat x;
+	GLfloat y;
+	GLfloat w;
+	GLfloat h;
+};
+
+/* void glBlendEquation(GLenum mode) */
+#define CHIMERA_GL_OP_glBlendEquation 269
+struct ChimeraGlArgs_glBlendEquation {
+	GLenum mode;
+};
+
+/* void glClearDepth(GLdouble depth) */
+#define CHIMERA_GL_OP_glClearDepth 270
+struct ChimeraGlArgs_glClearDepth {
+	GLdouble depth;
+};
+
+/* void glDebugMessageInsert(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar * buf) */
+#define CHIMERA_GL_OP_glDebugMessageInsert 271
+struct ChimeraGlArgs_glDebugMessageInsert {
+	GLenum source;
+	GLenum type;
+	GLuint id;
+	GLenum severity;
+	GLsizei length;
+	const GLchar * buf;
+};
+
+/* void glFinish(void) */
+#define CHIMERA_GL_OP_glFinish 272
+
+/* void glFrontFace(GLenum mode) */
+#define CHIMERA_GL_OP_glFrontFace 274
+struct ChimeraGlArgs_glFrontFace {
+	GLenum mode;
+};
+
+/* void glGetQueryObjectuiv(GLuint id, GLenum pname, GLuint * params) */
+#define CHIMERA_GL_OP_glGetQueryObjectuiv 275
+struct ChimeraGlArgs_glGetQueryObjectuiv {
+	GLuint id;
+	GLenum pname;
+	GLuint * params;
+};
+
+/* void glMultiDrawArrays(GLenum mode, const GLint * first, const GLsizei * count, GLsizei drawcount) */
+#define CHIMERA_GL_OP_glMultiDrawArrays 276
+struct ChimeraGlArgs_glMultiDrawArrays {
+	GLenum mode;
+	const GLint * first;
+	const GLsizei * count;
+	GLsizei drawcount;
+};
+
+/* void glObjectLabel(GLenum identifier, GLuint name, GLsizei length, const GLchar * label) */
+#define CHIMERA_GL_OP_glObjectLabel 277
+struct ChimeraGlArgs_glObjectLabel {
+	GLenum identifier;
+	GLuint name;
+	GLsizei length;
+	const GLchar * label;
+};
+
+/* void glPopDebugGroup(void) */
+#define CHIMERA_GL_OP_glPopDebugGroup 278
+
+/* void glProgramUniform1i(GLuint program, GLint location, GLint v0) */
+#define CHIMERA_GL_OP_glProgramUniform1i 279
+struct ChimeraGlArgs_glProgramUniform1i {
+	GLuint program;
+	GLint location;
+	GLint v0;
+};
+
+/* void glProgramUniform2f(GLuint program, GLint location, GLfloat v0, GLfloat v1) */
+#define CHIMERA_GL_OP_glProgramUniform2f 280
+struct ChimeraGlArgs_glProgramUniform2f {
+	GLuint program;
+	GLint location;
+	GLfloat v0;
+	GLfloat v1;
+};
+
+/* void glProvokingVertex(GLenum mode) */
+#define CHIMERA_GL_OP_glProvokingVertex 281
+struct ChimeraGlArgs_glProvokingVertex {
+	GLenum mode;
+};
+
+/* void glPushDebugGroup(GLenum source, GLuint id, GLsizei length, const GLchar * message) */
+#define CHIMERA_GL_OP_glPushDebugGroup 282
+struct ChimeraGlArgs_glPushDebugGroup {
+	GLenum source;
+	GLuint id;
+	GLsizei length;
+	const GLchar * message;
+};
+
+/* void glTexImage3D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void * pixels) */
+#define CHIMERA_GL_OP_glTexImage3D 283
+struct ChimeraGlArgs_glTexImage3D {
+	GLenum target;
+	GLint level;
+	GLint internalformat;
+	GLsizei width;
+	GLsizei height;
+	GLsizei depth;
+	GLint border;
+	GLenum format;
+	GLenum type;
+	const void * pixels;
+};
+
+/* void glTexParameteriv(GLenum target, GLenum pname, const GLint * params) */
+#define CHIMERA_GL_OP_glTexParameteriv 284
+struct ChimeraGlArgs_glTexParameteriv {
+	GLenum target;
+	GLenum pname;
+	const GLint * params;
+};
+
+/* void glUniform1fv(GLint location, GLsizei count, const GLfloat * value) */
+#define CHIMERA_GL_OP_glUniform1fv 285
+struct ChimeraGlArgs_glUniform1fv {
+	GLint location;
+	GLsizei count;
+	const GLfloat * value;
+};
+
+/* void glUniform1iv(GLint location, GLsizei count, const GLint * value) */
+#define CHIMERA_GL_OP_glUniform1iv 286
+struct ChimeraGlArgs_glUniform1iv {
+	GLint location;
+	GLsizei count;
+	const GLint * value;
+};
+
+/* void glUniform1uiv(GLint location, GLsizei count, const GLuint * value) */
+#define CHIMERA_GL_OP_glUniform1uiv 287
+struct ChimeraGlArgs_glUniform1uiv {
+	GLint location;
+	GLsizei count;
+	const GLuint * value;
+};
+
+/* void glValidateProgram(GLuint program) */
+#define CHIMERA_GL_OP_glValidateProgram 288
+struct ChimeraGlArgs_glValidateProgram {
+	GLuint program;
+};
+
+/* void glVertexAttrib4fv(GLuint index, const GLfloat * v) */
+#define CHIMERA_GL_OP_glVertexAttrib4fv 289
+struct ChimeraGlArgs_glVertexAttrib4fv {
+	GLuint index;
+	const GLfloat * v;
+};
+
+/* void glBeginConditionalRender(GLuint id, GLenum mode) */
+#define CHIMERA_GL_OP_glBeginConditionalRender 290
+struct ChimeraGlArgs_glBeginConditionalRender {
+	GLuint id;
+	GLenum mode;
+};
+
+/* void glBeginTransformFeedback(GLenum primitiveMode) */
+#define CHIMERA_GL_OP_glBeginTransformFeedback 292
+struct ChimeraGlArgs_glBeginTransformFeedback {
+	GLenum primitiveMode;
+};
+
+/* void glBindBufferBase(GLenum target, GLuint index, GLuint buffer) */
+#define CHIMERA_GL_OP_glBindBufferBase 293
+struct ChimeraGlArgs_glBindBufferBase {
+	GLenum target;
+	GLuint index;
+	GLuint buffer;
+};
+
+/* void glBindBuffersBase(GLenum target, GLuint first, GLsizei count, const GLuint * buffers) */
+#define CHIMERA_GL_OP_glBindBuffersBase 294
+struct ChimeraGlArgs_glBindBuffersBase {
+	GLenum target;
+	GLuint first;
+	GLsizei count;
+	const GLuint * buffers;
+};
+
+/* void glBindBuffersRange(GLenum target, GLuint first, GLsizei count, const GLuint * buffers, const GLintptr * offsets, const GLsizeiptr * sizes) */
+#define CHIMERA_GL_OP_glBindBuffersRange 295
+struct ChimeraGlArgs_glBindBuffersRange {
+	GLenum target;
+	GLuint first;
+	GLsizei count;
+	const GLuint * buffers;
+	const GLintptr * offsets;
+	const GLsizeiptr * sizes;
+};
+
+/* void glBindImageTextures(GLuint first, GLsizei count, const GLuint * textures) */
+#define CHIMERA_GL_OP_glBindImageTextures 296
+struct ChimeraGlArgs_glBindImageTextures {
+	GLuint first;
+	GLsizei count;
+	const GLuint * textures;
+};
+
+/* void glBindSamplers(GLuint first, GLsizei count, const GLuint * samplers) */
+#define CHIMERA_GL_OP_glBindSamplers 297
+struct ChimeraGlArgs_glBindSamplers {
+	GLuint first;
+	GLsizei count;
+	const GLuint * samplers;
+};
+
+/* void glBindTextures(GLuint first, GLsizei count, const GLuint * textures) */
+#define CHIMERA_GL_OP_glBindTextures 298
+struct ChimeraGlArgs_glBindTextures {
+	GLuint first;
+	GLsizei count;
+	const GLuint * textures;
+};
+
+/* void glBindVertexBuffer(GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride) */
+#define CHIMERA_GL_OP_glBindVertexBuffer 299
+struct ChimeraGlArgs_glBindVertexBuffer {
+	GLuint bindingindex;
+	GLuint buffer;
+	GLintptr offset;
+	GLsizei stride;
+};
+
+/* void glBindVertexBuffers(GLuint first, GLsizei count, const GLuint * buffers, const GLintptr * offsets, const GLsizei * strides) */
+#define CHIMERA_GL_OP_glBindVertexBuffers 300
+struct ChimeraGlArgs_glBindVertexBuffers {
+	GLuint first;
+	GLsizei count;
+	const GLuint * buffers;
+	const GLintptr * offsets;
+	const GLsizei * strides;
+};
+
+/* void glBlitNamedFramebuffer(GLuint readFramebuffer, GLuint drawFramebuffer, GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter) */
+#define CHIMERA_GL_OP_glBlitNamedFramebuffer 301
+struct ChimeraGlArgs_glBlitNamedFramebuffer {
+	GLuint readFramebuffer;
+	GLuint drawFramebuffer;
+	GLint srcX0;
+	GLint srcY0;
+	GLint srcX1;
+	GLint srcY1;
+	GLint dstX0;
+	GLint dstY0;
+	GLint dstX1;
+	GLint dstY1;
+	GLbitfield mask;
+	GLenum filter;
+};
+
+/* GLenum glCheckNamedFramebufferStatus(GLuint framebuffer, GLenum target) */
+#define CHIMERA_GL_OP_glCheckNamedFramebufferStatus 302
+struct ChimeraGlArgs_glCheckNamedFramebufferStatus {
+	GLuint framebuffer;
+	GLenum target;
+};
+
+/* void glClampColor(GLenum target, GLenum clamp) */
+#define CHIMERA_GL_OP_glClampColor 303
+struct ChimeraGlArgs_glClampColor {
+	GLenum target;
+	GLenum clamp;
+};
+
+/* void glClearBufferData(GLenum target, GLenum internalformat, GLenum format, GLenum type, const void * data) */
+#define CHIMERA_GL_OP_glClearBufferData 304
+struct ChimeraGlArgs_glClearBufferData {
+	GLenum target;
+	GLenum internalformat;
+	GLenum format;
+	GLenum type;
+	const void * data;
+};
+
+/* void glClearBufferfi(GLenum buffer, GLint drawbuffer, GLfloat depth, GLint stencil) */
+#define CHIMERA_GL_OP_glClearBufferfi 305
+struct ChimeraGlArgs_glClearBufferfi {
+	GLenum buffer;
+	GLint drawbuffer;
+	GLfloat depth;
+	GLint stencil;
+};
+
+/* void glClearBufferSubData(GLenum target, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void * data) */
+#define CHIMERA_GL_OP_glClearBufferSubData 306
+struct ChimeraGlArgs_glClearBufferSubData {
+	GLenum target;
+	GLenum internalformat;
+	GLintptr offset;
+	GLsizeiptr size;
+	GLenum format;
+	GLenum type;
+	const void * data;
+};
+
+/* void glClearNamedBufferData(GLuint buffer, GLenum internalformat, GLenum format, GLenum type, const void * data) */
+#define CHIMERA_GL_OP_glClearNamedBufferData 308
+struct ChimeraGlArgs_glClearNamedBufferData {
+	GLuint buffer;
+	GLenum internalformat;
+	GLenum format;
+	GLenum type;
+	const void * data;
+};
+
+/* void glClearNamedBufferSubData(GLuint buffer, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void * data) */
+#define CHIMERA_GL_OP_glClearNamedBufferSubData 309
+struct ChimeraGlArgs_glClearNamedBufferSubData {
+	GLuint buffer;
+	GLenum internalformat;
+	GLintptr offset;
+	GLsizeiptr size;
+	GLenum format;
+	GLenum type;
+	const void * data;
+};
+
+/* void glClearNamedFramebufferfi(GLuint framebuffer, GLenum buffer, GLint drawbuffer, GLfloat depth, GLint stencil) */
+#define CHIMERA_GL_OP_glClearNamedFramebufferfi 310
+struct ChimeraGlArgs_glClearNamedFramebufferfi {
+	GLuint framebuffer;
+	GLenum buffer;
+	GLint drawbuffer;
+	GLfloat depth;
+	GLint stencil;
+};
+
+/* void glClearNamedFramebufferfv(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLfloat * value) */
+#define CHIMERA_GL_OP_glClearNamedFramebufferfv 311
+struct ChimeraGlArgs_glClearNamedFramebufferfv {
+	GLuint framebuffer;
+	GLenum buffer;
+	GLint drawbuffer;
+	const GLfloat * value;
+};
+
+/* void glClearNamedFramebufferiv(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLint * value) */
+#define CHIMERA_GL_OP_glClearNamedFramebufferiv 312
+struct ChimeraGlArgs_glClearNamedFramebufferiv {
+	GLuint framebuffer;
+	GLenum buffer;
+	GLint drawbuffer;
+	const GLint * value;
+};
+
+/* void glClearNamedFramebufferuiv(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLuint * value) */
+#define CHIMERA_GL_OP_glClearNamedFramebufferuiv 313
+struct ChimeraGlArgs_glClearNamedFramebufferuiv {
+	GLuint framebuffer;
+	GLenum buffer;
+	GLint drawbuffer;
+	const GLuint * value;
+};
+
+/* void glClearTexImage(GLuint texture, GLint level, GLenum format, GLenum type, const void * data) */
+#define CHIMERA_GL_OP_glClearTexImage 314
+struct ChimeraGlArgs_glClearTexImage {
+	GLuint texture;
+	GLint level;
+	GLenum format;
+	GLenum type;
+	const void * data;
+};
+
+/* void glClearTexSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void * data) */
+#define CHIMERA_GL_OP_glClearTexSubImage 315
+struct ChimeraGlArgs_glClearTexSubImage {
+	GLuint texture;
+	GLint level;
+	GLint xoffset;
+	GLint yoffset;
+	GLint zoffset;
+	GLsizei width;
+	GLsizei height;
+	GLsizei depth;
+	GLenum format;
+	GLenum type;
+	const void * data;
+};
+
+/* void glCompressedTexImage1D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLint border, GLsizei imageSize, const void * data) */
+#define CHIMERA_GL_OP_glCompressedTexImage1D 316
+struct ChimeraGlArgs_glCompressedTexImage1D {
+	GLenum target;
+	GLint level;
+	GLenum internalformat;
+	GLsizei width;
+	GLint border;
+	GLsizei imageSize;
+	const void * data;
+};
+
+/* void glCompressedTexImage2D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const void * data) */
+#define CHIMERA_GL_OP_glCompressedTexImage2D 317
+struct ChimeraGlArgs_glCompressedTexImage2D {
+	GLenum target;
+	GLint level;
+	GLenum internalformat;
+	GLsizei width;
+	GLsizei height;
+	GLint border;
+	GLsizei imageSize;
+	const void * data;
+};
+
+/* void glCompressedTexImage3D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLsizei imageSize, const void * data) */
+#define CHIMERA_GL_OP_glCompressedTexImage3D 318
+struct ChimeraGlArgs_glCompressedTexImage3D {
+	GLenum target;
+	GLint level;
+	GLenum internalformat;
+	GLsizei width;
+	GLsizei height;
+	GLsizei depth;
+	GLint border;
+	GLsizei imageSize;
+	const void * data;
+};
+
+/* void glCompressedTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void * data) */
+#define CHIMERA_GL_OP_glCompressedTexSubImage1D 319
+struct ChimeraGlArgs_glCompressedTexSubImage1D {
+	GLenum target;
+	GLint level;
+	GLint xoffset;
+	GLsizei width;
+	GLenum format;
+	GLsizei imageSize;
+	const void * data;
+};
+
+/* void glCompressedTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void * data) */
+#define CHIMERA_GL_OP_glCompressedTexSubImage3D 320
+struct ChimeraGlArgs_glCompressedTexSubImage3D {
+	GLenum target;
+	GLint level;
+	GLint xoffset;
+	GLint yoffset;
+	GLint zoffset;
+	GLsizei width;
+	GLsizei height;
+	GLsizei depth;
+	GLenum format;
+	GLsizei imageSize;
+	const void * data;
+};
+
+/* void glCompressedTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void * data) */
+#define CHIMERA_GL_OP_glCompressedTextureSubImage1D 321
+struct ChimeraGlArgs_glCompressedTextureSubImage1D {
+	GLuint texture;
+	GLint level;
+	GLint xoffset;
+	GLsizei width;
+	GLenum format;
+	GLsizei imageSize;
+	const void * data;
+};
+
+/* void glCompressedTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void * data) */
+#define CHIMERA_GL_OP_glCompressedTextureSubImage3D 322
+struct ChimeraGlArgs_glCompressedTextureSubImage3D {
+	GLuint texture;
+	GLint level;
+	GLint xoffset;
+	GLint yoffset;
+	GLint zoffset;
+	GLsizei width;
+	GLsizei height;
+	GLsizei depth;
+	GLenum format;
+	GLsizei imageSize;
+	const void * data;
+};
+
 /* void glCopyNamedBufferSubData(GLuint readBuffer, GLuint writeBuffer, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size) */
-#define CHIMERA_GL_OP_glCopyNamedBufferSubData 188
+#define CHIMERA_GL_OP_glCopyNamedBufferSubData 323
 struct ChimeraGlArgs_glCopyNamedBufferSubData {
 	GLuint readBuffer;
 	GLuint writeBuffer;
@@ -807,7 +1830,7 @@ struct ChimeraGlArgs_glCopyNamedBufferSubData {
 };
 
 /* void glCopyTexImage1D(GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLint border) */
-#define CHIMERA_GL_OP_glCopyTexImage1D 189
+#define CHIMERA_GL_OP_glCopyTexImage1D 324
 struct ChimeraGlArgs_glCopyTexImage1D {
 	GLenum target;
 	GLint level;
@@ -819,7 +1842,7 @@ struct ChimeraGlArgs_glCopyTexImage1D {
 };
 
 /* void glCopyTexImage2D(GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height, GLint border) */
-#define CHIMERA_GL_OP_glCopyTexImage2D 190
+#define CHIMERA_GL_OP_glCopyTexImage2D 325
 struct ChimeraGlArgs_glCopyTexImage2D {
 	GLenum target;
 	GLint level;
@@ -832,7 +1855,7 @@ struct ChimeraGlArgs_glCopyTexImage2D {
 };
 
 /* void glCopyTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width) */
-#define CHIMERA_GL_OP_glCopyTexSubImage1D 191
+#define CHIMERA_GL_OP_glCopyTexSubImage1D 326
 struct ChimeraGlArgs_glCopyTexSubImage1D {
 	GLenum target;
 	GLint level;
@@ -842,21 +1865,8 @@ struct ChimeraGlArgs_glCopyTexSubImage1D {
 	GLsizei width;
 };
 
-/* void glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height) */
-#define CHIMERA_GL_OP_glCopyTexSubImage2D 192
-struct ChimeraGlArgs_glCopyTexSubImage2D {
-	GLenum target;
-	GLint level;
-	GLint xoffset;
-	GLint yoffset;
-	GLint x;
-	GLint y;
-	GLsizei width;
-	GLsizei height;
-};
-
 /* void glCopyTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height) */
-#define CHIMERA_GL_OP_glCopyTexSubImage3D 193
+#define CHIMERA_GL_OP_glCopyTexSubImage3D 327
 struct ChimeraGlArgs_glCopyTexSubImage3D {
 	GLenum target;
 	GLint level;
@@ -870,7 +1880,7 @@ struct ChimeraGlArgs_glCopyTexSubImage3D {
 };
 
 /* void glCopyTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width) */
-#define CHIMERA_GL_OP_glCopyTextureSubImage1D 194
+#define CHIMERA_GL_OP_glCopyTextureSubImage1D 328
 struct ChimeraGlArgs_glCopyTextureSubImage1D {
 	GLuint texture;
 	GLint level;
@@ -880,21 +1890,8 @@ struct ChimeraGlArgs_glCopyTextureSubImage1D {
 	GLsizei width;
 };
 
-/* void glCopyTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height) */
-#define CHIMERA_GL_OP_glCopyTextureSubImage2D 195
-struct ChimeraGlArgs_glCopyTextureSubImage2D {
-	GLuint texture;
-	GLint level;
-	GLint xoffset;
-	GLint yoffset;
-	GLint x;
-	GLint y;
-	GLsizei width;
-	GLsizei height;
-};
-
 /* void glCopyTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height) */
-#define CHIMERA_GL_OP_glCopyTextureSubImage3D 196
+#define CHIMERA_GL_OP_glCopyTextureSubImage3D 329
 struct ChimeraGlArgs_glCopyTextureSubImage3D {
 	GLuint texture;
 	GLint level;
@@ -908,31 +1905,28 @@ struct ChimeraGlArgs_glCopyTextureSubImage3D {
 };
 
 /* void glCreateBuffers(GLsizei n, GLuint * buffers) */
-#define CHIMERA_GL_OP_glCreateBuffers 197
+#define CHIMERA_GL_OP_glCreateBuffers 330
 struct ChimeraGlArgs_glCreateBuffers {
 	GLsizei n;
 	GLuint * buffers;
 };
 
 /* void glCreateFramebuffers(GLsizei n, GLuint * framebuffers) */
-#define CHIMERA_GL_OP_glCreateFramebuffers 198
+#define CHIMERA_GL_OP_glCreateFramebuffers 331
 struct ChimeraGlArgs_glCreateFramebuffers {
 	GLsizei n;
 	GLuint * framebuffers;
 };
 
-/* GLuint glCreateProgram(void) */
-#define CHIMERA_GL_OP_glCreateProgram 199
-
 /* void glCreateProgramPipelines(GLsizei n, GLuint * pipelines) */
-#define CHIMERA_GL_OP_glCreateProgramPipelines 200
+#define CHIMERA_GL_OP_glCreateProgramPipelines 332
 struct ChimeraGlArgs_glCreateProgramPipelines {
 	GLsizei n;
 	GLuint * pipelines;
 };
 
 /* void glCreateQueries(GLenum target, GLsizei n, GLuint * ids) */
-#define CHIMERA_GL_OP_glCreateQueries 201
+#define CHIMERA_GL_OP_glCreateQueries 333
 struct ChimeraGlArgs_glCreateQueries {
 	GLenum target;
 	GLsizei n;
@@ -940,95 +1934,35 @@ struct ChimeraGlArgs_glCreateQueries {
 };
 
 /* void glCreateRenderbuffers(GLsizei n, GLuint * renderbuffers) */
-#define CHIMERA_GL_OP_glCreateRenderbuffers 202
+#define CHIMERA_GL_OP_glCreateRenderbuffers 334
 struct ChimeraGlArgs_glCreateRenderbuffers {
 	GLsizei n;
 	GLuint * renderbuffers;
 };
 
-/* void glCreateSamplers(GLsizei n, GLuint * samplers) */
-#define CHIMERA_GL_OP_glCreateSamplers 203
-struct ChimeraGlArgs_glCreateSamplers {
-	GLsizei n;
-	GLuint * samplers;
-};
-
-/* GLuint glCreateShader(GLenum type) */
-#define CHIMERA_GL_OP_glCreateShader 204
-struct ChimeraGlArgs_glCreateShader {
-	GLenum type;
-};
-
-/* GLuint glCreateShaderProgramv(GLenum type, GLsizei count, const GLchar *const* strings) */
-#define CHIMERA_GL_OP_glCreateShaderProgramv 205
-struct ChimeraGlArgs_glCreateShaderProgramv {
-	GLenum type;
-	GLsizei count;
-	const GLchar *const* strings;
-};
-
-/* void glCreateTextures(GLenum target, GLsizei n, GLuint * textures) */
-#define CHIMERA_GL_OP_glCreateTextures 206
-struct ChimeraGlArgs_glCreateTextures {
-	GLenum target;
-	GLsizei n;
-	GLuint * textures;
-};
-
 /* void glCreateTransformFeedbacks(GLsizei n, GLuint * ids) */
-#define CHIMERA_GL_OP_glCreateTransformFeedbacks 207
+#define CHIMERA_GL_OP_glCreateTransformFeedbacks 335
 struct ChimeraGlArgs_glCreateTransformFeedbacks {
 	GLsizei n;
 	GLuint * ids;
 };
 
 /* void glCreateVertexArrays(GLsizei n, GLuint * arrays) */
-#define CHIMERA_GL_OP_glCreateVertexArrays 208
+#define CHIMERA_GL_OP_glCreateVertexArrays 336
 struct ChimeraGlArgs_glCreateVertexArrays {
 	GLsizei n;
 	GLuint * arrays;
 };
 
-/* void glCullFace(GLenum mode) */
-#define CHIMERA_GL_OP_glCullFace 209
-struct ChimeraGlArgs_glCullFace {
-	GLenum mode;
-};
-
-/* void glDebugMessageCallback(GLDEBUGPROC callback, const void * userParam) */
-#define CHIMERA_GL_OP_glDebugMessageCallback 210
-struct ChimeraGlArgs_glDebugMessageCallback {
-	GLDEBUGPROC callback;
-	const void * userParam;
-};
-
 /* void glDebugMessageCallbackARB(GLDEBUGPROCARB callback, const void * userParam) */
-#define CHIMERA_GL_OP_glDebugMessageCallbackARB 211
+#define CHIMERA_GL_OP_glDebugMessageCallbackARB 337
 struct ChimeraGlArgs_glDebugMessageCallbackARB {
 	GLDEBUGPROCARB callback;
 	const void * userParam;
 };
 
-/* void glDebugMessageCallbackKHR(GLDEBUGPROCKHR callback, const void * userParam) */
-#define CHIMERA_GL_OP_glDebugMessageCallbackKHR 212
-struct ChimeraGlArgs_glDebugMessageCallbackKHR {
-	GLDEBUGPROCKHR callback;
-	const void * userParam;
-};
-
-/* void glDebugMessageControl(GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint * ids, GLboolean enabled) */
-#define CHIMERA_GL_OP_glDebugMessageControl 213
-struct ChimeraGlArgs_glDebugMessageControl {
-	GLenum source;
-	GLenum type;
-	GLenum severity;
-	GLsizei count;
-	const GLuint * ids;
-	GLboolean enabled;
-};
-
 /* void glDebugMessageControlARB(GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint * ids, GLboolean enabled) */
-#define CHIMERA_GL_OP_glDebugMessageControlARB 214
+#define CHIMERA_GL_OP_glDebugMessageControlARB 338
 struct ChimeraGlArgs_glDebugMessageControlARB {
 	GLenum source;
 	GLenum type;
@@ -1038,30 +1972,8 @@ struct ChimeraGlArgs_glDebugMessageControlARB {
 	GLboolean enabled;
 };
 
-/* void glDebugMessageControlKHR(GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint * ids, GLboolean enabled) */
-#define CHIMERA_GL_OP_glDebugMessageControlKHR 215
-struct ChimeraGlArgs_glDebugMessageControlKHR {
-	GLenum source;
-	GLenum type;
-	GLenum severity;
-	GLsizei count;
-	const GLuint * ids;
-	GLboolean enabled;
-};
-
-/* void glDebugMessageInsert(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar * buf) */
-#define CHIMERA_GL_OP_glDebugMessageInsert 216
-struct ChimeraGlArgs_glDebugMessageInsert {
-	GLenum source;
-	GLenum type;
-	GLuint id;
-	GLenum severity;
-	GLsizei length;
-	const GLchar * buf;
-};
-
 /* void glDebugMessageInsertARB(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar * buf) */
-#define CHIMERA_GL_OP_glDebugMessageInsertARB 217
+#define CHIMERA_GL_OP_glDebugMessageInsertARB 339
 struct ChimeraGlArgs_glDebugMessageInsertARB {
 	GLenum source;
 	GLenum type;
@@ -1071,140 +1983,15 @@ struct ChimeraGlArgs_glDebugMessageInsertARB {
 	const GLchar * buf;
 };
 
-/* void glDebugMessageInsertKHR(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar * buf) */
-#define CHIMERA_GL_OP_glDebugMessageInsertKHR 218
-struct ChimeraGlArgs_glDebugMessageInsertKHR {
-	GLenum source;
-	GLenum type;
-	GLuint id;
-	GLenum severity;
-	GLsizei length;
-	const GLchar * buf;
-};
-
-/* void glDeleteBuffers(GLsizei n, const GLuint * buffers) */
-#define CHIMERA_GL_OP_glDeleteBuffers 219
-struct ChimeraGlArgs_glDeleteBuffers {
-	GLsizei n;
-	const GLuint * buffers;
-};
-
-/* void glDeleteFramebuffers(GLsizei n, const GLuint * framebuffers) */
-#define CHIMERA_GL_OP_glDeleteFramebuffers 220
-struct ChimeraGlArgs_glDeleteFramebuffers {
-	GLsizei n;
-	const GLuint * framebuffers;
-};
-
-/* void glDeleteProgram(GLuint program) */
-#define CHIMERA_GL_OP_glDeleteProgram 221
-struct ChimeraGlArgs_glDeleteProgram {
-	GLuint program;
-};
-
-/* void glDeleteProgramPipelines(GLsizei n, const GLuint * pipelines) */
-#define CHIMERA_GL_OP_glDeleteProgramPipelines 222
-struct ChimeraGlArgs_glDeleteProgramPipelines {
-	GLsizei n;
-	const GLuint * pipelines;
-};
-
-/* void glDeleteQueries(GLsizei n, const GLuint * ids) */
-#define CHIMERA_GL_OP_glDeleteQueries 223
-struct ChimeraGlArgs_glDeleteQueries {
-	GLsizei n;
-	const GLuint * ids;
-};
-
-/* void glDeleteQueriesEXT(GLsizei n, const GLuint * ids) */
-#define CHIMERA_GL_OP_glDeleteQueriesEXT 224
-struct ChimeraGlArgs_glDeleteQueriesEXT {
-	GLsizei n;
-	const GLuint * ids;
-};
-
-/* void glDeleteRenderbuffers(GLsizei n, const GLuint * renderbuffers) */
-#define CHIMERA_GL_OP_glDeleteRenderbuffers 225
-struct ChimeraGlArgs_glDeleteRenderbuffers {
-	GLsizei n;
-	const GLuint * renderbuffers;
-};
-
-/* void glDeleteSamplers(GLsizei count, const GLuint * samplers) */
-#define CHIMERA_GL_OP_glDeleteSamplers 226
-struct ChimeraGlArgs_glDeleteSamplers {
-	GLsizei count;
-	const GLuint * samplers;
-};
-
-/* void glDeleteShader(GLuint shader) */
-#define CHIMERA_GL_OP_glDeleteShader 227
-struct ChimeraGlArgs_glDeleteShader {
-	GLuint shader;
-};
-
-/* void glDeleteSync(GLsync sync) */
-#define CHIMERA_GL_OP_glDeleteSync 228
-struct ChimeraGlArgs_glDeleteSync {
-	GLsync sync;
-};
-
-/* void glDeleteTextures(GLsizei n, const GLuint * textures) */
-#define CHIMERA_GL_OP_glDeleteTextures 229
-struct ChimeraGlArgs_glDeleteTextures {
-	GLsizei n;
-	const GLuint * textures;
-};
-
-/* void glDeleteTransformFeedbacks(GLsizei n, const GLuint * ids) */
-#define CHIMERA_GL_OP_glDeleteTransformFeedbacks 230
-struct ChimeraGlArgs_glDeleteTransformFeedbacks {
-	GLsizei n;
-	const GLuint * ids;
-};
-
-/* void glDeleteVertexArrays(GLsizei n, const GLuint * arrays) */
-#define CHIMERA_GL_OP_glDeleteVertexArrays 231
-struct ChimeraGlArgs_glDeleteVertexArrays {
-	GLsizei n;
-	const GLuint * arrays;
-};
-
-/* void glDeleteVertexArraysAPPLE(GLsizei n, const GLuint * arrays) */
-#define CHIMERA_GL_OP_glDeleteVertexArraysAPPLE 232
-struct ChimeraGlArgs_glDeleteVertexArraysAPPLE {
-	GLsizei n;
-	const GLuint * arrays;
-};
-
-/* void glDeleteVertexArraysOES(GLsizei n, const GLuint * arrays) */
-#define CHIMERA_GL_OP_glDeleteVertexArraysOES 233
-struct ChimeraGlArgs_glDeleteVertexArraysOES {
-	GLsizei n;
-	const GLuint * arrays;
-};
-
-/* void glDepthFunc(GLenum func) */
-#define CHIMERA_GL_OP_glDepthFunc 234
-struct ChimeraGlArgs_glDepthFunc {
-	GLenum func;
-};
-
-/* void glDepthMask(GLboolean flag) */
-#define CHIMERA_GL_OP_glDepthMask 235
-struct ChimeraGlArgs_glDepthMask {
-	GLboolean flag;
-};
-
 /* void glDepthRange(GLdouble n, GLdouble f) */
-#define CHIMERA_GL_OP_glDepthRange 236
+#define CHIMERA_GL_OP_glDepthRange 342
 struct ChimeraGlArgs_glDepthRange {
 	GLdouble n;
 	GLdouble f;
 };
 
 /* void glDepthRangeArrayv(GLuint first, GLsizei count, const GLdouble * v) */
-#define CHIMERA_GL_OP_glDepthRangeArrayv 237
+#define CHIMERA_GL_OP_glDepthRangeArrayv 343
 struct ChimeraGlArgs_glDepthRangeArrayv {
 	GLuint first;
 	GLsizei count;
@@ -1212,91 +1999,42 @@ struct ChimeraGlArgs_glDepthRangeArrayv {
 };
 
 /* void glDepthRangef(GLfloat n, GLfloat f) */
-#define CHIMERA_GL_OP_glDepthRangef 238
+#define CHIMERA_GL_OP_glDepthRangef 345
 struct ChimeraGlArgs_glDepthRangef {
 	GLfloat n;
 	GLfloat f;
 };
 
 /* void glDepthRangeIndexed(GLuint index, GLdouble n, GLdouble f) */
-#define CHIMERA_GL_OP_glDepthRangeIndexed 239
+#define CHIMERA_GL_OP_glDepthRangeIndexed 346
 struct ChimeraGlArgs_glDepthRangeIndexed {
 	GLuint index;
 	GLdouble n;
 	GLdouble f;
 };
 
-/* void glDetachShader(GLuint program, GLuint shader) */
-#define CHIMERA_GL_OP_glDetachShader 240
-struct ChimeraGlArgs_glDetachShader {
-	GLuint program;
-	GLuint shader;
-};
-
-/* void glDisable(GLenum cap) */
-#define CHIMERA_GL_OP_glDisable 241
-struct ChimeraGlArgs_glDisable {
-	GLenum cap;
-};
-
 /* void glDisablei(GLenum target, GLuint index) */
-#define CHIMERA_GL_OP_glDisablei 242
+#define CHIMERA_GL_OP_glDisablei 347
 struct ChimeraGlArgs_glDisablei {
 	GLenum target;
 	GLuint index;
 };
 
-/* void glDisableIndexedEXT(GLenum target, GLuint index) */
-#define CHIMERA_GL_OP_glDisableIndexedEXT 243
-struct ChimeraGlArgs_glDisableIndexedEXT {
-	GLenum target;
-	GLuint index;
-};
-
 /* void glDisableVertexArrayAttrib(GLuint vaobj, GLuint index) */
-#define CHIMERA_GL_OP_glDisableVertexArrayAttrib 244
+#define CHIMERA_GL_OP_glDisableVertexArrayAttrib 348
 struct ChimeraGlArgs_glDisableVertexArrayAttrib {
 	GLuint vaobj;
 	GLuint index;
 };
 
-/* void glDisableVertexAttribArray(GLuint index) */
-#define CHIMERA_GL_OP_glDisableVertexAttribArray 245
-struct ChimeraGlArgs_glDisableVertexAttribArray {
-	GLuint index;
-};
-
-/* void glDispatchCompute(GLuint num_groups_x, GLuint num_groups_y, GLuint num_groups_z) */
-#define CHIMERA_GL_OP_glDispatchCompute 246
-struct ChimeraGlArgs_glDispatchCompute {
-	GLuint num_groups_x;
-	GLuint num_groups_y;
-	GLuint num_groups_z;
-};
-
 /* void glDispatchComputeIndirect(GLintptr indirect) */
-#define CHIMERA_GL_OP_glDispatchComputeIndirect 247
+#define CHIMERA_GL_OP_glDispatchComputeIndirect 349
 struct ChimeraGlArgs_glDispatchComputeIndirect {
 	GLintptr indirect;
 };
 
-/* void glDrawArrays(GLenum mode, GLint first, GLsizei count) */
-#define CHIMERA_GL_OP_glDrawArrays 248
-struct ChimeraGlArgs_glDrawArrays {
-	GLenum mode;
-	GLint first;
-	GLsizei count;
-};
-
-/* void glDrawArraysIndirect(GLenum mode, const void * indirect) */
-#define CHIMERA_GL_OP_glDrawArraysIndirect 249
-struct ChimeraGlArgs_glDrawArraysIndirect {
-	GLenum mode;
-	const void * indirect;
-};
-
 /* void glDrawArraysInstanced(GLenum mode, GLint first, GLsizei count, GLsizei instancecount) */
-#define CHIMERA_GL_OP_glDrawArraysInstanced 250
+#define CHIMERA_GL_OP_glDrawArraysInstanced 350
 struct ChimeraGlArgs_glDrawArraysInstanced {
 	GLenum mode;
 	GLint first;
@@ -1304,17 +2042,8 @@ struct ChimeraGlArgs_glDrawArraysInstanced {
 	GLsizei instancecount;
 };
 
-/* void glDrawArraysInstancedARB(GLenum mode, GLint first, GLsizei count, GLsizei primcount) */
-#define CHIMERA_GL_OP_glDrawArraysInstancedARB 251
-struct ChimeraGlArgs_glDrawArraysInstancedARB {
-	GLenum mode;
-	GLint first;
-	GLsizei count;
-	GLsizei primcount;
-};
-
 /* void glDrawArraysInstancedBaseInstance(GLenum mode, GLint first, GLsizei count, GLsizei instancecount, GLuint baseinstance) */
-#define CHIMERA_GL_OP_glDrawArraysInstancedBaseInstance 252
+#define CHIMERA_GL_OP_glDrawArraysInstancedBaseInstance 351
 struct ChimeraGlArgs_glDrawArraysInstancedBaseInstance {
 	GLenum mode;
 	GLint first;
@@ -1324,47 +2053,13 @@ struct ChimeraGlArgs_glDrawArraysInstancedBaseInstance {
 };
 
 /* void glDrawBuffer(GLenum buf) */
-#define CHIMERA_GL_OP_glDrawBuffer 253
+#define CHIMERA_GL_OP_glDrawBuffer 352
 struct ChimeraGlArgs_glDrawBuffer {
 	GLenum buf;
 };
 
-/* void glDrawBuffers(GLsizei n, const GLenum * bufs) */
-#define CHIMERA_GL_OP_glDrawBuffers 254
-struct ChimeraGlArgs_glDrawBuffers {
-	GLsizei n;
-	const GLenum * bufs;
-};
-
-/* void glDrawElements(GLenum mode, GLsizei count, GLenum type, const void * indices) */
-#define CHIMERA_GL_OP_glDrawElements 255
-struct ChimeraGlArgs_glDrawElements {
-	GLenum mode;
-	GLsizei count;
-	GLenum type;
-	const void * indices;
-};
-
-/* void glDrawElementsBaseVertex(GLenum mode, GLsizei count, GLenum type, const void * indices, GLint basevertex) */
-#define CHIMERA_GL_OP_glDrawElementsBaseVertex 256
-struct ChimeraGlArgs_glDrawElementsBaseVertex {
-	GLenum mode;
-	GLsizei count;
-	GLenum type;
-	const void * indices;
-	GLint basevertex;
-};
-
-/* void glDrawElementsIndirect(GLenum mode, GLenum type, const void * indirect) */
-#define CHIMERA_GL_OP_glDrawElementsIndirect 257
-struct ChimeraGlArgs_glDrawElementsIndirect {
-	GLenum mode;
-	GLenum type;
-	const void * indirect;
-};
-
 /* void glDrawElementsInstanced(GLenum mode, GLsizei count, GLenum type, const void * indices, GLsizei instancecount) */
-#define CHIMERA_GL_OP_glDrawElementsInstanced 258
+#define CHIMERA_GL_OP_glDrawElementsInstanced 353
 struct ChimeraGlArgs_glDrawElementsInstanced {
 	GLenum mode;
 	GLsizei count;
@@ -1373,18 +2068,8 @@ struct ChimeraGlArgs_glDrawElementsInstanced {
 	GLsizei instancecount;
 };
 
-/* void glDrawElementsInstancedARB(GLenum mode, GLsizei count, GLenum type, const void * indices, GLsizei primcount) */
-#define CHIMERA_GL_OP_glDrawElementsInstancedARB 259
-struct ChimeraGlArgs_glDrawElementsInstancedARB {
-	GLenum mode;
-	GLsizei count;
-	GLenum type;
-	const void * indices;
-	GLsizei primcount;
-};
-
 /* void glDrawElementsInstancedBaseInstance(GLenum mode, GLsizei count, GLenum type, const void * indices, GLsizei instancecount, GLuint baseinstance) */
-#define CHIMERA_GL_OP_glDrawElementsInstancedBaseInstance 260
+#define CHIMERA_GL_OP_glDrawElementsInstancedBaseInstance 354
 struct ChimeraGlArgs_glDrawElementsInstancedBaseInstance {
 	GLenum mode;
 	GLsizei count;
@@ -1395,7 +2080,7 @@ struct ChimeraGlArgs_glDrawElementsInstancedBaseInstance {
 };
 
 /* void glDrawElementsInstancedBaseVertex(GLenum mode, GLsizei count, GLenum type, const void * indices, GLsizei instancecount, GLint basevertex) */
-#define CHIMERA_GL_OP_glDrawElementsInstancedBaseVertex 261
+#define CHIMERA_GL_OP_glDrawElementsInstancedBaseVertex 355
 struct ChimeraGlArgs_glDrawElementsInstancedBaseVertex {
 	GLenum mode;
 	GLsizei count;
@@ -1406,7 +2091,7 @@ struct ChimeraGlArgs_glDrawElementsInstancedBaseVertex {
 };
 
 /* void glDrawElementsInstancedBaseVertexBaseInstance(GLenum mode, GLsizei count, GLenum type, const void * indices, GLsizei instancecount, GLint basevertex, GLuint baseinstance) */
-#define CHIMERA_GL_OP_glDrawElementsInstancedBaseVertexBaseInstance 262
+#define CHIMERA_GL_OP_glDrawElementsInstancedBaseVertexBaseInstance 356
 struct ChimeraGlArgs_glDrawElementsInstancedBaseVertexBaseInstance {
 	GLenum mode;
 	GLsizei count;
@@ -1418,7 +2103,7 @@ struct ChimeraGlArgs_glDrawElementsInstancedBaseVertexBaseInstance {
 };
 
 /* void glDrawRangeElements(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void * indices) */
-#define CHIMERA_GL_OP_glDrawRangeElements 263
+#define CHIMERA_GL_OP_glDrawRangeElements 357
 struct ChimeraGlArgs_glDrawRangeElements {
 	GLenum mode;
 	GLuint start;
@@ -1429,7 +2114,7 @@ struct ChimeraGlArgs_glDrawRangeElements {
 };
 
 /* void glDrawRangeElementsBaseVertex(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void * indices, GLint basevertex) */
-#define CHIMERA_GL_OP_glDrawRangeElementsBaseVertex 264
+#define CHIMERA_GL_OP_glDrawRangeElementsBaseVertex 358
 struct ChimeraGlArgs_glDrawRangeElementsBaseVertex {
 	GLenum mode;
 	GLuint start;
@@ -1440,31 +2125,16 @@ struct ChimeraGlArgs_glDrawRangeElementsBaseVertex {
 	GLint basevertex;
 };
 
-/* void glDrawTransformFeedback(GLenum mode, GLuint id) */
-#define CHIMERA_GL_OP_glDrawTransformFeedback 265
-struct ChimeraGlArgs_glDrawTransformFeedback {
-	GLenum mode;
-	GLuint id;
-};
-
 /* void glDrawTransformFeedbackInstanced(GLenum mode, GLuint id, GLsizei instancecount) */
-#define CHIMERA_GL_OP_glDrawTransformFeedbackInstanced 266
+#define CHIMERA_GL_OP_glDrawTransformFeedbackInstanced 359
 struct ChimeraGlArgs_glDrawTransformFeedbackInstanced {
 	GLenum mode;
 	GLuint id;
 	GLsizei instancecount;
 };
 
-/* void glDrawTransformFeedbackStream(GLenum mode, GLuint id, GLuint stream) */
-#define CHIMERA_GL_OP_glDrawTransformFeedbackStream 267
-struct ChimeraGlArgs_glDrawTransformFeedbackStream {
-	GLenum mode;
-	GLuint id;
-	GLuint stream;
-};
-
 /* void glDrawTransformFeedbackStreamInstanced(GLenum mode, GLuint id, GLuint stream, GLsizei instancecount) */
-#define CHIMERA_GL_OP_glDrawTransformFeedbackStreamInstanced 268
+#define CHIMERA_GL_OP_glDrawTransformFeedbackStreamInstanced 360
 struct ChimeraGlArgs_glDrawTransformFeedbackStreamInstanced {
 	GLenum mode;
 	GLuint id;
@@ -1472,87 +2142,31 @@ struct ChimeraGlArgs_glDrawTransformFeedbackStreamInstanced {
 	GLsizei instancecount;
 };
 
-/* void glEnable(GLenum cap) */
-#define CHIMERA_GL_OP_glEnable 269
-struct ChimeraGlArgs_glEnable {
-	GLenum cap;
-};
-
 /* void glEnablei(GLenum target, GLuint index) */
-#define CHIMERA_GL_OP_glEnablei 270
+#define CHIMERA_GL_OP_glEnablei 361
 struct ChimeraGlArgs_glEnablei {
 	GLenum target;
 	GLuint index;
 };
 
-/* void glEnableIndexedEXT(GLenum target, GLuint index) */
-#define CHIMERA_GL_OP_glEnableIndexedEXT 271
-struct ChimeraGlArgs_glEnableIndexedEXT {
-	GLenum target;
-	GLuint index;
-};
-
 /* void glEnableVertexArrayAttrib(GLuint vaobj, GLuint index) */
-#define CHIMERA_GL_OP_glEnableVertexArrayAttrib 272
+#define CHIMERA_GL_OP_glEnableVertexArrayAttrib 362
 struct ChimeraGlArgs_glEnableVertexArrayAttrib {
 	GLuint vaobj;
 	GLuint index;
 };
 
-/* void glEnableVertexAttribArray(GLuint index) */
-#define CHIMERA_GL_OP_glEnableVertexAttribArray 273
-struct ChimeraGlArgs_glEnableVertexAttribArray {
-	GLuint index;
-};
-
 /* void glEndConditionalRender(void) */
-#define CHIMERA_GL_OP_glEndConditionalRender 274
-
-/* void glEndQuery(GLenum target) */
-#define CHIMERA_GL_OP_glEndQuery 275
-struct ChimeraGlArgs_glEndQuery {
-	GLenum target;
-};
-
-/* void glEndQueryEXT(GLenum target) */
-#define CHIMERA_GL_OP_glEndQueryEXT 276
-struct ChimeraGlArgs_glEndQueryEXT {
-	GLenum target;
-};
-
-/* void glEndQueryIndexed(GLenum target, GLuint index) */
-#define CHIMERA_GL_OP_glEndQueryIndexed 277
-struct ChimeraGlArgs_glEndQueryIndexed {
-	GLenum target;
-	GLuint index;
-};
+#define CHIMERA_GL_OP_glEndConditionalRender 363
 
 /* void glEndTransformFeedback(void) */
-#define CHIMERA_GL_OP_glEndTransformFeedback 278
-
-/* GLsync glFenceSync(GLenum condition, GLbitfield flags) */
-#define CHIMERA_GL_OP_glFenceSync 279
-struct ChimeraGlArgs_glFenceSync {
-	GLenum condition;
-	GLbitfield flags;
-};
-
-/* void glFinish(void) */
-#define CHIMERA_GL_OP_glFinish 280
+#define CHIMERA_GL_OP_glEndTransformFeedback 365
 
 /* void glFlush(void) */
-#define CHIMERA_GL_OP_glFlush 281
-
-/* void glFlushMappedBufferRange(GLenum target, GLintptr offset, GLsizeiptr length) */
-#define CHIMERA_GL_OP_glFlushMappedBufferRange 282
-struct ChimeraGlArgs_glFlushMappedBufferRange {
-	GLenum target;
-	GLintptr offset;
-	GLsizeiptr length;
-};
+#define CHIMERA_GL_OP_glFlush 366
 
 /* void glFlushMappedNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length) */
-#define CHIMERA_GL_OP_glFlushMappedNamedBufferRange 283
+#define CHIMERA_GL_OP_glFlushMappedNamedBufferRange 367
 struct ChimeraGlArgs_glFlushMappedNamedBufferRange {
 	GLuint buffer;
 	GLintptr offset;
@@ -1560,24 +2174,15 @@ struct ChimeraGlArgs_glFlushMappedNamedBufferRange {
 };
 
 /* void glFramebufferParameteri(GLenum target, GLenum pname, GLint param) */
-#define CHIMERA_GL_OP_glFramebufferParameteri 284
+#define CHIMERA_GL_OP_glFramebufferParameteri 368
 struct ChimeraGlArgs_glFramebufferParameteri {
 	GLenum target;
 	GLenum pname;
 	GLint param;
 };
 
-/* void glFramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer) */
-#define CHIMERA_GL_OP_glFramebufferRenderbuffer 285
-struct ChimeraGlArgs_glFramebufferRenderbuffer {
-	GLenum target;
-	GLenum attachment;
-	GLenum renderbuffertarget;
-	GLuint renderbuffer;
-};
-
 /* void glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLint level) */
-#define CHIMERA_GL_OP_glFramebufferTexture 286
+#define CHIMERA_GL_OP_glFramebufferTexture 369
 struct ChimeraGlArgs_glFramebufferTexture {
 	GLenum target;
 	GLenum attachment;
@@ -1586,7 +2191,7 @@ struct ChimeraGlArgs_glFramebufferTexture {
 };
 
 /* void glFramebufferTexture1D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level) */
-#define CHIMERA_GL_OP_glFramebufferTexture1D 287
+#define CHIMERA_GL_OP_glFramebufferTexture1D 370
 struct ChimeraGlArgs_glFramebufferTexture1D {
 	GLenum target;
 	GLenum attachment;
@@ -1595,29 +2200,8 @@ struct ChimeraGlArgs_glFramebufferTexture1D {
 	GLint level;
 };
 
-/* void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level) */
-#define CHIMERA_GL_OP_glFramebufferTexture2D 288
-struct ChimeraGlArgs_glFramebufferTexture2D {
-	GLenum target;
-	GLenum attachment;
-	GLenum textarget;
-	GLuint texture;
-	GLint level;
-};
-
-/* void glFramebufferTexture2DMultisampleEXT(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLsizei samples) */
-#define CHIMERA_GL_OP_glFramebufferTexture2DMultisampleEXT 289
-struct ChimeraGlArgs_glFramebufferTexture2DMultisampleEXT {
-	GLenum target;
-	GLenum attachment;
-	GLenum textarget;
-	GLuint texture;
-	GLint level;
-	GLsizei samples;
-};
-
 /* void glFramebufferTexture3D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLint zoffset) */
-#define CHIMERA_GL_OP_glFramebufferTexture3D 290
+#define CHIMERA_GL_OP_glFramebufferTexture3D 371
 struct ChimeraGlArgs_glFramebufferTexture3D {
 	GLenum target;
 	GLenum attachment;
@@ -1628,7 +2212,7 @@ struct ChimeraGlArgs_glFramebufferTexture3D {
 };
 
 /* void glFramebufferTextureLayer(GLenum target, GLenum attachment, GLuint texture, GLint level, GLint layer) */
-#define CHIMERA_GL_OP_glFramebufferTextureLayer 291
+#define CHIMERA_GL_OP_glFramebufferTextureLayer 372
 struct ChimeraGlArgs_glFramebufferTextureLayer {
 	GLenum target;
 	GLenum attachment;
@@ -1637,110 +2221,8 @@ struct ChimeraGlArgs_glFramebufferTextureLayer {
 	GLint layer;
 };
 
-/* void glFrontFace(GLenum mode) */
-#define CHIMERA_GL_OP_glFrontFace 292
-struct ChimeraGlArgs_glFrontFace {
-	GLenum mode;
-};
-
-/* void glGenBuffers(GLsizei n, GLuint * buffers) */
-#define CHIMERA_GL_OP_glGenBuffers 293
-struct ChimeraGlArgs_glGenBuffers {
-	GLsizei n;
-	GLuint * buffers;
-};
-
-/* void glGenerateMipmap(GLenum target) */
-#define CHIMERA_GL_OP_glGenerateMipmap 294
-struct ChimeraGlArgs_glGenerateMipmap {
-	GLenum target;
-};
-
-/* void glGenerateTextureMipmap(GLuint texture) */
-#define CHIMERA_GL_OP_glGenerateTextureMipmap 295
-struct ChimeraGlArgs_glGenerateTextureMipmap {
-	GLuint texture;
-};
-
-/* void glGenFramebuffers(GLsizei n, GLuint * framebuffers) */
-#define CHIMERA_GL_OP_glGenFramebuffers 296
-struct ChimeraGlArgs_glGenFramebuffers {
-	GLsizei n;
-	GLuint * framebuffers;
-};
-
-/* void glGenProgramPipelines(GLsizei n, GLuint * pipelines) */
-#define CHIMERA_GL_OP_glGenProgramPipelines 297
-struct ChimeraGlArgs_glGenProgramPipelines {
-	GLsizei n;
-	GLuint * pipelines;
-};
-
-/* void glGenQueries(GLsizei n, GLuint * ids) */
-#define CHIMERA_GL_OP_glGenQueries 298
-struct ChimeraGlArgs_glGenQueries {
-	GLsizei n;
-	GLuint * ids;
-};
-
-/* void glGenQueriesEXT(GLsizei n, GLuint * ids) */
-#define CHIMERA_GL_OP_glGenQueriesEXT 299
-struct ChimeraGlArgs_glGenQueriesEXT {
-	GLsizei n;
-	GLuint * ids;
-};
-
-/* void glGenRenderbuffers(GLsizei n, GLuint * renderbuffers) */
-#define CHIMERA_GL_OP_glGenRenderbuffers 300
-struct ChimeraGlArgs_glGenRenderbuffers {
-	GLsizei n;
-	GLuint * renderbuffers;
-};
-
-/* void glGenSamplers(GLsizei count, GLuint * samplers) */
-#define CHIMERA_GL_OP_glGenSamplers 301
-struct ChimeraGlArgs_glGenSamplers {
-	GLsizei count;
-	GLuint * samplers;
-};
-
-/* void glGenTextures(GLsizei n, GLuint * textures) */
-#define CHIMERA_GL_OP_glGenTextures 302
-struct ChimeraGlArgs_glGenTextures {
-	GLsizei n;
-	GLuint * textures;
-};
-
-/* void glGenTransformFeedbacks(GLsizei n, GLuint * ids) */
-#define CHIMERA_GL_OP_glGenTransformFeedbacks 303
-struct ChimeraGlArgs_glGenTransformFeedbacks {
-	GLsizei n;
-	GLuint * ids;
-};
-
-/* void glGenVertexArrays(GLsizei n, GLuint * arrays) */
-#define CHIMERA_GL_OP_glGenVertexArrays 304
-struct ChimeraGlArgs_glGenVertexArrays {
-	GLsizei n;
-	GLuint * arrays;
-};
-
-/* void glGenVertexArraysAPPLE(GLsizei n, GLuint * arrays) */
-#define CHIMERA_GL_OP_glGenVertexArraysAPPLE 305
-struct ChimeraGlArgs_glGenVertexArraysAPPLE {
-	GLsizei n;
-	GLuint * arrays;
-};
-
-/* void glGenVertexArraysOES(GLsizei n, GLuint * arrays) */
-#define CHIMERA_GL_OP_glGenVertexArraysOES 306
-struct ChimeraGlArgs_glGenVertexArraysOES {
-	GLsizei n;
-	GLuint * arrays;
-};
-
 /* void glGetActiveAtomicCounterBufferiv(GLuint program, GLuint bufferIndex, GLenum pname, GLint * params) */
-#define CHIMERA_GL_OP_glGetActiveAtomicCounterBufferiv 307
+#define CHIMERA_GL_OP_glGetActiveAtomicCounterBufferiv 374
 struct ChimeraGlArgs_glGetActiveAtomicCounterBufferiv {
 	GLuint program;
 	GLuint bufferIndex;
@@ -1749,7 +2231,7 @@ struct ChimeraGlArgs_glGetActiveAtomicCounterBufferiv {
 };
 
 /* void glGetActiveAttrib(GLuint program, GLuint index, GLsizei bufSize, GLsizei * length, GLint * size, GLenum * type, GLchar * name) */
-#define CHIMERA_GL_OP_glGetActiveAttrib 308
+#define CHIMERA_GL_OP_glGetActiveAttrib 375
 struct ChimeraGlArgs_glGetActiveAttrib {
 	GLuint program;
 	GLuint index;
@@ -1760,40 +2242,8 @@ struct ChimeraGlArgs_glGetActiveAttrib {
 	GLchar * name;
 };
 
-/* void glGetActiveSubroutineName(GLuint program, GLenum shadertype, GLuint index, GLsizei bufSize, GLsizei * length, GLchar * name) */
-#define CHIMERA_GL_OP_glGetActiveSubroutineName 309
-struct ChimeraGlArgs_glGetActiveSubroutineName {
-	GLuint program;
-	GLenum shadertype;
-	GLuint index;
-	GLsizei bufSize;
-	GLsizei * length;
-	GLchar * name;
-};
-
-/* void glGetActiveSubroutineUniformiv(GLuint program, GLenum shadertype, GLuint index, GLenum pname, GLint * values) */
-#define CHIMERA_GL_OP_glGetActiveSubroutineUniformiv 310
-struct ChimeraGlArgs_glGetActiveSubroutineUniformiv {
-	GLuint program;
-	GLenum shadertype;
-	GLuint index;
-	GLenum pname;
-	GLint * values;
-};
-
-/* void glGetActiveSubroutineUniformName(GLuint program, GLenum shadertype, GLuint index, GLsizei bufSize, GLsizei * length, GLchar * name) */
-#define CHIMERA_GL_OP_glGetActiveSubroutineUniformName 311
-struct ChimeraGlArgs_glGetActiveSubroutineUniformName {
-	GLuint program;
-	GLenum shadertype;
-	GLuint index;
-	GLsizei bufSize;
-	GLsizei * length;
-	GLchar * name;
-};
-
 /* void glGetActiveUniform(GLuint program, GLuint index, GLsizei bufSize, GLsizei * length, GLint * size, GLenum * type, GLchar * name) */
-#define CHIMERA_GL_OP_glGetActiveUniform 312
+#define CHIMERA_GL_OP_glGetActiveUniform 376
 struct ChimeraGlArgs_glGetActiveUniform {
 	GLuint program;
 	GLuint index;
@@ -1805,7 +2255,7 @@ struct ChimeraGlArgs_glGetActiveUniform {
 };
 
 /* void glGetActiveUniformBlockiv(GLuint program, GLuint uniformBlockIndex, GLenum pname, GLint * params) */
-#define CHIMERA_GL_OP_glGetActiveUniformBlockiv 313
+#define CHIMERA_GL_OP_glGetActiveUniformBlockiv 377
 struct ChimeraGlArgs_glGetActiveUniformBlockiv {
 	GLuint program;
 	GLuint uniformBlockIndex;
@@ -1814,7 +2264,7 @@ struct ChimeraGlArgs_glGetActiveUniformBlockiv {
 };
 
 /* void glGetActiveUniformBlockName(GLuint program, GLuint uniformBlockIndex, GLsizei bufSize, GLsizei * length, GLchar * uniformBlockName) */
-#define CHIMERA_GL_OP_glGetActiveUniformBlockName 314
+#define CHIMERA_GL_OP_glGetActiveUniformBlockName 378
 struct ChimeraGlArgs_glGetActiveUniformBlockName {
 	GLuint program;
 	GLuint uniformBlockIndex;
@@ -1824,7 +2274,7 @@ struct ChimeraGlArgs_glGetActiveUniformBlockName {
 };
 
 /* void glGetActiveUniformName(GLuint program, GLuint uniformIndex, GLsizei bufSize, GLsizei * length, GLchar * uniformName) */
-#define CHIMERA_GL_OP_glGetActiveUniformName 315
+#define CHIMERA_GL_OP_glGetActiveUniformName 379
 struct ChimeraGlArgs_glGetActiveUniformName {
 	GLuint program;
 	GLuint uniformIndex;
@@ -1834,7 +2284,7 @@ struct ChimeraGlArgs_glGetActiveUniformName {
 };
 
 /* void glGetActiveUniformsiv(GLuint program, GLsizei uniformCount, const GLuint * uniformIndices, GLenum pname, GLint * params) */
-#define CHIMERA_GL_OP_glGetActiveUniformsiv 316
+#define CHIMERA_GL_OP_glGetActiveUniformsiv 380
 struct ChimeraGlArgs_glGetActiveUniformsiv {
 	GLuint program;
 	GLsizei uniformCount;
@@ -1844,7 +2294,7 @@ struct ChimeraGlArgs_glGetActiveUniformsiv {
 };
 
 /* void glGetAttachedShaders(GLuint program, GLsizei maxCount, GLsizei * count, GLuint * shaders) */
-#define CHIMERA_GL_OP_glGetAttachedShaders 317
+#define CHIMERA_GL_OP_glGetAttachedShaders 381
 struct ChimeraGlArgs_glGetAttachedShaders {
 	GLuint program;
 	GLsizei maxCount;
@@ -1853,37 +2303,21 @@ struct ChimeraGlArgs_glGetAttachedShaders {
 };
 
 /* GLint glGetAttribLocation(GLuint program, const GLchar * name) */
-#define CHIMERA_GL_OP_glGetAttribLocation 318
+#define CHIMERA_GL_OP_glGetAttribLocation 382
 struct ChimeraGlArgs_glGetAttribLocation {
 	GLuint program;
 	const GLchar * name;
 };
 
-/* void glGetBooleanIndexedvEXT(GLenum target, GLuint index, GLboolean * data) */
-#define CHIMERA_GL_OP_glGetBooleanIndexedvEXT 319
-struct ChimeraGlArgs_glGetBooleanIndexedvEXT {
-	GLenum target;
-	GLuint index;
-	GLboolean * data;
-};
-
-/* void glGetBooleani_v(GLenum target, GLuint index, GLboolean * data) */
-#define CHIMERA_GL_OP_glGetBooleani_v 320
-struct ChimeraGlArgs_glGetBooleani_v {
-	GLenum target;
-	GLuint index;
-	GLboolean * data;
-};
-
 /* void glGetBooleanv(GLenum pname, GLboolean * data) */
-#define CHIMERA_GL_OP_glGetBooleanv 321
+#define CHIMERA_GL_OP_glGetBooleanv 383
 struct ChimeraGlArgs_glGetBooleanv {
 	GLenum pname;
 	GLboolean * data;
 };
 
 /* void glGetBufferParameteri64v(GLenum target, GLenum pname, GLint64 * params) */
-#define CHIMERA_GL_OP_glGetBufferParameteri64v 322
+#define CHIMERA_GL_OP_glGetBufferParameteri64v 384
 struct ChimeraGlArgs_glGetBufferParameteri64v {
 	GLenum target;
 	GLenum pname;
@@ -1891,7 +2325,7 @@ struct ChimeraGlArgs_glGetBufferParameteri64v {
 };
 
 /* void glGetBufferParameteriv(GLenum target, GLenum pname, GLint * params) */
-#define CHIMERA_GL_OP_glGetBufferParameteriv 323
+#define CHIMERA_GL_OP_glGetBufferParameteriv 385
 struct ChimeraGlArgs_glGetBufferParameteriv {
 	GLenum target;
 	GLenum pname;
@@ -1899,7 +2333,7 @@ struct ChimeraGlArgs_glGetBufferParameteriv {
 };
 
 /* void glGetBufferPointerv(GLenum target, GLenum pname, void ** params) */
-#define CHIMERA_GL_OP_glGetBufferPointerv 324
+#define CHIMERA_GL_OP_glGetBufferPointerv 386
 struct ChimeraGlArgs_glGetBufferPointerv {
 	GLenum target;
 	GLenum pname;
@@ -1907,7 +2341,7 @@ struct ChimeraGlArgs_glGetBufferPointerv {
 };
 
 /* void glGetBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, void * data) */
-#define CHIMERA_GL_OP_glGetBufferSubData 325
+#define CHIMERA_GL_OP_glGetBufferSubData 387
 struct ChimeraGlArgs_glGetBufferSubData {
 	GLenum target;
 	GLintptr offset;
@@ -1916,7 +2350,7 @@ struct ChimeraGlArgs_glGetBufferSubData {
 };
 
 /* void glGetCompressedTexImage(GLenum target, GLint level, void * img) */
-#define CHIMERA_GL_OP_glGetCompressedTexImage 326
+#define CHIMERA_GL_OP_glGetCompressedTexImage 388
 struct ChimeraGlArgs_glGetCompressedTexImage {
 	GLenum target;
 	GLint level;
@@ -1924,7 +2358,7 @@ struct ChimeraGlArgs_glGetCompressedTexImage {
 };
 
 /* void glGetCompressedTextureImage(GLuint texture, GLint level, GLsizei bufSize, void * pixels) */
-#define CHIMERA_GL_OP_glGetCompressedTextureImage 327
+#define CHIMERA_GL_OP_glGetCompressedTextureImage 389
 struct ChimeraGlArgs_glGetCompressedTextureImage {
 	GLuint texture;
 	GLint level;
@@ -1933,7 +2367,7 @@ struct ChimeraGlArgs_glGetCompressedTextureImage {
 };
 
 /* void glGetCompressedTextureSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLsizei bufSize, void * pixels) */
-#define CHIMERA_GL_OP_glGetCompressedTextureSubImage 328
+#define CHIMERA_GL_OP_glGetCompressedTextureSubImage 390
 struct ChimeraGlArgs_glGetCompressedTextureSubImage {
 	GLuint texture;
 	GLint level;
@@ -1948,7 +2382,7 @@ struct ChimeraGlArgs_glGetCompressedTextureSubImage {
 };
 
 /* GLuint glGetDebugMessageLog(GLuint count, GLsizei bufSize, GLenum * sources, GLenum * types, GLuint * ids, GLenum * severities, GLsizei * lengths, GLchar * messageLog) */
-#define CHIMERA_GL_OP_glGetDebugMessageLog 329
+#define CHIMERA_GL_OP_glGetDebugMessageLog 391
 struct ChimeraGlArgs_glGetDebugMessageLog {
 	GLuint count;
 	GLsizei bufSize;
@@ -1961,7 +2395,7 @@ struct ChimeraGlArgs_glGetDebugMessageLog {
 };
 
 /* GLuint glGetDebugMessageLogARB(GLuint count, GLsizei bufSize, GLenum * sources, GLenum * types, GLuint * ids, GLenum * severities, GLsizei * lengths, GLchar * messageLog) */
-#define CHIMERA_GL_OP_glGetDebugMessageLogARB 330
+#define CHIMERA_GL_OP_glGetDebugMessageLogARB 392
 struct ChimeraGlArgs_glGetDebugMessageLogARB {
 	GLuint count;
 	GLsizei bufSize;
@@ -1973,68 +2407,29 @@ struct ChimeraGlArgs_glGetDebugMessageLogARB {
 	GLchar * messageLog;
 };
 
-/* GLuint glGetDebugMessageLogKHR(GLuint count, GLsizei bufSize, GLenum * sources, GLenum * types, GLuint * ids, GLenum * severities, GLsizei * lengths, GLchar * messageLog) */
-#define CHIMERA_GL_OP_glGetDebugMessageLogKHR 331
-struct ChimeraGlArgs_glGetDebugMessageLogKHR {
-	GLuint count;
-	GLsizei bufSize;
-	GLenum * sources;
-	GLenum * types;
-	GLuint * ids;
-	GLenum * severities;
-	GLsizei * lengths;
-	GLchar * messageLog;
-};
-
-/* void glGetDoublei_v(GLenum target, GLuint index, GLdouble * data) */
-#define CHIMERA_GL_OP_glGetDoublei_v 332
-struct ChimeraGlArgs_glGetDoublei_v {
-	GLenum target;
-	GLuint index;
-	GLdouble * data;
-};
-
 /* void glGetDoublev(GLenum pname, GLdouble * data) */
-#define CHIMERA_GL_OP_glGetDoublev 333
+#define CHIMERA_GL_OP_glGetDoublev 393
 struct ChimeraGlArgs_glGetDoublev {
 	GLenum pname;
 	GLdouble * data;
 };
 
-/* GLenum glGetError(void) */
-#define CHIMERA_GL_OP_glGetError 334
-
-/* void glGetFloati_v(GLenum target, GLuint index, GLfloat * data) */
-#define CHIMERA_GL_OP_glGetFloati_v 335
-struct ChimeraGlArgs_glGetFloati_v {
-	GLenum target;
-	GLuint index;
-	GLfloat * data;
-};
-
-/* void glGetFloatv(GLenum pname, GLfloat * data) */
-#define CHIMERA_GL_OP_glGetFloatv 336
-struct ChimeraGlArgs_glGetFloatv {
-	GLenum pname;
-	GLfloat * data;
-};
-
 /* GLint glGetFragDataIndex(GLuint program, const GLchar * name) */
-#define CHIMERA_GL_OP_glGetFragDataIndex 337
+#define CHIMERA_GL_OP_glGetFragDataIndex 394
 struct ChimeraGlArgs_glGetFragDataIndex {
 	GLuint program;
 	const GLchar * name;
 };
 
 /* GLint glGetFragDataLocation(GLuint program, const GLchar * name) */
-#define CHIMERA_GL_OP_glGetFragDataLocation 338
+#define CHIMERA_GL_OP_glGetFragDataLocation 395
 struct ChimeraGlArgs_glGetFragDataLocation {
 	GLuint program;
 	const GLchar * name;
 };
 
 /* void glGetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenum pname, GLint * params) */
-#define CHIMERA_GL_OP_glGetFramebufferAttachmentParameteriv 339
+#define CHIMERA_GL_OP_glGetFramebufferAttachmentParameteriv 396
 struct ChimeraGlArgs_glGetFramebufferAttachmentParameteriv {
 	GLenum target;
 	GLenum attachment;
@@ -2043,7 +2438,7 @@ struct ChimeraGlArgs_glGetFramebufferAttachmentParameteriv {
 };
 
 /* void glGetFramebufferParameteriv(GLenum target, GLenum pname, GLint * params) */
-#define CHIMERA_GL_OP_glGetFramebufferParameteriv 340
+#define CHIMERA_GL_OP_glGetFramebufferParameteriv 397
 struct ChimeraGlArgs_glGetFramebufferParameteriv {
 	GLenum target;
 	GLenum pname;
@@ -2051,55 +2446,17 @@ struct ChimeraGlArgs_glGetFramebufferParameteriv {
 };
 
 /* GLenum glGetGraphicsResetStatus(void) */
-#define CHIMERA_GL_OP_glGetGraphicsResetStatus 341
-
-/* void glGetInteger64i_v(GLenum target, GLuint index, GLint64 * data) */
-#define CHIMERA_GL_OP_glGetInteger64i_v 342
-struct ChimeraGlArgs_glGetInteger64i_v {
-	GLenum target;
-	GLuint index;
-	GLint64 * data;
-};
+#define CHIMERA_GL_OP_glGetGraphicsResetStatus 398
 
 /* void glGetInteger64v(GLenum pname, GLint64 * data) */
-#define CHIMERA_GL_OP_glGetInteger64v 343
+#define CHIMERA_GL_OP_glGetInteger64v 399
 struct ChimeraGlArgs_glGetInteger64v {
 	GLenum pname;
 	GLint64 * data;
 };
 
-/* void glGetInteger64vEXT(GLenum pname, GLint64 * data) */
-#define CHIMERA_GL_OP_glGetInteger64vEXT 344
-struct ChimeraGlArgs_glGetInteger64vEXT {
-	GLenum pname;
-	GLint64 * data;
-};
-
-/* void glGetIntegerIndexedvEXT(GLenum target, GLuint index, GLint * data) */
-#define CHIMERA_GL_OP_glGetIntegerIndexedvEXT 345
-struct ChimeraGlArgs_glGetIntegerIndexedvEXT {
-	GLenum target;
-	GLuint index;
-	GLint * data;
-};
-
-/* void glGetIntegeri_v(GLenum target, GLuint index, GLint * data) */
-#define CHIMERA_GL_OP_glGetIntegeri_v 346
-struct ChimeraGlArgs_glGetIntegeri_v {
-	GLenum target;
-	GLuint index;
-	GLint * data;
-};
-
-/* void glGetIntegerv(GLenum pname, GLint * data) */
-#define CHIMERA_GL_OP_glGetIntegerv 347
-struct ChimeraGlArgs_glGetIntegerv {
-	GLenum pname;
-	GLint * data;
-};
-
 /* void glGetInternalformati64v(GLenum target, GLenum internalformat, GLenum pname, GLsizei count, GLint64 * params) */
-#define CHIMERA_GL_OP_glGetInternalformati64v 348
+#define CHIMERA_GL_OP_glGetInternalformati64v 400
 struct ChimeraGlArgs_glGetInternalformati64v {
 	GLenum target;
 	GLenum internalformat;
@@ -2109,7 +2466,7 @@ struct ChimeraGlArgs_glGetInternalformati64v {
 };
 
 /* void glGetInternalformativ(GLenum target, GLenum internalformat, GLenum pname, GLsizei count, GLint * params) */
-#define CHIMERA_GL_OP_glGetInternalformativ 349
+#define CHIMERA_GL_OP_glGetInternalformativ 401
 struct ChimeraGlArgs_glGetInternalformativ {
 	GLenum target;
 	GLenum internalformat;
@@ -2119,7 +2476,7 @@ struct ChimeraGlArgs_glGetInternalformativ {
 };
 
 /* void glGetMultisamplefv(GLenum pname, GLuint index, GLfloat * val) */
-#define CHIMERA_GL_OP_glGetMultisamplefv 350
+#define CHIMERA_GL_OP_glGetMultisamplefv 402
 struct ChimeraGlArgs_glGetMultisamplefv {
 	GLenum pname;
 	GLuint index;
@@ -2127,7 +2484,7 @@ struct ChimeraGlArgs_glGetMultisamplefv {
 };
 
 /* void glGetNamedBufferParameteri64v(GLuint buffer, GLenum pname, GLint64 * params) */
-#define CHIMERA_GL_OP_glGetNamedBufferParameteri64v 351
+#define CHIMERA_GL_OP_glGetNamedBufferParameteri64v 403
 struct ChimeraGlArgs_glGetNamedBufferParameteri64v {
 	GLuint buffer;
 	GLenum pname;
@@ -2135,7 +2492,7 @@ struct ChimeraGlArgs_glGetNamedBufferParameteri64v {
 };
 
 /* void glGetNamedBufferParameteriv(GLuint buffer, GLenum pname, GLint * params) */
-#define CHIMERA_GL_OP_glGetNamedBufferParameteriv 352
+#define CHIMERA_GL_OP_glGetNamedBufferParameteriv 404
 struct ChimeraGlArgs_glGetNamedBufferParameteriv {
 	GLuint buffer;
 	GLenum pname;
@@ -2143,7 +2500,7 @@ struct ChimeraGlArgs_glGetNamedBufferParameteriv {
 };
 
 /* void glGetNamedBufferPointerv(GLuint buffer, GLenum pname, void ** params) */
-#define CHIMERA_GL_OP_glGetNamedBufferPointerv 353
+#define CHIMERA_GL_OP_glGetNamedBufferPointerv 405
 struct ChimeraGlArgs_glGetNamedBufferPointerv {
 	GLuint buffer;
 	GLenum pname;
@@ -2151,7 +2508,7 @@ struct ChimeraGlArgs_glGetNamedBufferPointerv {
 };
 
 /* void glGetNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, void * data) */
-#define CHIMERA_GL_OP_glGetNamedBufferSubData 354
+#define CHIMERA_GL_OP_glGetNamedBufferSubData 406
 struct ChimeraGlArgs_glGetNamedBufferSubData {
 	GLuint buffer;
 	GLintptr offset;
@@ -2160,7 +2517,7 @@ struct ChimeraGlArgs_glGetNamedBufferSubData {
 };
 
 /* void glGetNamedFramebufferAttachmentParameteriv(GLuint framebuffer, GLenum attachment, GLenum pname, GLint * params) */
-#define CHIMERA_GL_OP_glGetNamedFramebufferAttachmentParameteriv 355
+#define CHIMERA_GL_OP_glGetNamedFramebufferAttachmentParameteriv 407
 struct ChimeraGlArgs_glGetNamedFramebufferAttachmentParameteriv {
 	GLuint framebuffer;
 	GLenum attachment;
@@ -2169,7 +2526,7 @@ struct ChimeraGlArgs_glGetNamedFramebufferAttachmentParameteriv {
 };
 
 /* void glGetNamedFramebufferParameteriv(GLuint framebuffer, GLenum pname, GLint * param) */
-#define CHIMERA_GL_OP_glGetNamedFramebufferParameteriv 356
+#define CHIMERA_GL_OP_glGetNamedFramebufferParameteriv 408
 struct ChimeraGlArgs_glGetNamedFramebufferParameteriv {
 	GLuint framebuffer;
 	GLenum pname;
@@ -2177,7 +2534,7 @@ struct ChimeraGlArgs_glGetNamedFramebufferParameteriv {
 };
 
 /* void glGetNamedRenderbufferParameteriv(GLuint renderbuffer, GLenum pname, GLint * params) */
-#define CHIMERA_GL_OP_glGetNamedRenderbufferParameteriv 357
+#define CHIMERA_GL_OP_glGetNamedRenderbufferParameteriv 409
 struct ChimeraGlArgs_glGetNamedRenderbufferParameteriv {
 	GLuint renderbuffer;
 	GLenum pname;
@@ -2185,7 +2542,7 @@ struct ChimeraGlArgs_glGetNamedRenderbufferParameteriv {
 };
 
 /* void glGetnCompressedTexImage(GLenum target, GLint lod, GLsizei bufSize, void * pixels) */
-#define CHIMERA_GL_OP_glGetnCompressedTexImage 358
+#define CHIMERA_GL_OP_glGetnCompressedTexImage 410
 struct ChimeraGlArgs_glGetnCompressedTexImage {
 	GLenum target;
 	GLint lod;
@@ -2194,7 +2551,7 @@ struct ChimeraGlArgs_glGetnCompressedTexImage {
 };
 
 /* void glGetnTexImage(GLenum target, GLint level, GLenum format, GLenum type, GLsizei bufSize, void * pixels) */
-#define CHIMERA_GL_OP_glGetnTexImage 359
+#define CHIMERA_GL_OP_glGetnTexImage 411
 struct ChimeraGlArgs_glGetnTexImage {
 	GLenum target;
 	GLint level;
@@ -2205,7 +2562,7 @@ struct ChimeraGlArgs_glGetnTexImage {
 };
 
 /* void glGetnUniformdv(GLuint program, GLint location, GLsizei bufSize, GLdouble * params) */
-#define CHIMERA_GL_OP_glGetnUniformdv 360
+#define CHIMERA_GL_OP_glGetnUniformdv 412
 struct ChimeraGlArgs_glGetnUniformdv {
 	GLuint program;
 	GLint location;
@@ -2214,7 +2571,7 @@ struct ChimeraGlArgs_glGetnUniformdv {
 };
 
 /* void glGetnUniformfv(GLuint program, GLint location, GLsizei bufSize, GLfloat * params) */
-#define CHIMERA_GL_OP_glGetnUniformfv 361
+#define CHIMERA_GL_OP_glGetnUniformfv 413
 struct ChimeraGlArgs_glGetnUniformfv {
 	GLuint program;
 	GLint location;
@@ -2223,7 +2580,7 @@ struct ChimeraGlArgs_glGetnUniformfv {
 };
 
 /* void glGetnUniformiv(GLuint program, GLint location, GLsizei bufSize, GLint * params) */
-#define CHIMERA_GL_OP_glGetnUniformiv 362
+#define CHIMERA_GL_OP_glGetnUniformiv 414
 struct ChimeraGlArgs_glGetnUniformiv {
 	GLuint program;
 	GLint location;
@@ -2232,7 +2589,7 @@ struct ChimeraGlArgs_glGetnUniformiv {
 };
 
 /* void glGetnUniformuiv(GLuint program, GLint location, GLsizei bufSize, GLuint * params) */
-#define CHIMERA_GL_OP_glGetnUniformuiv 363
+#define CHIMERA_GL_OP_glGetnUniformuiv 415
 struct ChimeraGlArgs_glGetnUniformuiv {
 	GLuint program;
 	GLint location;
@@ -2241,7 +2598,7 @@ struct ChimeraGlArgs_glGetnUniformuiv {
 };
 
 /* void glGetObjectLabel(GLenum identifier, GLuint name, GLsizei bufSize, GLsizei * length, GLchar * label) */
-#define CHIMERA_GL_OP_glGetObjectLabel 364
+#define CHIMERA_GL_OP_glGetObjectLabel 416
 struct ChimeraGlArgs_glGetObjectLabel {
 	GLenum identifier;
 	GLuint name;
@@ -2250,18 +2607,8 @@ struct ChimeraGlArgs_glGetObjectLabel {
 	GLchar * label;
 };
 
-/* void glGetObjectLabelKHR(GLenum identifier, GLuint name, GLsizei bufSize, GLsizei * length, GLchar * label) */
-#define CHIMERA_GL_OP_glGetObjectLabelKHR 365
-struct ChimeraGlArgs_glGetObjectLabelKHR {
-	GLenum identifier;
-	GLuint name;
-	GLsizei bufSize;
-	GLsizei * length;
-	GLchar * label;
-};
-
 /* void glGetObjectPtrLabel(const void * ptr, GLsizei bufSize, GLsizei * length, GLchar * label) */
-#define CHIMERA_GL_OP_glGetObjectPtrLabel 366
+#define CHIMERA_GL_OP_glGetObjectPtrLabel 417
 struct ChimeraGlArgs_glGetObjectPtrLabel {
 	const void * ptr;
 	GLsizei bufSize;
@@ -2269,50 +2616,15 @@ struct ChimeraGlArgs_glGetObjectPtrLabel {
 	GLchar * label;
 };
 
-/* void glGetObjectPtrLabelKHR(const void * ptr, GLsizei bufSize, GLsizei * length, GLchar * label) */
-#define CHIMERA_GL_OP_glGetObjectPtrLabelKHR 367
-struct ChimeraGlArgs_glGetObjectPtrLabelKHR {
-	const void * ptr;
-	GLsizei bufSize;
-	GLsizei * length;
-	GLchar * label;
-};
-
 /* void glGetPointerv(GLenum pname, void ** params) */
-#define CHIMERA_GL_OP_glGetPointerv 368
+#define CHIMERA_GL_OP_glGetPointerv 420
 struct ChimeraGlArgs_glGetPointerv {
 	GLenum pname;
 	void ** params;
 };
 
-/* void glGetPointervKHR(GLenum pname, void ** params) */
-#define CHIMERA_GL_OP_glGetPointervKHR 369
-struct ChimeraGlArgs_glGetPointervKHR {
-	GLenum pname;
-	void ** params;
-};
-
-/* void glGetProgramBinary(GLuint program, GLsizei bufSize, GLsizei * length, GLenum * binaryFormat, void * binary) */
-#define CHIMERA_GL_OP_glGetProgramBinary 370
-struct ChimeraGlArgs_glGetProgramBinary {
-	GLuint program;
-	GLsizei bufSize;
-	GLsizei * length;
-	GLenum * binaryFormat;
-	void * binary;
-};
-
-/* void glGetProgramInfoLog(GLuint program, GLsizei bufSize, GLsizei * length, GLchar * infoLog) */
-#define CHIMERA_GL_OP_glGetProgramInfoLog 371
-struct ChimeraGlArgs_glGetProgramInfoLog {
-	GLuint program;
-	GLsizei bufSize;
-	GLsizei * length;
-	GLchar * infoLog;
-};
-
 /* void glGetProgramInterfaceiv(GLuint program, GLenum programInterface, GLenum pname, GLint * params) */
-#define CHIMERA_GL_OP_glGetProgramInterfaceiv 372
+#define CHIMERA_GL_OP_glGetProgramInterfaceiv 421
 struct ChimeraGlArgs_glGetProgramInterfaceiv {
 	GLuint program;
 	GLenum programInterface;
@@ -2320,33 +2632,8 @@ struct ChimeraGlArgs_glGetProgramInterfaceiv {
 	GLint * params;
 };
 
-/* void glGetProgramiv(GLuint program, GLenum pname, GLint * params) */
-#define CHIMERA_GL_OP_glGetProgramiv 373
-struct ChimeraGlArgs_glGetProgramiv {
-	GLuint program;
-	GLenum pname;
-	GLint * params;
-};
-
-/* void glGetProgramPipelineInfoLog(GLuint pipeline, GLsizei bufSize, GLsizei * length, GLchar * infoLog) */
-#define CHIMERA_GL_OP_glGetProgramPipelineInfoLog 374
-struct ChimeraGlArgs_glGetProgramPipelineInfoLog {
-	GLuint pipeline;
-	GLsizei bufSize;
-	GLsizei * length;
-	GLchar * infoLog;
-};
-
-/* void glGetProgramPipelineiv(GLuint pipeline, GLenum pname, GLint * params) */
-#define CHIMERA_GL_OP_glGetProgramPipelineiv 375
-struct ChimeraGlArgs_glGetProgramPipelineiv {
-	GLuint pipeline;
-	GLenum pname;
-	GLint * params;
-};
-
 /* GLuint glGetProgramResourceIndex(GLuint program, GLenum programInterface, const GLchar * name) */
-#define CHIMERA_GL_OP_glGetProgramResourceIndex 376
+#define CHIMERA_GL_OP_glGetProgramResourceIndex 422
 struct ChimeraGlArgs_glGetProgramResourceIndex {
 	GLuint program;
 	GLenum programInterface;
@@ -2354,7 +2641,7 @@ struct ChimeraGlArgs_glGetProgramResourceIndex {
 };
 
 /* void glGetProgramResourceiv(GLuint program, GLenum programInterface, GLuint index, GLsizei propCount, const GLenum * props, GLsizei count, GLsizei * length, GLint * params) */
-#define CHIMERA_GL_OP_glGetProgramResourceiv 377
+#define CHIMERA_GL_OP_glGetProgramResourceiv 423
 struct ChimeraGlArgs_glGetProgramResourceiv {
 	GLuint program;
 	GLenum programInterface;
@@ -2367,7 +2654,7 @@ struct ChimeraGlArgs_glGetProgramResourceiv {
 };
 
 /* GLint glGetProgramResourceLocation(GLuint program, GLenum programInterface, const GLchar * name) */
-#define CHIMERA_GL_OP_glGetProgramResourceLocation 378
+#define CHIMERA_GL_OP_glGetProgramResourceLocation 424
 struct ChimeraGlArgs_glGetProgramResourceLocation {
 	GLuint program;
 	GLenum programInterface;
@@ -2375,7 +2662,7 @@ struct ChimeraGlArgs_glGetProgramResourceLocation {
 };
 
 /* GLint glGetProgramResourceLocationIndex(GLuint program, GLenum programInterface, const GLchar * name) */
-#define CHIMERA_GL_OP_glGetProgramResourceLocationIndex 379
+#define CHIMERA_GL_OP_glGetProgramResourceLocationIndex 425
 struct ChimeraGlArgs_glGetProgramResourceLocationIndex {
 	GLuint program;
 	GLenum programInterface;
@@ -2383,7 +2670,7 @@ struct ChimeraGlArgs_glGetProgramResourceLocationIndex {
 };
 
 /* void glGetProgramResourceName(GLuint program, GLenum programInterface, GLuint index, GLsizei bufSize, GLsizei * length, GLchar * name) */
-#define CHIMERA_GL_OP_glGetProgramResourceName 380
+#define CHIMERA_GL_OP_glGetProgramResourceName 426
 struct ChimeraGlArgs_glGetProgramResourceName {
 	GLuint program;
 	GLenum programInterface;
@@ -2393,17 +2680,8 @@ struct ChimeraGlArgs_glGetProgramResourceName {
 	GLchar * name;
 };
 
-/* void glGetProgramStageiv(GLuint program, GLenum shadertype, GLenum pname, GLint * values) */
-#define CHIMERA_GL_OP_glGetProgramStageiv 381
-struct ChimeraGlArgs_glGetProgramStageiv {
-	GLuint program;
-	GLenum shadertype;
-	GLenum pname;
-	GLint * values;
-};
-
 /* void glGetQueryBufferObjecti64v(GLuint id, GLuint buffer, GLenum pname, GLintptr offset) */
-#define CHIMERA_GL_OP_glGetQueryBufferObjecti64v 382
+#define CHIMERA_GL_OP_glGetQueryBufferObjecti64v 427
 struct ChimeraGlArgs_glGetQueryBufferObjecti64v {
 	GLuint id;
 	GLuint buffer;
@@ -2412,7 +2690,7 @@ struct ChimeraGlArgs_glGetQueryBufferObjecti64v {
 };
 
 /* void glGetQueryBufferObjectiv(GLuint id, GLuint buffer, GLenum pname, GLintptr offset) */
-#define CHIMERA_GL_OP_glGetQueryBufferObjectiv 383
+#define CHIMERA_GL_OP_glGetQueryBufferObjectiv 428
 struct ChimeraGlArgs_glGetQueryBufferObjectiv {
 	GLuint id;
 	GLuint buffer;
@@ -2421,7 +2699,7 @@ struct ChimeraGlArgs_glGetQueryBufferObjectiv {
 };
 
 /* void glGetQueryBufferObjectui64v(GLuint id, GLuint buffer, GLenum pname, GLintptr offset) */
-#define CHIMERA_GL_OP_glGetQueryBufferObjectui64v 384
+#define CHIMERA_GL_OP_glGetQueryBufferObjectui64v 429
 struct ChimeraGlArgs_glGetQueryBufferObjectui64v {
 	GLuint id;
 	GLuint buffer;
@@ -2430,7 +2708,7 @@ struct ChimeraGlArgs_glGetQueryBufferObjectui64v {
 };
 
 /* void glGetQueryBufferObjectuiv(GLuint id, GLuint buffer, GLenum pname, GLintptr offset) */
-#define CHIMERA_GL_OP_glGetQueryBufferObjectuiv 385
+#define CHIMERA_GL_OP_glGetQueryBufferObjectuiv 430
 struct ChimeraGlArgs_glGetQueryBufferObjectuiv {
 	GLuint id;
 	GLuint buffer;
@@ -2438,97 +2716,16 @@ struct ChimeraGlArgs_glGetQueryBufferObjectuiv {
 	GLintptr offset;
 };
 
-/* void glGetQueryIndexediv(GLenum target, GLuint index, GLenum pname, GLint * params) */
-#define CHIMERA_GL_OP_glGetQueryIndexediv 386
-struct ChimeraGlArgs_glGetQueryIndexediv {
-	GLenum target;
-	GLuint index;
-	GLenum pname;
-	GLint * params;
-};
-
 /* void glGetQueryiv(GLenum target, GLenum pname, GLint * params) */
-#define CHIMERA_GL_OP_glGetQueryiv 387
+#define CHIMERA_GL_OP_glGetQueryiv 431
 struct ChimeraGlArgs_glGetQueryiv {
 	GLenum target;
 	GLenum pname;
 	GLint * params;
 };
 
-/* void glGetQueryivEXT(GLenum target, GLenum pname, GLint * params) */
-#define CHIMERA_GL_OP_glGetQueryivEXT 388
-struct ChimeraGlArgs_glGetQueryivEXT {
-	GLenum target;
-	GLenum pname;
-	GLint * params;
-};
-
-/* void glGetQueryObjecti64v(GLuint id, GLenum pname, GLint64 * params) */
-#define CHIMERA_GL_OP_glGetQueryObjecti64v 389
-struct ChimeraGlArgs_glGetQueryObjecti64v {
-	GLuint id;
-	GLenum pname;
-	GLint64 * params;
-};
-
-/* void glGetQueryObjecti64vEXT(GLuint id, GLenum pname, GLint64 * params) */
-#define CHIMERA_GL_OP_glGetQueryObjecti64vEXT 390
-struct ChimeraGlArgs_glGetQueryObjecti64vEXT {
-	GLuint id;
-	GLenum pname;
-	GLint64 * params;
-};
-
-/* void glGetQueryObjectiv(GLuint id, GLenum pname, GLint * params) */
-#define CHIMERA_GL_OP_glGetQueryObjectiv 391
-struct ChimeraGlArgs_glGetQueryObjectiv {
-	GLuint id;
-	GLenum pname;
-	GLint * params;
-};
-
-/* void glGetQueryObjectivEXT(GLuint id, GLenum pname, GLint * params) */
-#define CHIMERA_GL_OP_glGetQueryObjectivEXT 392
-struct ChimeraGlArgs_glGetQueryObjectivEXT {
-	GLuint id;
-	GLenum pname;
-	GLint * params;
-};
-
-/* void glGetQueryObjectui64v(GLuint id, GLenum pname, GLuint64 * params) */
-#define CHIMERA_GL_OP_glGetQueryObjectui64v 393
-struct ChimeraGlArgs_glGetQueryObjectui64v {
-	GLuint id;
-	GLenum pname;
-	GLuint64 * params;
-};
-
-/* void glGetQueryObjectui64vEXT(GLuint id, GLenum pname, GLuint64 * params) */
-#define CHIMERA_GL_OP_glGetQueryObjectui64vEXT 394
-struct ChimeraGlArgs_glGetQueryObjectui64vEXT {
-	GLuint id;
-	GLenum pname;
-	GLuint64 * params;
-};
-
-/* void glGetQueryObjectuiv(GLuint id, GLenum pname, GLuint * params) */
-#define CHIMERA_GL_OP_glGetQueryObjectuiv 395
-struct ChimeraGlArgs_glGetQueryObjectuiv {
-	GLuint id;
-	GLenum pname;
-	GLuint * params;
-};
-
-/* void glGetQueryObjectuivEXT(GLuint id, GLenum pname, GLuint * params) */
-#define CHIMERA_GL_OP_glGetQueryObjectuivEXT 396
-struct ChimeraGlArgs_glGetQueryObjectuivEXT {
-	GLuint id;
-	GLenum pname;
-	GLuint * params;
-};
-
 /* void glGetRenderbufferParameteriv(GLenum target, GLenum pname, GLint * params) */
-#define CHIMERA_GL_OP_glGetRenderbufferParameteriv 397
+#define CHIMERA_GL_OP_glGetRenderbufferParameteriv 432
 struct ChimeraGlArgs_glGetRenderbufferParameteriv {
 	GLenum target;
 	GLenum pname;
@@ -2536,7 +2733,7 @@ struct ChimeraGlArgs_glGetRenderbufferParameteriv {
 };
 
 /* void glGetSamplerParameterfv(GLuint sampler, GLenum pname, GLfloat * params) */
-#define CHIMERA_GL_OP_glGetSamplerParameterfv 398
+#define CHIMERA_GL_OP_glGetSamplerParameterfv 433
 struct ChimeraGlArgs_glGetSamplerParameterfv {
 	GLuint sampler;
 	GLenum pname;
@@ -2544,7 +2741,7 @@ struct ChimeraGlArgs_glGetSamplerParameterfv {
 };
 
 /* void glGetSamplerParameterIiv(GLuint sampler, GLenum pname, GLint * params) */
-#define CHIMERA_GL_OP_glGetSamplerParameterIiv 399
+#define CHIMERA_GL_OP_glGetSamplerParameterIiv 434
 struct ChimeraGlArgs_glGetSamplerParameterIiv {
 	GLuint sampler;
 	GLenum pname;
@@ -2552,7 +2749,7 @@ struct ChimeraGlArgs_glGetSamplerParameterIiv {
 };
 
 /* void glGetSamplerParameterIuiv(GLuint sampler, GLenum pname, GLuint * params) */
-#define CHIMERA_GL_OP_glGetSamplerParameterIuiv 400
+#define CHIMERA_GL_OP_glGetSamplerParameterIuiv 435
 struct ChimeraGlArgs_glGetSamplerParameterIuiv {
 	GLuint sampler;
 	GLenum pname;
@@ -2560,41 +2757,15 @@ struct ChimeraGlArgs_glGetSamplerParameterIuiv {
 };
 
 /* void glGetSamplerParameteriv(GLuint sampler, GLenum pname, GLint * params) */
-#define CHIMERA_GL_OP_glGetSamplerParameteriv 401
+#define CHIMERA_GL_OP_glGetSamplerParameteriv 436
 struct ChimeraGlArgs_glGetSamplerParameteriv {
 	GLuint sampler;
 	GLenum pname;
 	GLint * params;
 };
 
-/* void glGetShaderInfoLog(GLuint shader, GLsizei bufSize, GLsizei * length, GLchar * infoLog) */
-#define CHIMERA_GL_OP_glGetShaderInfoLog 402
-struct ChimeraGlArgs_glGetShaderInfoLog {
-	GLuint shader;
-	GLsizei bufSize;
-	GLsizei * length;
-	GLchar * infoLog;
-};
-
-/* void glGetShaderiv(GLuint shader, GLenum pname, GLint * params) */
-#define CHIMERA_GL_OP_glGetShaderiv 403
-struct ChimeraGlArgs_glGetShaderiv {
-	GLuint shader;
-	GLenum pname;
-	GLint * params;
-};
-
-/* void glGetShaderPrecisionFormat(GLenum shadertype, GLenum precisiontype, GLint * range, GLint * precision) */
-#define CHIMERA_GL_OP_glGetShaderPrecisionFormat 404
-struct ChimeraGlArgs_glGetShaderPrecisionFormat {
-	GLenum shadertype;
-	GLenum precisiontype;
-	GLint * range;
-	GLint * precision;
-};
-
 /* void glGetShaderSource(GLuint shader, GLsizei bufSize, GLsizei * length, GLchar * source) */
-#define CHIMERA_GL_OP_glGetShaderSource 405
+#define CHIMERA_GL_OP_glGetShaderSource 437
 struct ChimeraGlArgs_glGetShaderSource {
 	GLuint shader;
 	GLsizei bufSize;
@@ -2602,37 +2773,8 @@ struct ChimeraGlArgs_glGetShaderSource {
 	GLchar * source;
 };
 
-/* const GLubyte * glGetString(GLenum name) */
-#define CHIMERA_GL_OP_glGetString 406
-struct ChimeraGlArgs_glGetString {
-	GLenum name;
-};
-
-/* const GLubyte * glGetStringi(GLenum name, GLuint index) */
-#define CHIMERA_GL_OP_glGetStringi 407
-struct ChimeraGlArgs_glGetStringi {
-	GLenum name;
-	GLuint index;
-};
-
-/* GLuint glGetSubroutineIndex(GLuint program, GLenum shadertype, const GLchar * name) */
-#define CHIMERA_GL_OP_glGetSubroutineIndex 408
-struct ChimeraGlArgs_glGetSubroutineIndex {
-	GLuint program;
-	GLenum shadertype;
-	const GLchar * name;
-};
-
-/* GLint glGetSubroutineUniformLocation(GLuint program, GLenum shadertype, const GLchar * name) */
-#define CHIMERA_GL_OP_glGetSubroutineUniformLocation 409
-struct ChimeraGlArgs_glGetSubroutineUniformLocation {
-	GLuint program;
-	GLenum shadertype;
-	const GLchar * name;
-};
-
 /* void glGetSynciv(GLsync sync, GLenum pname, GLsizei count, GLsizei * length, GLint * values) */
-#define CHIMERA_GL_OP_glGetSynciv 410
+#define CHIMERA_GL_OP_glGetSynciv 438
 struct ChimeraGlArgs_glGetSynciv {
 	GLsync sync;
 	GLenum pname;
@@ -2641,18 +2783,8 @@ struct ChimeraGlArgs_glGetSynciv {
 	GLint * values;
 };
 
-/* void glGetTexImage(GLenum target, GLint level, GLenum format, GLenum type, void * pixels) */
-#define CHIMERA_GL_OP_glGetTexImage 411
-struct ChimeraGlArgs_glGetTexImage {
-	GLenum target;
-	GLint level;
-	GLenum format;
-	GLenum type;
-	void * pixels;
-};
-
 /* void glGetTexLevelParameterfv(GLenum target, GLint level, GLenum pname, GLfloat * params) */
-#define CHIMERA_GL_OP_glGetTexLevelParameterfv 412
+#define CHIMERA_GL_OP_glGetTexLevelParameterfv 439
 struct ChimeraGlArgs_glGetTexLevelParameterfv {
 	GLenum target;
 	GLint level;
@@ -2661,7 +2793,7 @@ struct ChimeraGlArgs_glGetTexLevelParameterfv {
 };
 
 /* void glGetTexLevelParameteriv(GLenum target, GLint level, GLenum pname, GLint * params) */
-#define CHIMERA_GL_OP_glGetTexLevelParameteriv 413
+#define CHIMERA_GL_OP_glGetTexLevelParameteriv 440
 struct ChimeraGlArgs_glGetTexLevelParameteriv {
 	GLenum target;
 	GLint level;
@@ -2670,7 +2802,7 @@ struct ChimeraGlArgs_glGetTexLevelParameteriv {
 };
 
 /* void glGetTexParameterfv(GLenum target, GLenum pname, GLfloat * params) */
-#define CHIMERA_GL_OP_glGetTexParameterfv 414
+#define CHIMERA_GL_OP_glGetTexParameterfv 441
 struct ChimeraGlArgs_glGetTexParameterfv {
 	GLenum target;
 	GLenum pname;
@@ -2678,7 +2810,7 @@ struct ChimeraGlArgs_glGetTexParameterfv {
 };
 
 /* void glGetTexParameterIiv(GLenum target, GLenum pname, GLint * params) */
-#define CHIMERA_GL_OP_glGetTexParameterIiv 415
+#define CHIMERA_GL_OP_glGetTexParameterIiv 442
 struct ChimeraGlArgs_glGetTexParameterIiv {
 	GLenum target;
 	GLenum pname;
@@ -2686,7 +2818,7 @@ struct ChimeraGlArgs_glGetTexParameterIiv {
 };
 
 /* void glGetTexParameterIuiv(GLenum target, GLenum pname, GLuint * params) */
-#define CHIMERA_GL_OP_glGetTexParameterIuiv 416
+#define CHIMERA_GL_OP_glGetTexParameterIuiv 443
 struct ChimeraGlArgs_glGetTexParameterIuiv {
 	GLenum target;
 	GLenum pname;
@@ -2694,26 +2826,15 @@ struct ChimeraGlArgs_glGetTexParameterIuiv {
 };
 
 /* void glGetTexParameteriv(GLenum target, GLenum pname, GLint * params) */
-#define CHIMERA_GL_OP_glGetTexParameteriv 417
+#define CHIMERA_GL_OP_glGetTexParameteriv 444
 struct ChimeraGlArgs_glGetTexParameteriv {
 	GLenum target;
 	GLenum pname;
 	GLint * params;
 };
 
-/* void glGetTextureImage(GLuint texture, GLint level, GLenum format, GLenum type, GLsizei bufSize, void * pixels) */
-#define CHIMERA_GL_OP_glGetTextureImage 418
-struct ChimeraGlArgs_glGetTextureImage {
-	GLuint texture;
-	GLint level;
-	GLenum format;
-	GLenum type;
-	GLsizei bufSize;
-	void * pixels;
-};
-
 /* void glGetTextureLevelParameterfv(GLuint texture, GLint level, GLenum pname, GLfloat * params) */
-#define CHIMERA_GL_OP_glGetTextureLevelParameterfv 419
+#define CHIMERA_GL_OP_glGetTextureLevelParameterfv 445
 struct ChimeraGlArgs_glGetTextureLevelParameterfv {
 	GLuint texture;
 	GLint level;
@@ -2722,7 +2843,7 @@ struct ChimeraGlArgs_glGetTextureLevelParameterfv {
 };
 
 /* void glGetTextureLevelParameteriv(GLuint texture, GLint level, GLenum pname, GLint * params) */
-#define CHIMERA_GL_OP_glGetTextureLevelParameteriv 420
+#define CHIMERA_GL_OP_glGetTextureLevelParameteriv 446
 struct ChimeraGlArgs_glGetTextureLevelParameteriv {
 	GLuint texture;
 	GLint level;
@@ -2731,7 +2852,7 @@ struct ChimeraGlArgs_glGetTextureLevelParameteriv {
 };
 
 /* void glGetTextureParameterfv(GLuint texture, GLenum pname, GLfloat * params) */
-#define CHIMERA_GL_OP_glGetTextureParameterfv 421
+#define CHIMERA_GL_OP_glGetTextureParameterfv 447
 struct ChimeraGlArgs_glGetTextureParameterfv {
 	GLuint texture;
 	GLenum pname;
@@ -2739,7 +2860,7 @@ struct ChimeraGlArgs_glGetTextureParameterfv {
 };
 
 /* void glGetTextureParameterIiv(GLuint texture, GLenum pname, GLint * params) */
-#define CHIMERA_GL_OP_glGetTextureParameterIiv 422
+#define CHIMERA_GL_OP_glGetTextureParameterIiv 448
 struct ChimeraGlArgs_glGetTextureParameterIiv {
 	GLuint texture;
 	GLenum pname;
@@ -2747,7 +2868,7 @@ struct ChimeraGlArgs_glGetTextureParameterIiv {
 };
 
 /* void glGetTextureParameterIuiv(GLuint texture, GLenum pname, GLuint * params) */
-#define CHIMERA_GL_OP_glGetTextureParameterIuiv 423
+#define CHIMERA_GL_OP_glGetTextureParameterIuiv 449
 struct ChimeraGlArgs_glGetTextureParameterIuiv {
 	GLuint texture;
 	GLenum pname;
@@ -2755,7 +2876,7 @@ struct ChimeraGlArgs_glGetTextureParameterIuiv {
 };
 
 /* void glGetTextureParameteriv(GLuint texture, GLenum pname, GLint * params) */
-#define CHIMERA_GL_OP_glGetTextureParameteriv 424
+#define CHIMERA_GL_OP_glGetTextureParameteriv 450
 struct ChimeraGlArgs_glGetTextureParameteriv {
 	GLuint texture;
 	GLenum pname;
@@ -2763,7 +2884,7 @@ struct ChimeraGlArgs_glGetTextureParameteriv {
 };
 
 /* void glGetTextureSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLsizei bufSize, void * pixels) */
-#define CHIMERA_GL_OP_glGetTextureSubImage 425
+#define CHIMERA_GL_OP_glGetTextureSubImage 451
 struct ChimeraGlArgs_glGetTextureSubImage {
 	GLuint texture;
 	GLint level;
@@ -2779,26 +2900,8 @@ struct ChimeraGlArgs_glGetTextureSubImage {
 	void * pixels;
 };
 
-/* void glGetTransformFeedbacki64_v(GLuint xfb, GLenum pname, GLuint index, GLint64 * param) */
-#define CHIMERA_GL_OP_glGetTransformFeedbacki64_v 426
-struct ChimeraGlArgs_glGetTransformFeedbacki64_v {
-	GLuint xfb;
-	GLenum pname;
-	GLuint index;
-	GLint64 * param;
-};
-
-/* void glGetTransformFeedbacki_v(GLuint xfb, GLenum pname, GLuint index, GLint * param) */
-#define CHIMERA_GL_OP_glGetTransformFeedbacki_v 427
-struct ChimeraGlArgs_glGetTransformFeedbacki_v {
-	GLuint xfb;
-	GLenum pname;
-	GLuint index;
-	GLint * param;
-};
-
 /* void glGetTransformFeedbackiv(GLuint xfb, GLenum pname, GLint * param) */
-#define CHIMERA_GL_OP_glGetTransformFeedbackiv 428
+#define CHIMERA_GL_OP_glGetTransformFeedbackiv 452
 struct ChimeraGlArgs_glGetTransformFeedbackiv {
 	GLuint xfb;
 	GLenum pname;
@@ -2806,7 +2909,7 @@ struct ChimeraGlArgs_glGetTransformFeedbackiv {
 };
 
 /* void glGetTransformFeedbackVarying(GLuint program, GLuint index, GLsizei bufSize, GLsizei * length, GLsizei * size, GLenum * type, GLchar * name) */
-#define CHIMERA_GL_OP_glGetTransformFeedbackVarying 429
+#define CHIMERA_GL_OP_glGetTransformFeedbackVarying 453
 struct ChimeraGlArgs_glGetTransformFeedbackVarying {
 	GLuint program;
 	GLuint index;
@@ -2817,23 +2920,8 @@ struct ChimeraGlArgs_glGetTransformFeedbackVarying {
 	GLchar * name;
 };
 
-/* GLuint glGetUniformBlockIndex(GLuint program, const GLchar * uniformBlockName) */
-#define CHIMERA_GL_OP_glGetUniformBlockIndex 430
-struct ChimeraGlArgs_glGetUniformBlockIndex {
-	GLuint program;
-	const GLchar * uniformBlockName;
-};
-
-/* void glGetUniformdv(GLuint program, GLint location, GLdouble * params) */
-#define CHIMERA_GL_OP_glGetUniformdv 431
-struct ChimeraGlArgs_glGetUniformdv {
-	GLuint program;
-	GLint location;
-	GLdouble * params;
-};
-
 /* void glGetUniformfv(GLuint program, GLint location, GLfloat * params) */
-#define CHIMERA_GL_OP_glGetUniformfv 432
+#define CHIMERA_GL_OP_glGetUniformfv 454
 struct ChimeraGlArgs_glGetUniformfv {
 	GLuint program;
 	GLint location;
@@ -2841,7 +2929,7 @@ struct ChimeraGlArgs_glGetUniformfv {
 };
 
 /* void glGetUniformIndices(GLuint program, GLsizei uniformCount, const GLchar *const* uniformNames, GLuint * uniformIndices) */
-#define CHIMERA_GL_OP_glGetUniformIndices 433
+#define CHIMERA_GL_OP_glGetUniformIndices 455
 struct ChimeraGlArgs_glGetUniformIndices {
 	GLuint program;
 	GLsizei uniformCount;
@@ -2850,30 +2938,15 @@ struct ChimeraGlArgs_glGetUniformIndices {
 };
 
 /* void glGetUniformiv(GLuint program, GLint location, GLint * params) */
-#define CHIMERA_GL_OP_glGetUniformiv 434
+#define CHIMERA_GL_OP_glGetUniformiv 456
 struct ChimeraGlArgs_glGetUniformiv {
 	GLuint program;
 	GLint location;
 	GLint * params;
 };
 
-/* GLint glGetUniformLocation(GLuint program, const GLchar * name) */
-#define CHIMERA_GL_OP_glGetUniformLocation 435
-struct ChimeraGlArgs_glGetUniformLocation {
-	GLuint program;
-	const GLchar * name;
-};
-
-/* void glGetUniformSubroutineuiv(GLenum shadertype, GLint location, GLuint * params) */
-#define CHIMERA_GL_OP_glGetUniformSubroutineuiv 436
-struct ChimeraGlArgs_glGetUniformSubroutineuiv {
-	GLenum shadertype;
-	GLint location;
-	GLuint * params;
-};
-
 /* void glGetUniformuiv(GLuint program, GLint location, GLuint * params) */
-#define CHIMERA_GL_OP_glGetUniformuiv 437
+#define CHIMERA_GL_OP_glGetUniformuiv 457
 struct ChimeraGlArgs_glGetUniformuiv {
 	GLuint program;
 	GLint location;
@@ -2881,7 +2954,7 @@ struct ChimeraGlArgs_glGetUniformuiv {
 };
 
 /* void glGetVertexArrayIndexed64iv(GLuint vaobj, GLuint index, GLenum pname, GLint64 * param) */
-#define CHIMERA_GL_OP_glGetVertexArrayIndexed64iv 438
+#define CHIMERA_GL_OP_glGetVertexArrayIndexed64iv 458
 struct ChimeraGlArgs_glGetVertexArrayIndexed64iv {
 	GLuint vaobj;
 	GLuint index;
@@ -2890,7 +2963,7 @@ struct ChimeraGlArgs_glGetVertexArrayIndexed64iv {
 };
 
 /* void glGetVertexArrayIndexediv(GLuint vaobj, GLuint index, GLenum pname, GLint * param) */
-#define CHIMERA_GL_OP_glGetVertexArrayIndexediv 439
+#define CHIMERA_GL_OP_glGetVertexArrayIndexediv 459
 struct ChimeraGlArgs_glGetVertexArrayIndexediv {
 	GLuint vaobj;
 	GLuint index;
@@ -2899,7 +2972,7 @@ struct ChimeraGlArgs_glGetVertexArrayIndexediv {
 };
 
 /* void glGetVertexArrayiv(GLuint vaobj, GLenum pname, GLint * param) */
-#define CHIMERA_GL_OP_glGetVertexArrayiv 440
+#define CHIMERA_GL_OP_glGetVertexArrayiv 460
 struct ChimeraGlArgs_glGetVertexArrayiv {
 	GLuint vaobj;
 	GLenum pname;
@@ -2907,7 +2980,7 @@ struct ChimeraGlArgs_glGetVertexArrayiv {
 };
 
 /* void glGetVertexAttribdv(GLuint index, GLenum pname, GLdouble * params) */
-#define CHIMERA_GL_OP_glGetVertexAttribdv 441
+#define CHIMERA_GL_OP_glGetVertexAttribdv 461
 struct ChimeraGlArgs_glGetVertexAttribdv {
 	GLuint index;
 	GLenum pname;
@@ -2915,7 +2988,7 @@ struct ChimeraGlArgs_glGetVertexAttribdv {
 };
 
 /* void glGetVertexAttribfv(GLuint index, GLenum pname, GLfloat * params) */
-#define CHIMERA_GL_OP_glGetVertexAttribfv 442
+#define CHIMERA_GL_OP_glGetVertexAttribfv 462
 struct ChimeraGlArgs_glGetVertexAttribfv {
 	GLuint index;
 	GLenum pname;
@@ -2923,7 +2996,7 @@ struct ChimeraGlArgs_glGetVertexAttribfv {
 };
 
 /* void glGetVertexAttribIiv(GLuint index, GLenum pname, GLint * params) */
-#define CHIMERA_GL_OP_glGetVertexAttribIiv 443
+#define CHIMERA_GL_OP_glGetVertexAttribIiv 463
 struct ChimeraGlArgs_glGetVertexAttribIiv {
 	GLuint index;
 	GLenum pname;
@@ -2931,7 +3004,7 @@ struct ChimeraGlArgs_glGetVertexAttribIiv {
 };
 
 /* void glGetVertexAttribIuiv(GLuint index, GLenum pname, GLuint * params) */
-#define CHIMERA_GL_OP_glGetVertexAttribIuiv 444
+#define CHIMERA_GL_OP_glGetVertexAttribIuiv 464
 struct ChimeraGlArgs_glGetVertexAttribIuiv {
 	GLuint index;
 	GLenum pname;
@@ -2939,60 +3012,37 @@ struct ChimeraGlArgs_glGetVertexAttribIuiv {
 };
 
 /* void glGetVertexAttribiv(GLuint index, GLenum pname, GLint * params) */
-#define CHIMERA_GL_OP_glGetVertexAttribiv 445
+#define CHIMERA_GL_OP_glGetVertexAttribiv 465
 struct ChimeraGlArgs_glGetVertexAttribiv {
 	GLuint index;
 	GLenum pname;
 	GLint * params;
 };
 
-/* void glGetVertexAttribLdv(GLuint index, GLenum pname, GLdouble * params) */
-#define CHIMERA_GL_OP_glGetVertexAttribLdv 446
-struct ChimeraGlArgs_glGetVertexAttribLdv {
-	GLuint index;
-	GLenum pname;
-	GLdouble * params;
-};
-
 /* void glGetVertexAttribPointerv(GLuint index, GLenum pname, void ** pointer) */
-#define CHIMERA_GL_OP_glGetVertexAttribPointerv 447
+#define CHIMERA_GL_OP_glGetVertexAttribPointerv 466
 struct ChimeraGlArgs_glGetVertexAttribPointerv {
 	GLuint index;
 	GLenum pname;
 	void ** pointer;
 };
 
-/* void glHint(GLenum target, GLenum mode) */
-#define CHIMERA_GL_OP_glHint 448
-struct ChimeraGlArgs_glHint {
-	GLenum target;
-	GLenum mode;
-};
-
 /* void glInvalidateBufferData(GLuint buffer) */
-#define CHIMERA_GL_OP_glInvalidateBufferData 449
+#define CHIMERA_GL_OP_glInvalidateBufferData 467
 struct ChimeraGlArgs_glInvalidateBufferData {
 	GLuint buffer;
 };
 
 /* void glInvalidateBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr length) */
-#define CHIMERA_GL_OP_glInvalidateBufferSubData 450
+#define CHIMERA_GL_OP_glInvalidateBufferSubData 468
 struct ChimeraGlArgs_glInvalidateBufferSubData {
 	GLuint buffer;
 	GLintptr offset;
 	GLsizeiptr length;
 };
 
-/* void glInvalidateFramebuffer(GLenum target, GLsizei numAttachments, const GLenum * attachments) */
-#define CHIMERA_GL_OP_glInvalidateFramebuffer 451
-struct ChimeraGlArgs_glInvalidateFramebuffer {
-	GLenum target;
-	GLsizei numAttachments;
-	const GLenum * attachments;
-};
-
 /* void glInvalidateNamedFramebufferData(GLuint framebuffer, GLsizei numAttachments, const GLenum * attachments) */
-#define CHIMERA_GL_OP_glInvalidateNamedFramebufferData 452
+#define CHIMERA_GL_OP_glInvalidateNamedFramebufferData 469
 struct ChimeraGlArgs_glInvalidateNamedFramebufferData {
 	GLuint framebuffer;
 	GLsizei numAttachments;
@@ -3000,7 +3050,7 @@ struct ChimeraGlArgs_glInvalidateNamedFramebufferData {
 };
 
 /* void glInvalidateNamedFramebufferSubData(GLuint framebuffer, GLsizei numAttachments, const GLenum * attachments, GLint x, GLint y, GLsizei width, GLsizei height) */
-#define CHIMERA_GL_OP_glInvalidateNamedFramebufferSubData 453
+#define CHIMERA_GL_OP_glInvalidateNamedFramebufferSubData 470
 struct ChimeraGlArgs_glInvalidateNamedFramebufferSubData {
 	GLuint framebuffer;
 	GLsizei numAttachments;
@@ -3012,7 +3062,7 @@ struct ChimeraGlArgs_glInvalidateNamedFramebufferSubData {
 };
 
 /* void glInvalidateSubFramebuffer(GLenum target, GLsizei numAttachments, const GLenum * attachments, GLint x, GLint y, GLsizei width, GLsizei height) */
-#define CHIMERA_GL_OP_glInvalidateSubFramebuffer 454
+#define CHIMERA_GL_OP_glInvalidateSubFramebuffer 471
 struct ChimeraGlArgs_glInvalidateSubFramebuffer {
 	GLenum target;
 	GLsizei numAttachments;
@@ -3024,14 +3074,14 @@ struct ChimeraGlArgs_glInvalidateSubFramebuffer {
 };
 
 /* void glInvalidateTexImage(GLuint texture, GLint level) */
-#define CHIMERA_GL_OP_glInvalidateTexImage 455
+#define CHIMERA_GL_OP_glInvalidateTexImage 472
 struct ChimeraGlArgs_glInvalidateTexImage {
 	GLuint texture;
 	GLint level;
 };
 
 /* void glInvalidateTexSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth) */
-#define CHIMERA_GL_OP_glInvalidateTexSubImage 456
+#define CHIMERA_GL_OP_glInvalidateTexSubImage 473
 struct ChimeraGlArgs_glInvalidateTexSubImage {
 	GLuint texture;
 	GLint level;
@@ -3044,158 +3094,100 @@ struct ChimeraGlArgs_glInvalidateTexSubImage {
 };
 
 /* GLboolean glIsBuffer(GLuint buffer) */
-#define CHIMERA_GL_OP_glIsBuffer 457
+#define CHIMERA_GL_OP_glIsBuffer 474
 struct ChimeraGlArgs_glIsBuffer {
 	GLuint buffer;
 };
 
 /* GLboolean glIsEnabled(GLenum cap) */
-#define CHIMERA_GL_OP_glIsEnabled 458
+#define CHIMERA_GL_OP_glIsEnabled 475
 struct ChimeraGlArgs_glIsEnabled {
 	GLenum cap;
 };
 
 /* GLboolean glIsEnabledi(GLenum target, GLuint index) */
-#define CHIMERA_GL_OP_glIsEnabledi 459
+#define CHIMERA_GL_OP_glIsEnabledi 476
 struct ChimeraGlArgs_glIsEnabledi {
 	GLenum target;
 	GLuint index;
 };
 
-/* GLboolean glIsEnabledIndexedEXT(GLenum target, GLuint index) */
-#define CHIMERA_GL_OP_glIsEnabledIndexedEXT 460
-struct ChimeraGlArgs_glIsEnabledIndexedEXT {
-	GLenum target;
-	GLuint index;
-};
-
 /* GLboolean glIsFramebuffer(GLuint framebuffer) */
-#define CHIMERA_GL_OP_glIsFramebuffer 461
+#define CHIMERA_GL_OP_glIsFramebuffer 477
 struct ChimeraGlArgs_glIsFramebuffer {
 	GLuint framebuffer;
 };
 
 /* GLboolean glIsProgram(GLuint program) */
-#define CHIMERA_GL_OP_glIsProgram 462
+#define CHIMERA_GL_OP_glIsProgram 479
 struct ChimeraGlArgs_glIsProgram {
 	GLuint program;
 };
 
-/* GLboolean glIsProgramPipeline(GLuint pipeline) */
-#define CHIMERA_GL_OP_glIsProgramPipeline 463
-struct ChimeraGlArgs_glIsProgramPipeline {
-	GLuint pipeline;
-};
-
 /* GLboolean glIsQuery(GLuint id) */
-#define CHIMERA_GL_OP_glIsQuery 464
+#define CHIMERA_GL_OP_glIsQuery 480
 struct ChimeraGlArgs_glIsQuery {
 	GLuint id;
 };
 
-/* GLboolean glIsQueryEXT(GLuint id) */
-#define CHIMERA_GL_OP_glIsQueryEXT 465
-struct ChimeraGlArgs_glIsQueryEXT {
-	GLuint id;
-};
-
 /* GLboolean glIsRenderbuffer(GLuint renderbuffer) */
-#define CHIMERA_GL_OP_glIsRenderbuffer 466
+#define CHIMERA_GL_OP_glIsRenderbuffer 481
 struct ChimeraGlArgs_glIsRenderbuffer {
 	GLuint renderbuffer;
 };
 
 /* GLboolean glIsSampler(GLuint sampler) */
-#define CHIMERA_GL_OP_glIsSampler 467
+#define CHIMERA_GL_OP_glIsSampler 482
 struct ChimeraGlArgs_glIsSampler {
 	GLuint sampler;
 };
 
 /* GLboolean glIsShader(GLuint shader) */
-#define CHIMERA_GL_OP_glIsShader 468
+#define CHIMERA_GL_OP_glIsShader 483
 struct ChimeraGlArgs_glIsShader {
 	GLuint shader;
 };
 
 /* GLboolean glIsSync(GLsync sync) */
-#define CHIMERA_GL_OP_glIsSync 469
+#define CHIMERA_GL_OP_glIsSync 484
 struct ChimeraGlArgs_glIsSync {
 	GLsync sync;
 };
 
 /* GLboolean glIsTexture(GLuint texture) */
-#define CHIMERA_GL_OP_glIsTexture 470
+#define CHIMERA_GL_OP_glIsTexture 485
 struct ChimeraGlArgs_glIsTexture {
 	GLuint texture;
 };
 
-/* GLboolean glIsTransformFeedback(GLuint id) */
-#define CHIMERA_GL_OP_glIsTransformFeedback 471
-struct ChimeraGlArgs_glIsTransformFeedback {
-	GLuint id;
-};
-
 /* GLboolean glIsVertexArray(GLuint array) */
-#define CHIMERA_GL_OP_glIsVertexArray 472
+#define CHIMERA_GL_OP_glIsVertexArray 486
 struct ChimeraGlArgs_glIsVertexArray {
 	GLuint array;
 };
 
-/* GLboolean glIsVertexArrayAPPLE(GLuint array) */
-#define CHIMERA_GL_OP_glIsVertexArrayAPPLE 473
-struct ChimeraGlArgs_glIsVertexArrayAPPLE {
-	GLuint array;
-};
-
-/* GLboolean glIsVertexArrayOES(GLuint array) */
-#define CHIMERA_GL_OP_glIsVertexArrayOES 474
-struct ChimeraGlArgs_glIsVertexArrayOES {
-	GLuint array;
-};
-
-/* void glLineWidth(GLfloat width) */
-#define CHIMERA_GL_OP_glLineWidth 475
-struct ChimeraGlArgs_glLineWidth {
-	GLfloat width;
-};
-
-/* void glLinkProgram(GLuint program) */
-#define CHIMERA_GL_OP_glLinkProgram 476
-struct ChimeraGlArgs_glLinkProgram {
-	GLuint program;
-};
-
 /* void glLogicOp(GLenum opcode) */
-#define CHIMERA_GL_OP_glLogicOp 477
+#define CHIMERA_GL_OP_glLogicOp 487
 struct ChimeraGlArgs_glLogicOp {
 	GLenum opcode;
 };
 
 /* void * glMapBuffer(GLenum target, GLenum access) */
-#define CHIMERA_GL_OP_glMapBuffer 478
+#define CHIMERA_GL_OP_glMapBuffer 488
 struct ChimeraGlArgs_glMapBuffer {
 	GLenum target;
 	GLenum access;
 };
 
-/* void * glMapBufferRange(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access) */
-#define CHIMERA_GL_OP_glMapBufferRange 479
-struct ChimeraGlArgs_glMapBufferRange {
-	GLenum target;
-	GLintptr offset;
-	GLsizeiptr length;
-	GLbitfield access;
-};
-
 /* void * glMapNamedBuffer(GLuint buffer, GLenum access) */
-#define CHIMERA_GL_OP_glMapNamedBuffer 480
+#define CHIMERA_GL_OP_glMapNamedBuffer 489
 struct ChimeraGlArgs_glMapNamedBuffer {
 	GLuint buffer;
 	GLenum access;
 };
 
 /* void * glMapNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length, GLbitfield access) */
-#define CHIMERA_GL_OP_glMapNamedBufferRange 481
+#define CHIMERA_GL_OP_glMapNamedBufferRange 490
 struct ChimeraGlArgs_glMapNamedBufferRange {
 	GLuint buffer;
 	GLintptr offset;
@@ -3203,47 +3195,20 @@ struct ChimeraGlArgs_glMapNamedBufferRange {
 	GLbitfield access;
 };
 
-/* void glMaxShaderCompilerThreadsARB(GLuint count) */
-#define CHIMERA_GL_OP_glMaxShaderCompilerThreadsARB 482
-struct ChimeraGlArgs_glMaxShaderCompilerThreadsARB {
-	GLuint count;
-};
-
-/* void glMaxShaderCompilerThreadsKHR(GLuint count) */
-#define CHIMERA_GL_OP_glMaxShaderCompilerThreadsKHR 483
-struct ChimeraGlArgs_glMaxShaderCompilerThreadsKHR {
-	GLuint count;
-};
-
-/* void glMemoryBarrier(GLbitfield barriers) */
-#define CHIMERA_GL_OP_glMemoryBarrier 484
-struct ChimeraGlArgs_glMemoryBarrier {
-	GLbitfield barriers;
-};
-
 /* void glMemoryBarrierByRegion(GLbitfield barriers) */
-#define CHIMERA_GL_OP_glMemoryBarrierByRegion 485
+#define CHIMERA_GL_OP_glMemoryBarrierByRegion 491
 struct ChimeraGlArgs_glMemoryBarrierByRegion {
 	GLbitfield barriers;
 };
 
 /* void glMinSampleShading(GLfloat value) */
-#define CHIMERA_GL_OP_glMinSampleShading 486
+#define CHIMERA_GL_OP_glMinSampleShading 492
 struct ChimeraGlArgs_glMinSampleShading {
 	GLfloat value;
 };
 
-/* void glMultiDrawArrays(GLenum mode, const GLint * first, const GLsizei * count, GLsizei drawcount) */
-#define CHIMERA_GL_OP_glMultiDrawArrays 487
-struct ChimeraGlArgs_glMultiDrawArrays {
-	GLenum mode;
-	const GLint * first;
-	const GLsizei * count;
-	GLsizei drawcount;
-};
-
 /* void glMultiDrawArraysIndirect(GLenum mode, const void * indirect, GLsizei drawcount, GLsizei stride) */
-#define CHIMERA_GL_OP_glMultiDrawArraysIndirect 488
+#define CHIMERA_GL_OP_glMultiDrawArraysIndirect 493
 struct ChimeraGlArgs_glMultiDrawArraysIndirect {
 	GLenum mode;
 	const void * indirect;
@@ -3251,18 +3216,8 @@ struct ChimeraGlArgs_glMultiDrawArraysIndirect {
 	GLsizei stride;
 };
 
-/* void glMultiDrawArraysIndirectCount(GLenum mode, const void * indirect, GLintptr drawcount, GLsizei maxdrawcount, GLsizei stride) */
-#define CHIMERA_GL_OP_glMultiDrawArraysIndirectCount 489
-struct ChimeraGlArgs_glMultiDrawArraysIndirectCount {
-	GLenum mode;
-	const void * indirect;
-	GLintptr drawcount;
-	GLsizei maxdrawcount;
-	GLsizei stride;
-};
-
 /* void glMultiDrawElements(GLenum mode, const GLsizei * count, GLenum type, const void *const* indices, GLsizei drawcount) */
-#define CHIMERA_GL_OP_glMultiDrawElements 490
+#define CHIMERA_GL_OP_glMultiDrawElements 494
 struct ChimeraGlArgs_glMultiDrawElements {
 	GLenum mode;
 	const GLsizei * count;
@@ -3272,7 +3227,7 @@ struct ChimeraGlArgs_glMultiDrawElements {
 };
 
 /* void glMultiDrawElementsBaseVertex(GLenum mode, const GLsizei * count, GLenum type, const void *const* indices, GLsizei drawcount, const GLint * basevertex) */
-#define CHIMERA_GL_OP_glMultiDrawElementsBaseVertex 491
+#define CHIMERA_GL_OP_glMultiDrawElementsBaseVertex 495
 struct ChimeraGlArgs_glMultiDrawElementsBaseVertex {
 	GLenum mode;
 	const GLsizei * count;
@@ -3283,7 +3238,7 @@ struct ChimeraGlArgs_glMultiDrawElementsBaseVertex {
 };
 
 /* void glMultiDrawElementsIndirect(GLenum mode, GLenum type, const void * indirect, GLsizei drawcount, GLsizei stride) */
-#define CHIMERA_GL_OP_glMultiDrawElementsIndirect 492
+#define CHIMERA_GL_OP_glMultiDrawElementsIndirect 496
 struct ChimeraGlArgs_glMultiDrawElementsIndirect {
 	GLenum mode;
 	GLenum type;
@@ -3292,19 +3247,8 @@ struct ChimeraGlArgs_glMultiDrawElementsIndirect {
 	GLsizei stride;
 };
 
-/* void glMultiDrawElementsIndirectCount(GLenum mode, GLenum type, const void * indirect, GLintptr drawcount, GLsizei maxdrawcount, GLsizei stride) */
-#define CHIMERA_GL_OP_glMultiDrawElementsIndirectCount 493
-struct ChimeraGlArgs_glMultiDrawElementsIndirectCount {
-	GLenum mode;
-	GLenum type;
-	const void * indirect;
-	GLintptr drawcount;
-	GLsizei maxdrawcount;
-	GLsizei stride;
-};
-
 /* void glNamedBufferData(GLuint buffer, GLsizeiptr size, const void * data, GLenum usage) */
-#define CHIMERA_GL_OP_glNamedBufferData 494
+#define CHIMERA_GL_OP_glNamedBufferData 497
 struct ChimeraGlArgs_glNamedBufferData {
 	GLuint buffer;
 	GLsizeiptr size;
@@ -3313,7 +3257,7 @@ struct ChimeraGlArgs_glNamedBufferData {
 };
 
 /* void glNamedBufferStorage(GLuint buffer, GLsizeiptr size, const void * data, GLbitfield flags) */
-#define CHIMERA_GL_OP_glNamedBufferStorage 495
+#define CHIMERA_GL_OP_glNamedBufferStorage 498
 struct ChimeraGlArgs_glNamedBufferStorage {
 	GLuint buffer;
 	GLsizeiptr size;
@@ -3322,7 +3266,7 @@ struct ChimeraGlArgs_glNamedBufferStorage {
 };
 
 /* void glNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, const void * data) */
-#define CHIMERA_GL_OP_glNamedBufferSubData 496
+#define CHIMERA_GL_OP_glNamedBufferSubData 499
 struct ChimeraGlArgs_glNamedBufferSubData {
 	GLuint buffer;
 	GLintptr offset;
@@ -3331,14 +3275,14 @@ struct ChimeraGlArgs_glNamedBufferSubData {
 };
 
 /* void glNamedFramebufferDrawBuffer(GLuint framebuffer, GLenum buf) */
-#define CHIMERA_GL_OP_glNamedFramebufferDrawBuffer 497
+#define CHIMERA_GL_OP_glNamedFramebufferDrawBuffer 500
 struct ChimeraGlArgs_glNamedFramebufferDrawBuffer {
 	GLuint framebuffer;
 	GLenum buf;
 };
 
 /* void glNamedFramebufferDrawBuffers(GLuint framebuffer, GLsizei n, const GLenum * bufs) */
-#define CHIMERA_GL_OP_glNamedFramebufferDrawBuffers 498
+#define CHIMERA_GL_OP_glNamedFramebufferDrawBuffers 501
 struct ChimeraGlArgs_glNamedFramebufferDrawBuffers {
 	GLuint framebuffer;
 	GLsizei n;
@@ -3346,7 +3290,7 @@ struct ChimeraGlArgs_glNamedFramebufferDrawBuffers {
 };
 
 /* void glNamedFramebufferParameteri(GLuint framebuffer, GLenum pname, GLint param) */
-#define CHIMERA_GL_OP_glNamedFramebufferParameteri 499
+#define CHIMERA_GL_OP_glNamedFramebufferParameteri 502
 struct ChimeraGlArgs_glNamedFramebufferParameteri {
 	GLuint framebuffer;
 	GLenum pname;
@@ -3354,14 +3298,14 @@ struct ChimeraGlArgs_glNamedFramebufferParameteri {
 };
 
 /* void glNamedFramebufferReadBuffer(GLuint framebuffer, GLenum src) */
-#define CHIMERA_GL_OP_glNamedFramebufferReadBuffer 500
+#define CHIMERA_GL_OP_glNamedFramebufferReadBuffer 503
 struct ChimeraGlArgs_glNamedFramebufferReadBuffer {
 	GLuint framebuffer;
 	GLenum src;
 };
 
 /* void glNamedFramebufferRenderbuffer(GLuint framebuffer, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer) */
-#define CHIMERA_GL_OP_glNamedFramebufferRenderbuffer 501
+#define CHIMERA_GL_OP_glNamedFramebufferRenderbuffer 504
 struct ChimeraGlArgs_glNamedFramebufferRenderbuffer {
 	GLuint framebuffer;
 	GLenum attachment;
@@ -3370,7 +3314,7 @@ struct ChimeraGlArgs_glNamedFramebufferRenderbuffer {
 };
 
 /* void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level) */
-#define CHIMERA_GL_OP_glNamedFramebufferTexture 502
+#define CHIMERA_GL_OP_glNamedFramebufferTexture 505
 struct ChimeraGlArgs_glNamedFramebufferTexture {
 	GLuint framebuffer;
 	GLenum attachment;
@@ -3379,7 +3323,7 @@ struct ChimeraGlArgs_glNamedFramebufferTexture {
 };
 
 /* void glNamedFramebufferTextureLayer(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLint layer) */
-#define CHIMERA_GL_OP_glNamedFramebufferTextureLayer 503
+#define CHIMERA_GL_OP_glNamedFramebufferTextureLayer 506
 struct ChimeraGlArgs_glNamedFramebufferTextureLayer {
 	GLuint framebuffer;
 	GLenum attachment;
@@ -3389,7 +3333,7 @@ struct ChimeraGlArgs_glNamedFramebufferTextureLayer {
 };
 
 /* void glNamedRenderbufferStorage(GLuint renderbuffer, GLenum internalformat, GLsizei width, GLsizei height) */
-#define CHIMERA_GL_OP_glNamedRenderbufferStorage 504
+#define CHIMERA_GL_OP_glNamedRenderbufferStorage 507
 struct ChimeraGlArgs_glNamedRenderbufferStorage {
 	GLuint renderbuffer;
 	GLenum internalformat;
@@ -3398,7 +3342,7 @@ struct ChimeraGlArgs_glNamedRenderbufferStorage {
 };
 
 /* void glNamedRenderbufferStorageMultisample(GLuint renderbuffer, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height) */
-#define CHIMERA_GL_OP_glNamedRenderbufferStorageMultisample 505
+#define CHIMERA_GL_OP_glNamedRenderbufferStorageMultisample 508
 struct ChimeraGlArgs_glNamedRenderbufferStorageMultisample {
 	GLuint renderbuffer;
 	GLsizei samples;
@@ -3407,691 +3351,64 @@ struct ChimeraGlArgs_glNamedRenderbufferStorageMultisample {
 	GLsizei height;
 };
 
-/* void glObjectLabel(GLenum identifier, GLuint name, GLsizei length, const GLchar * label) */
-#define CHIMERA_GL_OP_glObjectLabel 506
-struct ChimeraGlArgs_glObjectLabel {
-	GLenum identifier;
-	GLuint name;
-	GLsizei length;
-	const GLchar * label;
-};
-
-/* void glObjectLabelKHR(GLenum identifier, GLuint name, GLsizei length, const GLchar * label) */
-#define CHIMERA_GL_OP_glObjectLabelKHR 507
-struct ChimeraGlArgs_glObjectLabelKHR {
-	GLenum identifier;
-	GLuint name;
-	GLsizei length;
-	const GLchar * label;
-};
-
 /* void glObjectPtrLabel(const void * ptr, GLsizei length, const GLchar * label) */
-#define CHIMERA_GL_OP_glObjectPtrLabel 508
+#define CHIMERA_GL_OP_glObjectPtrLabel 509
 struct ChimeraGlArgs_glObjectPtrLabel {
 	const void * ptr;
 	GLsizei length;
 	const GLchar * label;
 };
 
-/* void glObjectPtrLabelKHR(const void * ptr, GLsizei length, const GLchar * label) */
-#define CHIMERA_GL_OP_glObjectPtrLabelKHR 509
-struct ChimeraGlArgs_glObjectPtrLabelKHR {
-	const void * ptr;
-	GLsizei length;
-	const GLchar * label;
-};
-
-/* void glPatchParameterfv(GLenum pname, const GLfloat * values) */
-#define CHIMERA_GL_OP_glPatchParameterfv 510
-struct ChimeraGlArgs_glPatchParameterfv {
-	GLenum pname;
-	const GLfloat * values;
-};
-
-/* void glPatchParameteri(GLenum pname, GLint value) */
-#define CHIMERA_GL_OP_glPatchParameteri 511
-struct ChimeraGlArgs_glPatchParameteri {
-	GLenum pname;
-	GLint value;
-};
-
-/* void glPauseTransformFeedback(void) */
-#define CHIMERA_GL_OP_glPauseTransformFeedback 512
-
 /* void glPixelStoref(GLenum pname, GLfloat param) */
-#define CHIMERA_GL_OP_glPixelStoref 513
+#define CHIMERA_GL_OP_glPixelStoref 510
 struct ChimeraGlArgs_glPixelStoref {
 	GLenum pname;
 	GLfloat param;
 };
 
-/* void glPixelStorei(GLenum pname, GLint param) */
-#define CHIMERA_GL_OP_glPixelStorei 514
-struct ChimeraGlArgs_glPixelStorei {
-	GLenum pname;
-	GLint param;
-};
-
 /* void glPointParameterf(GLenum pname, GLfloat param) */
-#define CHIMERA_GL_OP_glPointParameterf 515
+#define CHIMERA_GL_OP_glPointParameterf 511
 struct ChimeraGlArgs_glPointParameterf {
 	GLenum pname;
 	GLfloat param;
 };
 
 /* void glPointParameterfv(GLenum pname, const GLfloat * params) */
-#define CHIMERA_GL_OP_glPointParameterfv 516
+#define CHIMERA_GL_OP_glPointParameterfv 512
 struct ChimeraGlArgs_glPointParameterfv {
 	GLenum pname;
 	const GLfloat * params;
 };
 
 /* void glPointParameteri(GLenum pname, GLint param) */
-#define CHIMERA_GL_OP_glPointParameteri 517
+#define CHIMERA_GL_OP_glPointParameteri 513
 struct ChimeraGlArgs_glPointParameteri {
 	GLenum pname;
 	GLint param;
 };
 
 /* void glPointParameteriv(GLenum pname, const GLint * params) */
-#define CHIMERA_GL_OP_glPointParameteriv 518
+#define CHIMERA_GL_OP_glPointParameteriv 514
 struct ChimeraGlArgs_glPointParameteriv {
 	GLenum pname;
 	const GLint * params;
 };
 
 /* void glPointSize(GLfloat size) */
-#define CHIMERA_GL_OP_glPointSize 519
+#define CHIMERA_GL_OP_glPointSize 515
 struct ChimeraGlArgs_glPointSize {
 	GLfloat size;
 };
 
-/* void glPolygonMode(GLenum face, GLenum mode) */
-#define CHIMERA_GL_OP_glPolygonMode 520
-struct ChimeraGlArgs_glPolygonMode {
-	GLenum face;
-	GLenum mode;
-};
-
 /* void glPolygonOffset(GLfloat factor, GLfloat units) */
-#define CHIMERA_GL_OP_glPolygonOffset 521
+#define CHIMERA_GL_OP_glPolygonOffset 516
 struct ChimeraGlArgs_glPolygonOffset {
 	GLfloat factor;
 	GLfloat units;
 };
 
-/* void glPolygonOffsetClamp(GLfloat factor, GLfloat units, GLfloat clamp) */
-#define CHIMERA_GL_OP_glPolygonOffsetClamp 522
-struct ChimeraGlArgs_glPolygonOffsetClamp {
-	GLfloat factor;
-	GLfloat units;
-	GLfloat clamp;
-};
-
-/* void glPopDebugGroup(void) */
-#define CHIMERA_GL_OP_glPopDebugGroup 523
-
-/* void glPopDebugGroupKHR(void) */
-#define CHIMERA_GL_OP_glPopDebugGroupKHR 524
-
-/* void glPrimitiveBoundingBox(GLfloat minX, GLfloat minY, GLfloat minZ, GLfloat minW, GLfloat maxX, GLfloat maxY, GLfloat maxZ, GLfloat maxW) */
-#define CHIMERA_GL_OP_glPrimitiveBoundingBox 525
-struct ChimeraGlArgs_glPrimitiveBoundingBox {
-	GLfloat minX;
-	GLfloat minY;
-	GLfloat minZ;
-	GLfloat minW;
-	GLfloat maxX;
-	GLfloat maxY;
-	GLfloat maxZ;
-	GLfloat maxW;
-};
-
-/* void glPrimitiveRestartIndex(GLuint index) */
-#define CHIMERA_GL_OP_glPrimitiveRestartIndex 526
-struct ChimeraGlArgs_glPrimitiveRestartIndex {
-	GLuint index;
-};
-
-/* void glProgramBinary(GLuint program, GLenum binaryFormat, const void * binary, GLsizei length) */
-#define CHIMERA_GL_OP_glProgramBinary 527
-struct ChimeraGlArgs_glProgramBinary {
-	GLuint program;
-	GLenum binaryFormat;
-	const void * binary;
-	GLsizei length;
-};
-
-/* void glProgramParameteri(GLuint program, GLenum pname, GLint value) */
-#define CHIMERA_GL_OP_glProgramParameteri 528
-struct ChimeraGlArgs_glProgramParameteri {
-	GLuint program;
-	GLenum pname;
-	GLint value;
-};
-
-/* void glProgramUniform1d(GLuint program, GLint location, GLdouble v0) */
-#define CHIMERA_GL_OP_glProgramUniform1d 529
-struct ChimeraGlArgs_glProgramUniform1d {
-	GLuint program;
-	GLint location;
-	GLdouble v0;
-};
-
-/* void glProgramUniform1dv(GLuint program, GLint location, GLsizei count, const GLdouble * value) */
-#define CHIMERA_GL_OP_glProgramUniform1dv 530
-struct ChimeraGlArgs_glProgramUniform1dv {
-	GLuint program;
-	GLint location;
-	GLsizei count;
-	const GLdouble * value;
-};
-
-/* void glProgramUniform1f(GLuint program, GLint location, GLfloat v0) */
-#define CHIMERA_GL_OP_glProgramUniform1f 531
-struct ChimeraGlArgs_glProgramUniform1f {
-	GLuint program;
-	GLint location;
-	GLfloat v0;
-};
-
-/* void glProgramUniform1fv(GLuint program, GLint location, GLsizei count, const GLfloat * value) */
-#define CHIMERA_GL_OP_glProgramUniform1fv 532
-struct ChimeraGlArgs_glProgramUniform1fv {
-	GLuint program;
-	GLint location;
-	GLsizei count;
-	const GLfloat * value;
-};
-
-/* void glProgramUniform1i(GLuint program, GLint location, GLint v0) */
-#define CHIMERA_GL_OP_glProgramUniform1i 533
-struct ChimeraGlArgs_glProgramUniform1i {
-	GLuint program;
-	GLint location;
-	GLint v0;
-};
-
-/* void glProgramUniform1iv(GLuint program, GLint location, GLsizei count, const GLint * value) */
-#define CHIMERA_GL_OP_glProgramUniform1iv 534
-struct ChimeraGlArgs_glProgramUniform1iv {
-	GLuint program;
-	GLint location;
-	GLsizei count;
-	const GLint * value;
-};
-
-/* void glProgramUniform1ui(GLuint program, GLint location, GLuint v0) */
-#define CHIMERA_GL_OP_glProgramUniform1ui 535
-struct ChimeraGlArgs_glProgramUniform1ui {
-	GLuint program;
-	GLint location;
-	GLuint v0;
-};
-
-/* void glProgramUniform1uiv(GLuint program, GLint location, GLsizei count, const GLuint * value) */
-#define CHIMERA_GL_OP_glProgramUniform1uiv 536
-struct ChimeraGlArgs_glProgramUniform1uiv {
-	GLuint program;
-	GLint location;
-	GLsizei count;
-	const GLuint * value;
-};
-
-/* void glProgramUniform2d(GLuint program, GLint location, GLdouble v0, GLdouble v1) */
-#define CHIMERA_GL_OP_glProgramUniform2d 537
-struct ChimeraGlArgs_glProgramUniform2d {
-	GLuint program;
-	GLint location;
-	GLdouble v0;
-	GLdouble v1;
-};
-
-/* void glProgramUniform2dv(GLuint program, GLint location, GLsizei count, const GLdouble * value) */
-#define CHIMERA_GL_OP_glProgramUniform2dv 538
-struct ChimeraGlArgs_glProgramUniform2dv {
-	GLuint program;
-	GLint location;
-	GLsizei count;
-	const GLdouble * value;
-};
-
-/* void glProgramUniform2f(GLuint program, GLint location, GLfloat v0, GLfloat v1) */
-#define CHIMERA_GL_OP_glProgramUniform2f 539
-struct ChimeraGlArgs_glProgramUniform2f {
-	GLuint program;
-	GLint location;
-	GLfloat v0;
-	GLfloat v1;
-};
-
-/* void glProgramUniform2fv(GLuint program, GLint location, GLsizei count, const GLfloat * value) */
-#define CHIMERA_GL_OP_glProgramUniform2fv 540
-struct ChimeraGlArgs_glProgramUniform2fv {
-	GLuint program;
-	GLint location;
-	GLsizei count;
-	const GLfloat * value;
-};
-
-/* void glProgramUniform2i(GLuint program, GLint location, GLint v0, GLint v1) */
-#define CHIMERA_GL_OP_glProgramUniform2i 541
-struct ChimeraGlArgs_glProgramUniform2i {
-	GLuint program;
-	GLint location;
-	GLint v0;
-	GLint v1;
-};
-
-/* void glProgramUniform2iv(GLuint program, GLint location, GLsizei count, const GLint * value) */
-#define CHIMERA_GL_OP_glProgramUniform2iv 542
-struct ChimeraGlArgs_glProgramUniform2iv {
-	GLuint program;
-	GLint location;
-	GLsizei count;
-	const GLint * value;
-};
-
-/* void glProgramUniform2ui(GLuint program, GLint location, GLuint v0, GLuint v1) */
-#define CHIMERA_GL_OP_glProgramUniform2ui 543
-struct ChimeraGlArgs_glProgramUniform2ui {
-	GLuint program;
-	GLint location;
-	GLuint v0;
-	GLuint v1;
-};
-
-/* void glProgramUniform2uiv(GLuint program, GLint location, GLsizei count, const GLuint * value) */
-#define CHIMERA_GL_OP_glProgramUniform2uiv 544
-struct ChimeraGlArgs_glProgramUniform2uiv {
-	GLuint program;
-	GLint location;
-	GLsizei count;
-	const GLuint * value;
-};
-
-/* void glProgramUniform3d(GLuint program, GLint location, GLdouble v0, GLdouble v1, GLdouble v2) */
-#define CHIMERA_GL_OP_glProgramUniform3d 545
-struct ChimeraGlArgs_glProgramUniform3d {
-	GLuint program;
-	GLint location;
-	GLdouble v0;
-	GLdouble v1;
-	GLdouble v2;
-};
-
-/* void glProgramUniform3dv(GLuint program, GLint location, GLsizei count, const GLdouble * value) */
-#define CHIMERA_GL_OP_glProgramUniform3dv 546
-struct ChimeraGlArgs_glProgramUniform3dv {
-	GLuint program;
-	GLint location;
-	GLsizei count;
-	const GLdouble * value;
-};
-
-/* void glProgramUniform3f(GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2) */
-#define CHIMERA_GL_OP_glProgramUniform3f 547
-struct ChimeraGlArgs_glProgramUniform3f {
-	GLuint program;
-	GLint location;
-	GLfloat v0;
-	GLfloat v1;
-	GLfloat v2;
-};
-
-/* void glProgramUniform3fv(GLuint program, GLint location, GLsizei count, const GLfloat * value) */
-#define CHIMERA_GL_OP_glProgramUniform3fv 548
-struct ChimeraGlArgs_glProgramUniform3fv {
-	GLuint program;
-	GLint location;
-	GLsizei count;
-	const GLfloat * value;
-};
-
-/* void glProgramUniform3i(GLuint program, GLint location, GLint v0, GLint v1, GLint v2) */
-#define CHIMERA_GL_OP_glProgramUniform3i 549
-struct ChimeraGlArgs_glProgramUniform3i {
-	GLuint program;
-	GLint location;
-	GLint v0;
-	GLint v1;
-	GLint v2;
-};
-
-/* void glProgramUniform3iv(GLuint program, GLint location, GLsizei count, const GLint * value) */
-#define CHIMERA_GL_OP_glProgramUniform3iv 550
-struct ChimeraGlArgs_glProgramUniform3iv {
-	GLuint program;
-	GLint location;
-	GLsizei count;
-	const GLint * value;
-};
-
-/* void glProgramUniform3ui(GLuint program, GLint location, GLuint v0, GLuint v1, GLuint v2) */
-#define CHIMERA_GL_OP_glProgramUniform3ui 551
-struct ChimeraGlArgs_glProgramUniform3ui {
-	GLuint program;
-	GLint location;
-	GLuint v0;
-	GLuint v1;
-	GLuint v2;
-};
-
-/* void glProgramUniform3uiv(GLuint program, GLint location, GLsizei count, const GLuint * value) */
-#define CHIMERA_GL_OP_glProgramUniform3uiv 552
-struct ChimeraGlArgs_glProgramUniform3uiv {
-	GLuint program;
-	GLint location;
-	GLsizei count;
-	const GLuint * value;
-};
-
-/* void glProgramUniform4d(GLuint program, GLint location, GLdouble v0, GLdouble v1, GLdouble v2, GLdouble v3) */
-#define CHIMERA_GL_OP_glProgramUniform4d 553
-struct ChimeraGlArgs_glProgramUniform4d {
-	GLuint program;
-	GLint location;
-	GLdouble v0;
-	GLdouble v1;
-	GLdouble v2;
-	GLdouble v3;
-};
-
-/* void glProgramUniform4dv(GLuint program, GLint location, GLsizei count, const GLdouble * value) */
-#define CHIMERA_GL_OP_glProgramUniform4dv 554
-struct ChimeraGlArgs_glProgramUniform4dv {
-	GLuint program;
-	GLint location;
-	GLsizei count;
-	const GLdouble * value;
-};
-
-/* void glProgramUniform4f(GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3) */
-#define CHIMERA_GL_OP_glProgramUniform4f 555
-struct ChimeraGlArgs_glProgramUniform4f {
-	GLuint program;
-	GLint location;
-	GLfloat v0;
-	GLfloat v1;
-	GLfloat v2;
-	GLfloat v3;
-};
-
-/* void glProgramUniform4fv(GLuint program, GLint location, GLsizei count, const GLfloat * value) */
-#define CHIMERA_GL_OP_glProgramUniform4fv 556
-struct ChimeraGlArgs_glProgramUniform4fv {
-	GLuint program;
-	GLint location;
-	GLsizei count;
-	const GLfloat * value;
-};
-
-/* void glProgramUniform4i(GLuint program, GLint location, GLint v0, GLint v1, GLint v2, GLint v3) */
-#define CHIMERA_GL_OP_glProgramUniform4i 557
-struct ChimeraGlArgs_glProgramUniform4i {
-	GLuint program;
-	GLint location;
-	GLint v0;
-	GLint v1;
-	GLint v2;
-	GLint v3;
-};
-
-/* void glProgramUniform4iv(GLuint program, GLint location, GLsizei count, const GLint * value) */
-#define CHIMERA_GL_OP_glProgramUniform4iv 558
-struct ChimeraGlArgs_glProgramUniform4iv {
-	GLuint program;
-	GLint location;
-	GLsizei count;
-	const GLint * value;
-};
-
-/* void glProgramUniform4ui(GLuint program, GLint location, GLuint v0, GLuint v1, GLuint v2, GLuint v3) */
-#define CHIMERA_GL_OP_glProgramUniform4ui 559
-struct ChimeraGlArgs_glProgramUniform4ui {
-	GLuint program;
-	GLint location;
-	GLuint v0;
-	GLuint v1;
-	GLuint v2;
-	GLuint v3;
-};
-
-/* void glProgramUniform4uiv(GLuint program, GLint location, GLsizei count, const GLuint * value) */
-#define CHIMERA_GL_OP_glProgramUniform4uiv 560
-struct ChimeraGlArgs_glProgramUniform4uiv {
-	GLuint program;
-	GLint location;
-	GLsizei count;
-	const GLuint * value;
-};
-
-/* void glProgramUniformMatrix2dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value) */
-#define CHIMERA_GL_OP_glProgramUniformMatrix2dv 561
-struct ChimeraGlArgs_glProgramUniformMatrix2dv {
-	GLuint program;
-	GLint location;
-	GLsizei count;
-	GLboolean transpose;
-	const GLdouble * value;
-};
-
-/* void glProgramUniformMatrix2fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value) */
-#define CHIMERA_GL_OP_glProgramUniformMatrix2fv 562
-struct ChimeraGlArgs_glProgramUniformMatrix2fv {
-	GLuint program;
-	GLint location;
-	GLsizei count;
-	GLboolean transpose;
-	const GLfloat * value;
-};
-
-/* void glProgramUniformMatrix2x3dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value) */
-#define CHIMERA_GL_OP_glProgramUniformMatrix2x3dv 563
-struct ChimeraGlArgs_glProgramUniformMatrix2x3dv {
-	GLuint program;
-	GLint location;
-	GLsizei count;
-	GLboolean transpose;
-	const GLdouble * value;
-};
-
-/* void glProgramUniformMatrix2x3fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value) */
-#define CHIMERA_GL_OP_glProgramUniformMatrix2x3fv 564
-struct ChimeraGlArgs_glProgramUniformMatrix2x3fv {
-	GLuint program;
-	GLint location;
-	GLsizei count;
-	GLboolean transpose;
-	const GLfloat * value;
-};
-
-/* void glProgramUniformMatrix2x4dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value) */
-#define CHIMERA_GL_OP_glProgramUniformMatrix2x4dv 565
-struct ChimeraGlArgs_glProgramUniformMatrix2x4dv {
-	GLuint program;
-	GLint location;
-	GLsizei count;
-	GLboolean transpose;
-	const GLdouble * value;
-};
-
-/* void glProgramUniformMatrix2x4fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value) */
-#define CHIMERA_GL_OP_glProgramUniformMatrix2x4fv 566
-struct ChimeraGlArgs_glProgramUniformMatrix2x4fv {
-	GLuint program;
-	GLint location;
-	GLsizei count;
-	GLboolean transpose;
-	const GLfloat * value;
-};
-
-/* void glProgramUniformMatrix3dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value) */
-#define CHIMERA_GL_OP_glProgramUniformMatrix3dv 567
-struct ChimeraGlArgs_glProgramUniformMatrix3dv {
-	GLuint program;
-	GLint location;
-	GLsizei count;
-	GLboolean transpose;
-	const GLdouble * value;
-};
-
-/* void glProgramUniformMatrix3fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value) */
-#define CHIMERA_GL_OP_glProgramUniformMatrix3fv 568
-struct ChimeraGlArgs_glProgramUniformMatrix3fv {
-	GLuint program;
-	GLint location;
-	GLsizei count;
-	GLboolean transpose;
-	const GLfloat * value;
-};
-
-/* void glProgramUniformMatrix3x2dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value) */
-#define CHIMERA_GL_OP_glProgramUniformMatrix3x2dv 569
-struct ChimeraGlArgs_glProgramUniformMatrix3x2dv {
-	GLuint program;
-	GLint location;
-	GLsizei count;
-	GLboolean transpose;
-	const GLdouble * value;
-};
-
-/* void glProgramUniformMatrix3x2fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value) */
-#define CHIMERA_GL_OP_glProgramUniformMatrix3x2fv 570
-struct ChimeraGlArgs_glProgramUniformMatrix3x2fv {
-	GLuint program;
-	GLint location;
-	GLsizei count;
-	GLboolean transpose;
-	const GLfloat * value;
-};
-
-/* void glProgramUniformMatrix3x4dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value) */
-#define CHIMERA_GL_OP_glProgramUniformMatrix3x4dv 571
-struct ChimeraGlArgs_glProgramUniformMatrix3x4dv {
-	GLuint program;
-	GLint location;
-	GLsizei count;
-	GLboolean transpose;
-	const GLdouble * value;
-};
-
-/* void glProgramUniformMatrix3x4fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value) */
-#define CHIMERA_GL_OP_glProgramUniformMatrix3x4fv 572
-struct ChimeraGlArgs_glProgramUniformMatrix3x4fv {
-	GLuint program;
-	GLint location;
-	GLsizei count;
-	GLboolean transpose;
-	const GLfloat * value;
-};
-
-/* void glProgramUniformMatrix4dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value) */
-#define CHIMERA_GL_OP_glProgramUniformMatrix4dv 573
-struct ChimeraGlArgs_glProgramUniformMatrix4dv {
-	GLuint program;
-	GLint location;
-	GLsizei count;
-	GLboolean transpose;
-	const GLdouble * value;
-};
-
-/* void glProgramUniformMatrix4fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value) */
-#define CHIMERA_GL_OP_glProgramUniformMatrix4fv 574
-struct ChimeraGlArgs_glProgramUniformMatrix4fv {
-	GLuint program;
-	GLint location;
-	GLsizei count;
-	GLboolean transpose;
-	const GLfloat * value;
-};
-
-/* void glProgramUniformMatrix4x2dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value) */
-#define CHIMERA_GL_OP_glProgramUniformMatrix4x2dv 575
-struct ChimeraGlArgs_glProgramUniformMatrix4x2dv {
-	GLuint program;
-	GLint location;
-	GLsizei count;
-	GLboolean transpose;
-	const GLdouble * value;
-};
-
-/* void glProgramUniformMatrix4x2fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value) */
-#define CHIMERA_GL_OP_glProgramUniformMatrix4x2fv 576
-struct ChimeraGlArgs_glProgramUniformMatrix4x2fv {
-	GLuint program;
-	GLint location;
-	GLsizei count;
-	GLboolean transpose;
-	const GLfloat * value;
-};
-
-/* void glProgramUniformMatrix4x3dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value) */
-#define CHIMERA_GL_OP_glProgramUniformMatrix4x3dv 577
-struct ChimeraGlArgs_glProgramUniformMatrix4x3dv {
-	GLuint program;
-	GLint location;
-	GLsizei count;
-	GLboolean transpose;
-	const GLdouble * value;
-};
-
-/* void glProgramUniformMatrix4x3fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value) */
-#define CHIMERA_GL_OP_glProgramUniformMatrix4x3fv 578
-struct ChimeraGlArgs_glProgramUniformMatrix4x3fv {
-	GLuint program;
-	GLint location;
-	GLsizei count;
-	GLboolean transpose;
-	const GLfloat * value;
-};
-
-/* void glProvokingVertex(GLenum mode) */
-#define CHIMERA_GL_OP_glProvokingVertex 579
-struct ChimeraGlArgs_glProvokingVertex {
-	GLenum mode;
-};
-
-/* void glPushDebugGroup(GLenum source, GLuint id, GLsizei length, const GLchar * message) */
-#define CHIMERA_GL_OP_glPushDebugGroup 580
-struct ChimeraGlArgs_glPushDebugGroup {
-	GLenum source;
-	GLuint id;
-	GLsizei length;
-	const GLchar * message;
-};
-
-/* void glPushDebugGroupKHR(GLenum source, GLuint id, GLsizei length, const GLchar * message) */
-#define CHIMERA_GL_OP_glPushDebugGroupKHR 581
-struct ChimeraGlArgs_glPushDebugGroupKHR {
-	GLenum source;
-	GLuint id;
-	GLsizei length;
-	const GLchar * message;
-};
-
-/* void glQueryCounter(GLuint id, GLenum target) */
-#define CHIMERA_GL_OP_glQueryCounter 582
-struct ChimeraGlArgs_glQueryCounter {
-	GLuint id;
-	GLenum target;
-};
-
-/* void glQueryCounterEXT(GLuint id, GLenum target) */
-#define CHIMERA_GL_OP_glQueryCounterEXT 583
-struct ChimeraGlArgs_glQueryCounterEXT {
-	GLuint id;
-	GLenum target;
-};
-
-/* void glReadBuffer(GLenum src) */
-#define CHIMERA_GL_OP_glReadBuffer 584
-struct ChimeraGlArgs_glReadBuffer {
-	GLenum src;
-};
-
 /* void glReadnPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLsizei bufSize, void * data) */
-#define CHIMERA_GL_OP_glReadnPixels 585
+#define CHIMERA_GL_OP_glReadnPixels 519
 struct ChimeraGlArgs_glReadnPixels {
 	GLint x;
 	GLint y;
@@ -4103,32 +3420,11 @@ struct ChimeraGlArgs_glReadnPixels {
 	void * data;
 };
 
-/* void glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, void * pixels) */
-#define CHIMERA_GL_OP_glReadPixels 586
-struct ChimeraGlArgs_glReadPixels {
-	GLint x;
-	GLint y;
-	GLsizei width;
-	GLsizei height;
-	GLenum format;
-	GLenum type;
-	void * pixels;
-};
-
 /* void glReleaseShaderCompiler(void) */
-#define CHIMERA_GL_OP_glReleaseShaderCompiler 587
-
-/* void glRenderbufferStorage(GLenum target, GLenum internalformat, GLsizei width, GLsizei height) */
-#define CHIMERA_GL_OP_glRenderbufferStorage 588
-struct ChimeraGlArgs_glRenderbufferStorage {
-	GLenum target;
-	GLenum internalformat;
-	GLsizei width;
-	GLsizei height;
-};
+#define CHIMERA_GL_OP_glReleaseShaderCompiler 520
 
 /* void glRenderbufferStorageMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height) */
-#define CHIMERA_GL_OP_glRenderbufferStorageMultisample 589
+#define CHIMERA_GL_OP_glRenderbufferStorageMultisample 521
 struct ChimeraGlArgs_glRenderbufferStorageMultisample {
 	GLenum target;
 	GLsizei samples;
@@ -4137,59 +3433,30 @@ struct ChimeraGlArgs_glRenderbufferStorageMultisample {
 	GLsizei height;
 };
 
-/* void glRenderbufferStorageMultisampleEXT(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height) */
-#define CHIMERA_GL_OP_glRenderbufferStorageMultisampleEXT 590
-struct ChimeraGlArgs_glRenderbufferStorageMultisampleEXT {
-	GLenum target;
-	GLsizei samples;
-	GLenum internalformat;
-	GLsizei width;
-	GLsizei height;
-};
-
-/* void glResumeTransformFeedback(void) */
-#define CHIMERA_GL_OP_glResumeTransformFeedback 591
-
 /* void glSampleCoverage(GLfloat value, GLboolean invert) */
-#define CHIMERA_GL_OP_glSampleCoverage 592
+#define CHIMERA_GL_OP_glSampleCoverage 522
 struct ChimeraGlArgs_glSampleCoverage {
 	GLfloat value;
 	GLboolean invert;
 };
 
 /* void glSampleMaski(GLuint maskNumber, GLbitfield mask) */
-#define CHIMERA_GL_OP_glSampleMaski 593
+#define CHIMERA_GL_OP_glSampleMaski 523
 struct ChimeraGlArgs_glSampleMaski {
 	GLuint maskNumber;
 	GLbitfield mask;
 };
 
-/* void glSamplerParameterf(GLuint sampler, GLenum pname, GLfloat param) */
-#define CHIMERA_GL_OP_glSamplerParameterf 594
-struct ChimeraGlArgs_glSamplerParameterf {
-	GLuint sampler;
-	GLenum pname;
-	GLfloat param;
-};
-
 /* void glSamplerParameterfv(GLuint sampler, GLenum pname, const GLfloat * param) */
-#define CHIMERA_GL_OP_glSamplerParameterfv 595
+#define CHIMERA_GL_OP_glSamplerParameterfv 524
 struct ChimeraGlArgs_glSamplerParameterfv {
 	GLuint sampler;
 	GLenum pname;
 	const GLfloat * param;
 };
 
-/* void glSamplerParameteri(GLuint sampler, GLenum pname, GLint param) */
-#define CHIMERA_GL_OP_glSamplerParameteri 596
-struct ChimeraGlArgs_glSamplerParameteri {
-	GLuint sampler;
-	GLenum pname;
-	GLint param;
-};
-
 /* void glSamplerParameterIiv(GLuint sampler, GLenum pname, const GLint * param) */
-#define CHIMERA_GL_OP_glSamplerParameterIiv 597
+#define CHIMERA_GL_OP_glSamplerParameterIiv 525
 struct ChimeraGlArgs_glSamplerParameterIiv {
 	GLuint sampler;
 	GLenum pname;
@@ -4197,7 +3464,7 @@ struct ChimeraGlArgs_glSamplerParameterIiv {
 };
 
 /* void glSamplerParameterIuiv(GLuint sampler, GLenum pname, const GLuint * param) */
-#define CHIMERA_GL_OP_glSamplerParameterIuiv 598
+#define CHIMERA_GL_OP_glSamplerParameterIuiv 526
 struct ChimeraGlArgs_glSamplerParameterIuiv {
 	GLuint sampler;
 	GLenum pname;
@@ -4205,49 +3472,30 @@ struct ChimeraGlArgs_glSamplerParameterIuiv {
 };
 
 /* void glSamplerParameteriv(GLuint sampler, GLenum pname, const GLint * param) */
-#define CHIMERA_GL_OP_glSamplerParameteriv 599
+#define CHIMERA_GL_OP_glSamplerParameteriv 527
 struct ChimeraGlArgs_glSamplerParameteriv {
 	GLuint sampler;
 	GLenum pname;
 	const GLint * param;
 };
 
-/* void glScissor(GLint x, GLint y, GLsizei width, GLsizei height) */
-#define CHIMERA_GL_OP_glScissor 600
-struct ChimeraGlArgs_glScissor {
-	GLint x;
-	GLint y;
-	GLsizei width;
-	GLsizei height;
-};
-
 /* void glScissorArrayv(GLuint first, GLsizei count, const GLint * v) */
-#define CHIMERA_GL_OP_glScissorArrayv 601
+#define CHIMERA_GL_OP_glScissorArrayv 528
 struct ChimeraGlArgs_glScissorArrayv {
 	GLuint first;
 	GLsizei count;
 	const GLint * v;
 };
 
-/* void glScissorIndexed(GLuint index, GLint left, GLint bottom, GLsizei width, GLsizei height) */
-#define CHIMERA_GL_OP_glScissorIndexed 602
-struct ChimeraGlArgs_glScissorIndexed {
-	GLuint index;
-	GLint left;
-	GLint bottom;
-	GLsizei width;
-	GLsizei height;
-};
-
 /* void glScissorIndexedv(GLuint index, const GLint * v) */
-#define CHIMERA_GL_OP_glScissorIndexedv 603
+#define CHIMERA_GL_OP_glScissorIndexedv 529
 struct ChimeraGlArgs_glScissorIndexedv {
 	GLuint index;
 	const GLint * v;
 };
 
 /* void glShaderBinary(GLsizei count, const GLuint * shaders, GLenum binaryFormat, const void * binary, GLsizei length) */
-#define CHIMERA_GL_OP_glShaderBinary 604
+#define CHIMERA_GL_OP_glShaderBinary 530
 struct ChimeraGlArgs_glShaderBinary {
 	GLsizei count;
 	const GLuint * shaders;
@@ -4256,43 +3504,16 @@ struct ChimeraGlArgs_glShaderBinary {
 	GLsizei length;
 };
 
-/* void glShaderSource(GLuint shader, GLsizei count, const GLchar *const* string, const GLint * length) */
-#define CHIMERA_GL_OP_glShaderSource 605
-struct ChimeraGlArgs_glShaderSource {
-	GLuint shader;
-	GLsizei count;
-	const GLchar *const* string;
-	const GLint * length;
-};
-
 /* void glShaderStorageBlockBinding(GLuint program, GLuint storageBlockIndex, GLuint storageBlockBinding) */
-#define CHIMERA_GL_OP_glShaderStorageBlockBinding 606
+#define CHIMERA_GL_OP_glShaderStorageBlockBinding 531
 struct ChimeraGlArgs_glShaderStorageBlockBinding {
 	GLuint program;
 	GLuint storageBlockIndex;
 	GLuint storageBlockBinding;
 };
 
-/* void glSpecializeShader(GLuint shader, const GLchar * pEntryPoint, GLuint numSpecializationConstants, const GLuint * pConstantIndex, const GLuint * pConstantValue) */
-#define CHIMERA_GL_OP_glSpecializeShader 607
-struct ChimeraGlArgs_glSpecializeShader {
-	GLuint shader;
-	const GLchar * pEntryPoint;
-	GLuint numSpecializationConstants;
-	const GLuint * pConstantIndex;
-	const GLuint * pConstantValue;
-};
-
-/* void glStencilFunc(GLenum func, GLint ref, GLuint mask) */
-#define CHIMERA_GL_OP_glStencilFunc 608
-struct ChimeraGlArgs_glStencilFunc {
-	GLenum func;
-	GLint ref;
-	GLuint mask;
-};
-
 /* void glStencilFuncSeparate(GLenum face, GLenum func, GLint ref, GLuint mask) */
-#define CHIMERA_GL_OP_glStencilFuncSeparate 609
+#define CHIMERA_GL_OP_glStencilFuncSeparate 532
 struct ChimeraGlArgs_glStencilFuncSeparate {
 	GLenum face;
 	GLenum func;
@@ -4300,29 +3521,15 @@ struct ChimeraGlArgs_glStencilFuncSeparate {
 	GLuint mask;
 };
 
-/* void glStencilMask(GLuint mask) */
-#define CHIMERA_GL_OP_glStencilMask 610
-struct ChimeraGlArgs_glStencilMask {
-	GLuint mask;
-};
-
 /* void glStencilMaskSeparate(GLenum face, GLuint mask) */
-#define CHIMERA_GL_OP_glStencilMaskSeparate 611
+#define CHIMERA_GL_OP_glStencilMaskSeparate 533
 struct ChimeraGlArgs_glStencilMaskSeparate {
 	GLenum face;
 	GLuint mask;
 };
 
-/* void glStencilOp(GLenum fail, GLenum zfail, GLenum zpass) */
-#define CHIMERA_GL_OP_glStencilOp 612
-struct ChimeraGlArgs_glStencilOp {
-	GLenum fail;
-	GLenum zfail;
-	GLenum zpass;
-};
-
 /* void glStencilOpSeparate(GLenum face, GLenum sfail, GLenum dpfail, GLenum dppass) */
-#define CHIMERA_GL_OP_glStencilOpSeparate 613
+#define CHIMERA_GL_OP_glStencilOpSeparate 534
 struct ChimeraGlArgs_glStencilOpSeparate {
 	GLenum face;
 	GLenum sfail;
@@ -4331,7 +3538,7 @@ struct ChimeraGlArgs_glStencilOpSeparate {
 };
 
 /* void glTexBuffer(GLenum target, GLenum internalformat, GLuint buffer) */
-#define CHIMERA_GL_OP_glTexBuffer 614
+#define CHIMERA_GL_OP_glTexBuffer 535
 struct ChimeraGlArgs_glTexBuffer {
 	GLenum target;
 	GLenum internalformat;
@@ -4339,7 +3546,7 @@ struct ChimeraGlArgs_glTexBuffer {
 };
 
 /* void glTexBufferRange(GLenum target, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size) */
-#define CHIMERA_GL_OP_glTexBufferRange 615
+#define CHIMERA_GL_OP_glTexBufferRange 536
 struct ChimeraGlArgs_glTexBufferRange {
 	GLenum target;
 	GLenum internalformat;
@@ -4349,7 +3556,7 @@ struct ChimeraGlArgs_glTexBufferRange {
 };
 
 /* void glTexImage1D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLint border, GLenum format, GLenum type, const void * pixels) */
-#define CHIMERA_GL_OP_glTexImage1D 616
+#define CHIMERA_GL_OP_glTexImage1D 537
 struct ChimeraGlArgs_glTexImage1D {
 	GLenum target;
 	GLint level;
@@ -4361,22 +3568,8 @@ struct ChimeraGlArgs_glTexImage1D {
 	const void * pixels;
 };
 
-/* void glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void * pixels) */
-#define CHIMERA_GL_OP_glTexImage2D 617
-struct ChimeraGlArgs_glTexImage2D {
-	GLenum target;
-	GLint level;
-	GLint internalformat;
-	GLsizei width;
-	GLsizei height;
-	GLint border;
-	GLenum format;
-	GLenum type;
-	const void * pixels;
-};
-
 /* void glTexImage2DMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations) */
-#define CHIMERA_GL_OP_glTexImage2DMultisample 618
+#define CHIMERA_GL_OP_glTexImage2DMultisample 538
 struct ChimeraGlArgs_glTexImage2DMultisample {
 	GLenum target;
 	GLsizei samples;
@@ -4386,23 +3579,8 @@ struct ChimeraGlArgs_glTexImage2DMultisample {
 	GLboolean fixedsamplelocations;
 };
 
-/* void glTexImage3D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void * pixels) */
-#define CHIMERA_GL_OP_glTexImage3D 619
-struct ChimeraGlArgs_glTexImage3D {
-	GLenum target;
-	GLint level;
-	GLint internalformat;
-	GLsizei width;
-	GLsizei height;
-	GLsizei depth;
-	GLint border;
-	GLenum format;
-	GLenum type;
-	const void * pixels;
-};
-
 /* void glTexImage3DMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations) */
-#define CHIMERA_GL_OP_glTexImage3DMultisample 620
+#define CHIMERA_GL_OP_glTexImage3DMultisample 539
 struct ChimeraGlArgs_glTexImage3DMultisample {
 	GLenum target;
 	GLsizei samples;
@@ -4413,32 +3591,8 @@ struct ChimeraGlArgs_glTexImage3DMultisample {
 	GLboolean fixedsamplelocations;
 };
 
-/* void glTexParameterf(GLenum target, GLenum pname, GLfloat param) */
-#define CHIMERA_GL_OP_glTexParameterf 621
-struct ChimeraGlArgs_glTexParameterf {
-	GLenum target;
-	GLenum pname;
-	GLfloat param;
-};
-
-/* void glTexParameterfv(GLenum target, GLenum pname, const GLfloat * params) */
-#define CHIMERA_GL_OP_glTexParameterfv 622
-struct ChimeraGlArgs_glTexParameterfv {
-	GLenum target;
-	GLenum pname;
-	const GLfloat * params;
-};
-
-/* void glTexParameteri(GLenum target, GLenum pname, GLint param) */
-#define CHIMERA_GL_OP_glTexParameteri 623
-struct ChimeraGlArgs_glTexParameteri {
-	GLenum target;
-	GLenum pname;
-	GLint param;
-};
-
 /* void glTexParameterIiv(GLenum target, GLenum pname, const GLint * params) */
-#define CHIMERA_GL_OP_glTexParameterIiv 624
+#define CHIMERA_GL_OP_glTexParameterIiv 540
 struct ChimeraGlArgs_glTexParameterIiv {
 	GLenum target;
 	GLenum pname;
@@ -4446,23 +3600,15 @@ struct ChimeraGlArgs_glTexParameterIiv {
 };
 
 /* void glTexParameterIuiv(GLenum target, GLenum pname, const GLuint * params) */
-#define CHIMERA_GL_OP_glTexParameterIuiv 625
+#define CHIMERA_GL_OP_glTexParameterIuiv 541
 struct ChimeraGlArgs_glTexParameterIuiv {
 	GLenum target;
 	GLenum pname;
 	const GLuint * params;
 };
 
-/* void glTexParameteriv(GLenum target, GLenum pname, const GLint * params) */
-#define CHIMERA_GL_OP_glTexParameteriv 626
-struct ChimeraGlArgs_glTexParameteriv {
-	GLenum target;
-	GLenum pname;
-	const GLint * params;
-};
-
 /* void glTexStorage1D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width) */
-#define CHIMERA_GL_OP_glTexStorage1D 627
+#define CHIMERA_GL_OP_glTexStorage1D 542
 struct ChimeraGlArgs_glTexStorage1D {
 	GLenum target;
 	GLsizei levels;
@@ -4470,18 +3616,8 @@ struct ChimeraGlArgs_glTexStorage1D {
 	GLsizei width;
 };
 
-/* void glTexStorage2D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height) */
-#define CHIMERA_GL_OP_glTexStorage2D 628
-struct ChimeraGlArgs_glTexStorage2D {
-	GLenum target;
-	GLsizei levels;
-	GLenum internalformat;
-	GLsizei width;
-	GLsizei height;
-};
-
 /* void glTexStorage2DMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations) */
-#define CHIMERA_GL_OP_glTexStorage2DMultisample 629
+#define CHIMERA_GL_OP_glTexStorage2DMultisample 543
 struct ChimeraGlArgs_glTexStorage2DMultisample {
 	GLenum target;
 	GLsizei samples;
@@ -4492,7 +3628,7 @@ struct ChimeraGlArgs_glTexStorage2DMultisample {
 };
 
 /* void glTexStorage3D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth) */
-#define CHIMERA_GL_OP_glTexStorage3D 630
+#define CHIMERA_GL_OP_glTexStorage3D 544
 struct ChimeraGlArgs_glTexStorage3D {
 	GLenum target;
 	GLsizei levels;
@@ -4503,7 +3639,7 @@ struct ChimeraGlArgs_glTexStorage3D {
 };
 
 /* void glTexStorage3DMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations) */
-#define CHIMERA_GL_OP_glTexStorage3DMultisample 631
+#define CHIMERA_GL_OP_glTexStorage3DMultisample 545
 struct ChimeraGlArgs_glTexStorage3DMultisample {
 	GLenum target;
 	GLsizei samples;
@@ -4515,7 +3651,7 @@ struct ChimeraGlArgs_glTexStorage3DMultisample {
 };
 
 /* void glTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void * pixels) */
-#define CHIMERA_GL_OP_glTexSubImage1D 632
+#define CHIMERA_GL_OP_glTexSubImage1D 546
 struct ChimeraGlArgs_glTexSubImage1D {
 	GLenum target;
 	GLint level;
@@ -4526,22 +3662,8 @@ struct ChimeraGlArgs_glTexSubImage1D {
 	const void * pixels;
 };
 
-/* void glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void * pixels) */
-#define CHIMERA_GL_OP_glTexSubImage2D 633
-struct ChimeraGlArgs_glTexSubImage2D {
-	GLenum target;
-	GLint level;
-	GLint xoffset;
-	GLint yoffset;
-	GLsizei width;
-	GLsizei height;
-	GLenum format;
-	GLenum type;
-	const void * pixels;
-};
-
 /* void glTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void * pixels) */
-#define CHIMERA_GL_OP_glTexSubImage3D 634
+#define CHIMERA_GL_OP_glTexSubImage3D 547
 struct ChimeraGlArgs_glTexSubImage3D {
 	GLenum target;
 	GLint level;
@@ -4556,11 +3678,8 @@ struct ChimeraGlArgs_glTexSubImage3D {
 	const void * pixels;
 };
 
-/* void glTextureBarrier(void) */
-#define CHIMERA_GL_OP_glTextureBarrier 635
-
 /* void glTextureBuffer(GLuint texture, GLenum internalformat, GLuint buffer) */
-#define CHIMERA_GL_OP_glTextureBuffer 636
+#define CHIMERA_GL_OP_glTextureBuffer 548
 struct ChimeraGlArgs_glTextureBuffer {
 	GLuint texture;
 	GLenum internalformat;
@@ -4568,7 +3687,7 @@ struct ChimeraGlArgs_glTextureBuffer {
 };
 
 /* void glTextureBufferRange(GLuint texture, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size) */
-#define CHIMERA_GL_OP_glTextureBufferRange 637
+#define CHIMERA_GL_OP_glTextureBufferRange 549
 struct ChimeraGlArgs_glTextureBufferRange {
 	GLuint texture;
 	GLenum internalformat;
@@ -4578,7 +3697,7 @@ struct ChimeraGlArgs_glTextureBufferRange {
 };
 
 /* void glTextureParameterf(GLuint texture, GLenum pname, GLfloat param) */
-#define CHIMERA_GL_OP_glTextureParameterf 638
+#define CHIMERA_GL_OP_glTextureParameterf 550
 struct ChimeraGlArgs_glTextureParameterf {
 	GLuint texture;
 	GLenum pname;
@@ -4586,23 +3705,15 @@ struct ChimeraGlArgs_glTextureParameterf {
 };
 
 /* void glTextureParameterfv(GLuint texture, GLenum pname, const GLfloat * param) */
-#define CHIMERA_GL_OP_glTextureParameterfv 639
+#define CHIMERA_GL_OP_glTextureParameterfv 551
 struct ChimeraGlArgs_glTextureParameterfv {
 	GLuint texture;
 	GLenum pname;
 	const GLfloat * param;
 };
 
-/* void glTextureParameteri(GLuint texture, GLenum pname, GLint param) */
-#define CHIMERA_GL_OP_glTextureParameteri 640
-struct ChimeraGlArgs_glTextureParameteri {
-	GLuint texture;
-	GLenum pname;
-	GLint param;
-};
-
 /* void glTextureParameterIiv(GLuint texture, GLenum pname, const GLint * params) */
-#define CHIMERA_GL_OP_glTextureParameterIiv 641
+#define CHIMERA_GL_OP_glTextureParameterIiv 552
 struct ChimeraGlArgs_glTextureParameterIiv {
 	GLuint texture;
 	GLenum pname;
@@ -4610,7 +3721,7 @@ struct ChimeraGlArgs_glTextureParameterIiv {
 };
 
 /* void glTextureParameterIuiv(GLuint texture, GLenum pname, const GLuint * params) */
-#define CHIMERA_GL_OP_glTextureParameterIuiv 642
+#define CHIMERA_GL_OP_glTextureParameterIuiv 553
 struct ChimeraGlArgs_glTextureParameterIuiv {
 	GLuint texture;
 	GLenum pname;
@@ -4618,7 +3729,7 @@ struct ChimeraGlArgs_glTextureParameterIuiv {
 };
 
 /* void glTextureParameteriv(GLuint texture, GLenum pname, const GLint * param) */
-#define CHIMERA_GL_OP_glTextureParameteriv 643
+#define CHIMERA_GL_OP_glTextureParameteriv 554
 struct ChimeraGlArgs_glTextureParameteriv {
 	GLuint texture;
 	GLenum pname;
@@ -4626,7 +3737,7 @@ struct ChimeraGlArgs_glTextureParameteriv {
 };
 
 /* void glTextureStorage1D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width) */
-#define CHIMERA_GL_OP_glTextureStorage1D 644
+#define CHIMERA_GL_OP_glTextureStorage1D 555
 struct ChimeraGlArgs_glTextureStorage1D {
 	GLuint texture;
 	GLsizei levels;
@@ -4634,18 +3745,8 @@ struct ChimeraGlArgs_glTextureStorage1D {
 	GLsizei width;
 };
 
-/* void glTextureStorage2D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height) */
-#define CHIMERA_GL_OP_glTextureStorage2D 645
-struct ChimeraGlArgs_glTextureStorage2D {
-	GLuint texture;
-	GLsizei levels;
-	GLenum internalformat;
-	GLsizei width;
-	GLsizei height;
-};
-
 /* void glTextureStorage2DMultisample(GLuint texture, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations) */
-#define CHIMERA_GL_OP_glTextureStorage2DMultisample 646
+#define CHIMERA_GL_OP_glTextureStorage2DMultisample 556
 struct ChimeraGlArgs_glTextureStorage2DMultisample {
 	GLuint texture;
 	GLsizei samples;
@@ -4656,7 +3757,7 @@ struct ChimeraGlArgs_glTextureStorage2DMultisample {
 };
 
 /* void glTextureStorage3D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth) */
-#define CHIMERA_GL_OP_glTextureStorage3D 647
+#define CHIMERA_GL_OP_glTextureStorage3D 557
 struct ChimeraGlArgs_glTextureStorage3D {
 	GLuint texture;
 	GLsizei levels;
@@ -4667,7 +3768,7 @@ struct ChimeraGlArgs_glTextureStorage3D {
 };
 
 /* void glTextureStorage3DMultisample(GLuint texture, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations) */
-#define CHIMERA_GL_OP_glTextureStorage3DMultisample 648
+#define CHIMERA_GL_OP_glTextureStorage3DMultisample 558
 struct ChimeraGlArgs_glTextureStorage3DMultisample {
 	GLuint texture;
 	GLsizei samples;
@@ -4679,7 +3780,7 @@ struct ChimeraGlArgs_glTextureStorage3DMultisample {
 };
 
 /* void glTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void * pixels) */
-#define CHIMERA_GL_OP_glTextureSubImage1D 649
+#define CHIMERA_GL_OP_glTextureSubImage1D 559
 struct ChimeraGlArgs_glTextureSubImage1D {
 	GLuint texture;
 	GLint level;
@@ -4690,22 +3791,8 @@ struct ChimeraGlArgs_glTextureSubImage1D {
 	const void * pixels;
 };
 
-/* void glTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void * pixels) */
-#define CHIMERA_GL_OP_glTextureSubImage2D 650
-struct ChimeraGlArgs_glTextureSubImage2D {
-	GLuint texture;
-	GLint level;
-	GLint xoffset;
-	GLint yoffset;
-	GLsizei width;
-	GLsizei height;
-	GLenum format;
-	GLenum type;
-	const void * pixels;
-};
-
 /* void glTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void * pixels) */
-#define CHIMERA_GL_OP_glTextureSubImage3D 651
+#define CHIMERA_GL_OP_glTextureSubImage3D 560
 struct ChimeraGlArgs_glTextureSubImage3D {
 	GLuint texture;
 	GLint level;
@@ -4721,7 +3808,7 @@ struct ChimeraGlArgs_glTextureSubImage3D {
 };
 
 /* void glTextureView(GLuint texture, GLenum target, GLuint origtexture, GLenum internalformat, GLuint minlevel, GLuint numlevels, GLuint minlayer, GLuint numlayers) */
-#define CHIMERA_GL_OP_glTextureView 652
+#define CHIMERA_GL_OP_glTextureView 561
 struct ChimeraGlArgs_glTextureView {
 	GLuint texture;
 	GLenum target;
@@ -4734,7 +3821,7 @@ struct ChimeraGlArgs_glTextureView {
 };
 
 /* void glTransformFeedbackBufferBase(GLuint xfb, GLuint index, GLuint buffer) */
-#define CHIMERA_GL_OP_glTransformFeedbackBufferBase 653
+#define CHIMERA_GL_OP_glTransformFeedbackBufferBase 562
 struct ChimeraGlArgs_glTransformFeedbackBufferBase {
 	GLuint xfb;
 	GLuint index;
@@ -4742,7 +3829,7 @@ struct ChimeraGlArgs_glTransformFeedbackBufferBase {
 };
 
 /* void glTransformFeedbackBufferRange(GLuint xfb, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size) */
-#define CHIMERA_GL_OP_glTransformFeedbackBufferRange 654
+#define CHIMERA_GL_OP_glTransformFeedbackBufferRange 563
 struct ChimeraGlArgs_glTransformFeedbackBufferRange {
 	GLuint xfb;
 	GLuint index;
@@ -4752,7 +3839,7 @@ struct ChimeraGlArgs_glTransformFeedbackBufferRange {
 };
 
 /* void glTransformFeedbackVaryings(GLuint program, GLsizei count, const GLchar *const* varyings, GLenum bufferMode) */
-#define CHIMERA_GL_OP_glTransformFeedbackVaryings 655
+#define CHIMERA_GL_OP_glTransformFeedbackVaryings 564
 struct ChimeraGlArgs_glTransformFeedbackVaryings {
 	GLuint program;
 	GLsizei count;
@@ -4760,307 +3847,8 @@ struct ChimeraGlArgs_glTransformFeedbackVaryings {
 	GLenum bufferMode;
 };
 
-/* void glUniform1d(GLint location, GLdouble x) */
-#define CHIMERA_GL_OP_glUniform1d 656
-struct ChimeraGlArgs_glUniform1d {
-	GLint location;
-	GLdouble x;
-};
-
-/* void glUniform1dv(GLint location, GLsizei count, const GLdouble * value) */
-#define CHIMERA_GL_OP_glUniform1dv 657
-struct ChimeraGlArgs_glUniform1dv {
-	GLint location;
-	GLsizei count;
-	const GLdouble * value;
-};
-
-/* void glUniform1f(GLint location, GLfloat v0) */
-#define CHIMERA_GL_OP_glUniform1f 658
-struct ChimeraGlArgs_glUniform1f {
-	GLint location;
-	GLfloat v0;
-};
-
-/* void glUniform1fv(GLint location, GLsizei count, const GLfloat * value) */
-#define CHIMERA_GL_OP_glUniform1fv 659
-struct ChimeraGlArgs_glUniform1fv {
-	GLint location;
-	GLsizei count;
-	const GLfloat * value;
-};
-
-/* void glUniform1i(GLint location, GLint v0) */
-#define CHIMERA_GL_OP_glUniform1i 660
-struct ChimeraGlArgs_glUniform1i {
-	GLint location;
-	GLint v0;
-};
-
-/* void glUniform1iv(GLint location, GLsizei count, const GLint * value) */
-#define CHIMERA_GL_OP_glUniform1iv 661
-struct ChimeraGlArgs_glUniform1iv {
-	GLint location;
-	GLsizei count;
-	const GLint * value;
-};
-
-/* void glUniform1ui(GLint location, GLuint v0) */
-#define CHIMERA_GL_OP_glUniform1ui 662
-struct ChimeraGlArgs_glUniform1ui {
-	GLint location;
-	GLuint v0;
-};
-
-/* void glUniform1uiv(GLint location, GLsizei count, const GLuint * value) */
-#define CHIMERA_GL_OP_glUniform1uiv 663
-struct ChimeraGlArgs_glUniform1uiv {
-	GLint location;
-	GLsizei count;
-	const GLuint * value;
-};
-
-/* void glUniform2d(GLint location, GLdouble x, GLdouble y) */
-#define CHIMERA_GL_OP_glUniform2d 664
-struct ChimeraGlArgs_glUniform2d {
-	GLint location;
-	GLdouble x;
-	GLdouble y;
-};
-
-/* void glUniform2dv(GLint location, GLsizei count, const GLdouble * value) */
-#define CHIMERA_GL_OP_glUniform2dv 665
-struct ChimeraGlArgs_glUniform2dv {
-	GLint location;
-	GLsizei count;
-	const GLdouble * value;
-};
-
-/* void glUniform2f(GLint location, GLfloat v0, GLfloat v1) */
-#define CHIMERA_GL_OP_glUniform2f 666
-struct ChimeraGlArgs_glUniform2f {
-	GLint location;
-	GLfloat v0;
-	GLfloat v1;
-};
-
-/* void glUniform2fv(GLint location, GLsizei count, const GLfloat * value) */
-#define CHIMERA_GL_OP_glUniform2fv 667
-struct ChimeraGlArgs_glUniform2fv {
-	GLint location;
-	GLsizei count;
-	const GLfloat * value;
-};
-
-/* void glUniform2i(GLint location, GLint v0, GLint v1) */
-#define CHIMERA_GL_OP_glUniform2i 668
-struct ChimeraGlArgs_glUniform2i {
-	GLint location;
-	GLint v0;
-	GLint v1;
-};
-
-/* void glUniform2iv(GLint location, GLsizei count, const GLint * value) */
-#define CHIMERA_GL_OP_glUniform2iv 669
-struct ChimeraGlArgs_glUniform2iv {
-	GLint location;
-	GLsizei count;
-	const GLint * value;
-};
-
-/* void glUniform2ui(GLint location, GLuint v0, GLuint v1) */
-#define CHIMERA_GL_OP_glUniform2ui 670
-struct ChimeraGlArgs_glUniform2ui {
-	GLint location;
-	GLuint v0;
-	GLuint v1;
-};
-
-/* void glUniform2uiv(GLint location, GLsizei count, const GLuint * value) */
-#define CHIMERA_GL_OP_glUniform2uiv 671
-struct ChimeraGlArgs_glUniform2uiv {
-	GLint location;
-	GLsizei count;
-	const GLuint * value;
-};
-
-/* void glUniform3d(GLint location, GLdouble x, GLdouble y, GLdouble z) */
-#define CHIMERA_GL_OP_glUniform3d 672
-struct ChimeraGlArgs_glUniform3d {
-	GLint location;
-	GLdouble x;
-	GLdouble y;
-	GLdouble z;
-};
-
-/* void glUniform3dv(GLint location, GLsizei count, const GLdouble * value) */
-#define CHIMERA_GL_OP_glUniform3dv 673
-struct ChimeraGlArgs_glUniform3dv {
-	GLint location;
-	GLsizei count;
-	const GLdouble * value;
-};
-
-/* void glUniform3f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2) */
-#define CHIMERA_GL_OP_glUniform3f 674
-struct ChimeraGlArgs_glUniform3f {
-	GLint location;
-	GLfloat v0;
-	GLfloat v1;
-	GLfloat v2;
-};
-
-/* void glUniform3fv(GLint location, GLsizei count, const GLfloat * value) */
-#define CHIMERA_GL_OP_glUniform3fv 675
-struct ChimeraGlArgs_glUniform3fv {
-	GLint location;
-	GLsizei count;
-	const GLfloat * value;
-};
-
-/* void glUniform3i(GLint location, GLint v0, GLint v1, GLint v2) */
-#define CHIMERA_GL_OP_glUniform3i 676
-struct ChimeraGlArgs_glUniform3i {
-	GLint location;
-	GLint v0;
-	GLint v1;
-	GLint v2;
-};
-
-/* void glUniform3iv(GLint location, GLsizei count, const GLint * value) */
-#define CHIMERA_GL_OP_glUniform3iv 677
-struct ChimeraGlArgs_glUniform3iv {
-	GLint location;
-	GLsizei count;
-	const GLint * value;
-};
-
-/* void glUniform3ui(GLint location, GLuint v0, GLuint v1, GLuint v2) */
-#define CHIMERA_GL_OP_glUniform3ui 678
-struct ChimeraGlArgs_glUniform3ui {
-	GLint location;
-	GLuint v0;
-	GLuint v1;
-	GLuint v2;
-};
-
-/* void glUniform3uiv(GLint location, GLsizei count, const GLuint * value) */
-#define CHIMERA_GL_OP_glUniform3uiv 679
-struct ChimeraGlArgs_glUniform3uiv {
-	GLint location;
-	GLsizei count;
-	const GLuint * value;
-};
-
-/* void glUniform4d(GLint location, GLdouble x, GLdouble y, GLdouble z, GLdouble w) */
-#define CHIMERA_GL_OP_glUniform4d 680
-struct ChimeraGlArgs_glUniform4d {
-	GLint location;
-	GLdouble x;
-	GLdouble y;
-	GLdouble z;
-	GLdouble w;
-};
-
-/* void glUniform4dv(GLint location, GLsizei count, const GLdouble * value) */
-#define CHIMERA_GL_OP_glUniform4dv 681
-struct ChimeraGlArgs_glUniform4dv {
-	GLint location;
-	GLsizei count;
-	const GLdouble * value;
-};
-
-/* void glUniform4f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3) */
-#define CHIMERA_GL_OP_glUniform4f 682
-struct ChimeraGlArgs_glUniform4f {
-	GLint location;
-	GLfloat v0;
-	GLfloat v1;
-	GLfloat v2;
-	GLfloat v3;
-};
-
-/* void glUniform4fv(GLint location, GLsizei count, const GLfloat * value) */
-#define CHIMERA_GL_OP_glUniform4fv 683
-struct ChimeraGlArgs_glUniform4fv {
-	GLint location;
-	GLsizei count;
-	const GLfloat * value;
-};
-
-/* void glUniform4i(GLint location, GLint v0, GLint v1, GLint v2, GLint v3) */
-#define CHIMERA_GL_OP_glUniform4i 684
-struct ChimeraGlArgs_glUniform4i {
-	GLint location;
-	GLint v0;
-	GLint v1;
-	GLint v2;
-	GLint v3;
-};
-
-/* void glUniform4iv(GLint location, GLsizei count, const GLint * value) */
-#define CHIMERA_GL_OP_glUniform4iv 685
-struct ChimeraGlArgs_glUniform4iv {
-	GLint location;
-	GLsizei count;
-	const GLint * value;
-};
-
-/* void glUniform4ui(GLint location, GLuint v0, GLuint v1, GLuint v2, GLuint v3) */
-#define CHIMERA_GL_OP_glUniform4ui 686
-struct ChimeraGlArgs_glUniform4ui {
-	GLint location;
-	GLuint v0;
-	GLuint v1;
-	GLuint v2;
-	GLuint v3;
-};
-
-/* void glUniform4uiv(GLint location, GLsizei count, const GLuint * value) */
-#define CHIMERA_GL_OP_glUniform4uiv 687
-struct ChimeraGlArgs_glUniform4uiv {
-	GLint location;
-	GLsizei count;
-	const GLuint * value;
-};
-
-/* void glUniformBlockBinding(GLuint program, GLuint uniformBlockIndex, GLuint uniformBlockBinding) */
-#define CHIMERA_GL_OP_glUniformBlockBinding 688
-struct ChimeraGlArgs_glUniformBlockBinding {
-	GLuint program;
-	GLuint uniformBlockIndex;
-	GLuint uniformBlockBinding;
-};
-
-/* void glUniformMatrix2dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value) */
-#define CHIMERA_GL_OP_glUniformMatrix2dv 689
-struct ChimeraGlArgs_glUniformMatrix2dv {
-	GLint location;
-	GLsizei count;
-	GLboolean transpose;
-	const GLdouble * value;
-};
-
-/* void glUniformMatrix2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat * value) */
-#define CHIMERA_GL_OP_glUniformMatrix2fv 690
-struct ChimeraGlArgs_glUniformMatrix2fv {
-	GLint location;
-	GLsizei count;
-	GLboolean transpose;
-	const GLfloat * value;
-};
-
-/* void glUniformMatrix2x3dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value) */
-#define CHIMERA_GL_OP_glUniformMatrix2x3dv 691
-struct ChimeraGlArgs_glUniformMatrix2x3dv {
-	GLint location;
-	GLsizei count;
-	GLboolean transpose;
-	const GLdouble * value;
-};
-
 /* void glUniformMatrix2x3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat * value) */
-#define CHIMERA_GL_OP_glUniformMatrix2x3fv 692
+#define CHIMERA_GL_OP_glUniformMatrix2x3fv 565
 struct ChimeraGlArgs_glUniformMatrix2x3fv {
 	GLint location;
 	GLsizei count;
@@ -5068,17 +3856,8 @@ struct ChimeraGlArgs_glUniformMatrix2x3fv {
 	const GLfloat * value;
 };
 
-/* void glUniformMatrix2x4dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value) */
-#define CHIMERA_GL_OP_glUniformMatrix2x4dv 693
-struct ChimeraGlArgs_glUniformMatrix2x4dv {
-	GLint location;
-	GLsizei count;
-	GLboolean transpose;
-	const GLdouble * value;
-};
-
 /* void glUniformMatrix2x4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat * value) */
-#define CHIMERA_GL_OP_glUniformMatrix2x4fv 694
+#define CHIMERA_GL_OP_glUniformMatrix2x4fv 566
 struct ChimeraGlArgs_glUniformMatrix2x4fv {
 	GLint location;
 	GLsizei count;
@@ -5086,35 +3865,8 @@ struct ChimeraGlArgs_glUniformMatrix2x4fv {
 	const GLfloat * value;
 };
 
-/* void glUniformMatrix3dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value) */
-#define CHIMERA_GL_OP_glUniformMatrix3dv 695
-struct ChimeraGlArgs_glUniformMatrix3dv {
-	GLint location;
-	GLsizei count;
-	GLboolean transpose;
-	const GLdouble * value;
-};
-
-/* void glUniformMatrix3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat * value) */
-#define CHIMERA_GL_OP_glUniformMatrix3fv 696
-struct ChimeraGlArgs_glUniformMatrix3fv {
-	GLint location;
-	GLsizei count;
-	GLboolean transpose;
-	const GLfloat * value;
-};
-
-/* void glUniformMatrix3x2dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value) */
-#define CHIMERA_GL_OP_glUniformMatrix3x2dv 697
-struct ChimeraGlArgs_glUniformMatrix3x2dv {
-	GLint location;
-	GLsizei count;
-	GLboolean transpose;
-	const GLdouble * value;
-};
-
 /* void glUniformMatrix3x2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat * value) */
-#define CHIMERA_GL_OP_glUniformMatrix3x2fv 698
+#define CHIMERA_GL_OP_glUniformMatrix3x2fv 567
 struct ChimeraGlArgs_glUniformMatrix3x2fv {
 	GLint location;
 	GLsizei count;
@@ -5122,17 +3874,8 @@ struct ChimeraGlArgs_glUniformMatrix3x2fv {
 	const GLfloat * value;
 };
 
-/* void glUniformMatrix3x4dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value) */
-#define CHIMERA_GL_OP_glUniformMatrix3x4dv 699
-struct ChimeraGlArgs_glUniformMatrix3x4dv {
-	GLint location;
-	GLsizei count;
-	GLboolean transpose;
-	const GLdouble * value;
-};
-
 /* void glUniformMatrix3x4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat * value) */
-#define CHIMERA_GL_OP_glUniformMatrix3x4fv 700
+#define CHIMERA_GL_OP_glUniformMatrix3x4fv 568
 struct ChimeraGlArgs_glUniformMatrix3x4fv {
 	GLint location;
 	GLsizei count;
@@ -5140,35 +3883,8 @@ struct ChimeraGlArgs_glUniformMatrix3x4fv {
 	const GLfloat * value;
 };
 
-/* void glUniformMatrix4dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value) */
-#define CHIMERA_GL_OP_glUniformMatrix4dv 701
-struct ChimeraGlArgs_glUniformMatrix4dv {
-	GLint location;
-	GLsizei count;
-	GLboolean transpose;
-	const GLdouble * value;
-};
-
-/* void glUniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat * value) */
-#define CHIMERA_GL_OP_glUniformMatrix4fv 702
-struct ChimeraGlArgs_glUniformMatrix4fv {
-	GLint location;
-	GLsizei count;
-	GLboolean transpose;
-	const GLfloat * value;
-};
-
-/* void glUniformMatrix4x2dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value) */
-#define CHIMERA_GL_OP_glUniformMatrix4x2dv 703
-struct ChimeraGlArgs_glUniformMatrix4x2dv {
-	GLint location;
-	GLsizei count;
-	GLboolean transpose;
-	const GLdouble * value;
-};
-
 /* void glUniformMatrix4x2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat * value) */
-#define CHIMERA_GL_OP_glUniformMatrix4x2fv 704
+#define CHIMERA_GL_OP_glUniformMatrix4x2fv 569
 struct ChimeraGlArgs_glUniformMatrix4x2fv {
 	GLint location;
 	GLsizei count;
@@ -5176,17 +3892,8 @@ struct ChimeraGlArgs_glUniformMatrix4x2fv {
 	const GLfloat * value;
 };
 
-/* void glUniformMatrix4x3dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value) */
-#define CHIMERA_GL_OP_glUniformMatrix4x3dv 705
-struct ChimeraGlArgs_glUniformMatrix4x3dv {
-	GLint location;
-	GLsizei count;
-	GLboolean transpose;
-	const GLdouble * value;
-};
-
 /* void glUniformMatrix4x3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat * value) */
-#define CHIMERA_GL_OP_glUniformMatrix4x3fv 706
+#define CHIMERA_GL_OP_glUniformMatrix4x3fv 570
 struct ChimeraGlArgs_glUniformMatrix4x3fv {
 	GLint location;
 	GLsizei count;
@@ -5194,54 +3901,14 @@ struct ChimeraGlArgs_glUniformMatrix4x3fv {
 	const GLfloat * value;
 };
 
-/* void glUniformSubroutinesuiv(GLenum shadertype, GLsizei count, const GLuint * indices) */
-#define CHIMERA_GL_OP_glUniformSubroutinesuiv 707
-struct ChimeraGlArgs_glUniformSubroutinesuiv {
-	GLenum shadertype;
-	GLsizei count;
-	const GLuint * indices;
-};
-
-/* GLboolean glUnmapBuffer(GLenum target) */
-#define CHIMERA_GL_OP_glUnmapBuffer 708
-struct ChimeraGlArgs_glUnmapBuffer {
-	GLenum target;
-};
-
 /* GLboolean glUnmapNamedBuffer(GLuint buffer) */
-#define CHIMERA_GL_OP_glUnmapNamedBuffer 709
+#define CHIMERA_GL_OP_glUnmapNamedBuffer 571
 struct ChimeraGlArgs_glUnmapNamedBuffer {
 	GLuint buffer;
 };
 
-/* void glUseProgram(GLuint program) */
-#define CHIMERA_GL_OP_glUseProgram 710
-struct ChimeraGlArgs_glUseProgram {
-	GLuint program;
-};
-
-/* void glUseProgramStages(GLuint pipeline, GLbitfield stages, GLuint program) */
-#define CHIMERA_GL_OP_glUseProgramStages 711
-struct ChimeraGlArgs_glUseProgramStages {
-	GLuint pipeline;
-	GLbitfield stages;
-	GLuint program;
-};
-
-/* void glValidateProgram(GLuint program) */
-#define CHIMERA_GL_OP_glValidateProgram 712
-struct ChimeraGlArgs_glValidateProgram {
-	GLuint program;
-};
-
-/* void glValidateProgramPipeline(GLuint pipeline) */
-#define CHIMERA_GL_OP_glValidateProgramPipeline 713
-struct ChimeraGlArgs_glValidateProgramPipeline {
-	GLuint pipeline;
-};
-
 /* void glVertexArrayAttribBinding(GLuint vaobj, GLuint attribindex, GLuint bindingindex) */
-#define CHIMERA_GL_OP_glVertexArrayAttribBinding 714
+#define CHIMERA_GL_OP_glVertexArrayAttribBinding 572
 struct ChimeraGlArgs_glVertexArrayAttribBinding {
 	GLuint vaobj;
 	GLuint attribindex;
@@ -5249,7 +3916,7 @@ struct ChimeraGlArgs_glVertexArrayAttribBinding {
 };
 
 /* void glVertexArrayAttribFormat(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset) */
-#define CHIMERA_GL_OP_glVertexArrayAttribFormat 715
+#define CHIMERA_GL_OP_glVertexArrayAttribFormat 573
 struct ChimeraGlArgs_glVertexArrayAttribFormat {
 	GLuint vaobj;
 	GLuint attribindex;
@@ -5260,7 +3927,7 @@ struct ChimeraGlArgs_glVertexArrayAttribFormat {
 };
 
 /* void glVertexArrayAttribIFormat(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset) */
-#define CHIMERA_GL_OP_glVertexArrayAttribIFormat 716
+#define CHIMERA_GL_OP_glVertexArrayAttribIFormat 574
 struct ChimeraGlArgs_glVertexArrayAttribIFormat {
 	GLuint vaobj;
 	GLuint attribindex;
@@ -5270,7 +3937,7 @@ struct ChimeraGlArgs_glVertexArrayAttribIFormat {
 };
 
 /* void glVertexArrayAttribLFormat(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset) */
-#define CHIMERA_GL_OP_glVertexArrayAttribLFormat 717
+#define CHIMERA_GL_OP_glVertexArrayAttribLFormat 575
 struct ChimeraGlArgs_glVertexArrayAttribLFormat {
 	GLuint vaobj;
 	GLuint attribindex;
@@ -5280,7 +3947,7 @@ struct ChimeraGlArgs_glVertexArrayAttribLFormat {
 };
 
 /* void glVertexArrayBindingDivisor(GLuint vaobj, GLuint bindingindex, GLuint divisor) */
-#define CHIMERA_GL_OP_glVertexArrayBindingDivisor 718
+#define CHIMERA_GL_OP_glVertexArrayBindingDivisor 576
 struct ChimeraGlArgs_glVertexArrayBindingDivisor {
 	GLuint vaobj;
 	GLuint bindingindex;
@@ -5288,14 +3955,14 @@ struct ChimeraGlArgs_glVertexArrayBindingDivisor {
 };
 
 /* void glVertexArrayElementBuffer(GLuint vaobj, GLuint buffer) */
-#define CHIMERA_GL_OP_glVertexArrayElementBuffer 719
+#define CHIMERA_GL_OP_glVertexArrayElementBuffer 577
 struct ChimeraGlArgs_glVertexArrayElementBuffer {
 	GLuint vaobj;
 	GLuint buffer;
 };
 
 /* void glVertexArrayVertexBuffer(GLuint vaobj, GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride) */
-#define CHIMERA_GL_OP_glVertexArrayVertexBuffer 720
+#define CHIMERA_GL_OP_glVertexArrayVertexBuffer 578
 struct ChimeraGlArgs_glVertexArrayVertexBuffer {
 	GLuint vaobj;
 	GLuint bindingindex;
@@ -5305,7 +3972,7 @@ struct ChimeraGlArgs_glVertexArrayVertexBuffer {
 };
 
 /* void glVertexArrayVertexBuffers(GLuint vaobj, GLuint first, GLsizei count, const GLuint * buffers, const GLintptr * offsets, const GLsizei * strides) */
-#define CHIMERA_GL_OP_glVertexArrayVertexBuffers 721
+#define CHIMERA_GL_OP_glVertexArrayVertexBuffers 579
 struct ChimeraGlArgs_glVertexArrayVertexBuffers {
 	GLuint vaobj;
 	GLuint first;
@@ -5316,49 +3983,49 @@ struct ChimeraGlArgs_glVertexArrayVertexBuffers {
 };
 
 /* void glVertexAttrib1d(GLuint index, GLdouble x) */
-#define CHIMERA_GL_OP_glVertexAttrib1d 722
+#define CHIMERA_GL_OP_glVertexAttrib1d 580
 struct ChimeraGlArgs_glVertexAttrib1d {
 	GLuint index;
 	GLdouble x;
 };
 
 /* void glVertexAttrib1dv(GLuint index, const GLdouble * v) */
-#define CHIMERA_GL_OP_glVertexAttrib1dv 723
+#define CHIMERA_GL_OP_glVertexAttrib1dv 581
 struct ChimeraGlArgs_glVertexAttrib1dv {
 	GLuint index;
 	const GLdouble * v;
 };
 
 /* void glVertexAttrib1f(GLuint index, GLfloat x) */
-#define CHIMERA_GL_OP_glVertexAttrib1f 724
+#define CHIMERA_GL_OP_glVertexAttrib1f 582
 struct ChimeraGlArgs_glVertexAttrib1f {
 	GLuint index;
 	GLfloat x;
 };
 
 /* void glVertexAttrib1fv(GLuint index, const GLfloat * v) */
-#define CHIMERA_GL_OP_glVertexAttrib1fv 725
+#define CHIMERA_GL_OP_glVertexAttrib1fv 583
 struct ChimeraGlArgs_glVertexAttrib1fv {
 	GLuint index;
 	const GLfloat * v;
 };
 
 /* void glVertexAttrib1s(GLuint index, GLshort x) */
-#define CHIMERA_GL_OP_glVertexAttrib1s 726
+#define CHIMERA_GL_OP_glVertexAttrib1s 584
 struct ChimeraGlArgs_glVertexAttrib1s {
 	GLuint index;
 	GLshort x;
 };
 
 /* void glVertexAttrib1sv(GLuint index, const GLshort * v) */
-#define CHIMERA_GL_OP_glVertexAttrib1sv 727
+#define CHIMERA_GL_OP_glVertexAttrib1sv 585
 struct ChimeraGlArgs_glVertexAttrib1sv {
 	GLuint index;
 	const GLshort * v;
 };
 
 /* void glVertexAttrib2d(GLuint index, GLdouble x, GLdouble y) */
-#define CHIMERA_GL_OP_glVertexAttrib2d 728
+#define CHIMERA_GL_OP_glVertexAttrib2d 586
 struct ChimeraGlArgs_glVertexAttrib2d {
 	GLuint index;
 	GLdouble x;
@@ -5366,14 +4033,14 @@ struct ChimeraGlArgs_glVertexAttrib2d {
 };
 
 /* void glVertexAttrib2dv(GLuint index, const GLdouble * v) */
-#define CHIMERA_GL_OP_glVertexAttrib2dv 729
+#define CHIMERA_GL_OP_glVertexAttrib2dv 587
 struct ChimeraGlArgs_glVertexAttrib2dv {
 	GLuint index;
 	const GLdouble * v;
 };
 
 /* void glVertexAttrib2f(GLuint index, GLfloat x, GLfloat y) */
-#define CHIMERA_GL_OP_glVertexAttrib2f 730
+#define CHIMERA_GL_OP_glVertexAttrib2f 588
 struct ChimeraGlArgs_glVertexAttrib2f {
 	GLuint index;
 	GLfloat x;
@@ -5381,14 +4048,14 @@ struct ChimeraGlArgs_glVertexAttrib2f {
 };
 
 /* void glVertexAttrib2fv(GLuint index, const GLfloat * v) */
-#define CHIMERA_GL_OP_glVertexAttrib2fv 731
+#define CHIMERA_GL_OP_glVertexAttrib2fv 589
 struct ChimeraGlArgs_glVertexAttrib2fv {
 	GLuint index;
 	const GLfloat * v;
 };
 
 /* void glVertexAttrib2s(GLuint index, GLshort x, GLshort y) */
-#define CHIMERA_GL_OP_glVertexAttrib2s 732
+#define CHIMERA_GL_OP_glVertexAttrib2s 590
 struct ChimeraGlArgs_glVertexAttrib2s {
 	GLuint index;
 	GLshort x;
@@ -5396,14 +4063,14 @@ struct ChimeraGlArgs_glVertexAttrib2s {
 };
 
 /* void glVertexAttrib2sv(GLuint index, const GLshort * v) */
-#define CHIMERA_GL_OP_glVertexAttrib2sv 733
+#define CHIMERA_GL_OP_glVertexAttrib2sv 591
 struct ChimeraGlArgs_glVertexAttrib2sv {
 	GLuint index;
 	const GLshort * v;
 };
 
 /* void glVertexAttrib3d(GLuint index, GLdouble x, GLdouble y, GLdouble z) */
-#define CHIMERA_GL_OP_glVertexAttrib3d 734
+#define CHIMERA_GL_OP_glVertexAttrib3d 592
 struct ChimeraGlArgs_glVertexAttrib3d {
 	GLuint index;
 	GLdouble x;
@@ -5412,14 +4079,14 @@ struct ChimeraGlArgs_glVertexAttrib3d {
 };
 
 /* void glVertexAttrib3dv(GLuint index, const GLdouble * v) */
-#define CHIMERA_GL_OP_glVertexAttrib3dv 735
+#define CHIMERA_GL_OP_glVertexAttrib3dv 593
 struct ChimeraGlArgs_glVertexAttrib3dv {
 	GLuint index;
 	const GLdouble * v;
 };
 
 /* void glVertexAttrib3f(GLuint index, GLfloat x, GLfloat y, GLfloat z) */
-#define CHIMERA_GL_OP_glVertexAttrib3f 736
+#define CHIMERA_GL_OP_glVertexAttrib3f 594
 struct ChimeraGlArgs_glVertexAttrib3f {
 	GLuint index;
 	GLfloat x;
@@ -5428,14 +4095,14 @@ struct ChimeraGlArgs_glVertexAttrib3f {
 };
 
 /* void glVertexAttrib3fv(GLuint index, const GLfloat * v) */
-#define CHIMERA_GL_OP_glVertexAttrib3fv 737
+#define CHIMERA_GL_OP_glVertexAttrib3fv 595
 struct ChimeraGlArgs_glVertexAttrib3fv {
 	GLuint index;
 	const GLfloat * v;
 };
 
 /* void glVertexAttrib3s(GLuint index, GLshort x, GLshort y, GLshort z) */
-#define CHIMERA_GL_OP_glVertexAttrib3s 738
+#define CHIMERA_GL_OP_glVertexAttrib3s 596
 struct ChimeraGlArgs_glVertexAttrib3s {
 	GLuint index;
 	GLshort x;
@@ -5444,21 +4111,21 @@ struct ChimeraGlArgs_glVertexAttrib3s {
 };
 
 /* void glVertexAttrib3sv(GLuint index, const GLshort * v) */
-#define CHIMERA_GL_OP_glVertexAttrib3sv 739
+#define CHIMERA_GL_OP_glVertexAttrib3sv 597
 struct ChimeraGlArgs_glVertexAttrib3sv {
 	GLuint index;
 	const GLshort * v;
 };
 
 /* void glVertexAttrib4bv(GLuint index, const GLbyte * v) */
-#define CHIMERA_GL_OP_glVertexAttrib4bv 740
+#define CHIMERA_GL_OP_glVertexAttrib4bv 598
 struct ChimeraGlArgs_glVertexAttrib4bv {
 	GLuint index;
 	const GLbyte * v;
 };
 
 /* void glVertexAttrib4d(GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w) */
-#define CHIMERA_GL_OP_glVertexAttrib4d 741
+#define CHIMERA_GL_OP_glVertexAttrib4d 599
 struct ChimeraGlArgs_glVertexAttrib4d {
 	GLuint index;
 	GLdouble x;
@@ -5468,14 +4135,14 @@ struct ChimeraGlArgs_glVertexAttrib4d {
 };
 
 /* void glVertexAttrib4dv(GLuint index, const GLdouble * v) */
-#define CHIMERA_GL_OP_glVertexAttrib4dv 742
+#define CHIMERA_GL_OP_glVertexAttrib4dv 600
 struct ChimeraGlArgs_glVertexAttrib4dv {
 	GLuint index;
 	const GLdouble * v;
 };
 
 /* void glVertexAttrib4f(GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w) */
-#define CHIMERA_GL_OP_glVertexAttrib4f 743
+#define CHIMERA_GL_OP_glVertexAttrib4f 601
 struct ChimeraGlArgs_glVertexAttrib4f {
 	GLuint index;
 	GLfloat x;
@@ -5484,43 +4151,36 @@ struct ChimeraGlArgs_glVertexAttrib4f {
 	GLfloat w;
 };
 
-/* void glVertexAttrib4fv(GLuint index, const GLfloat * v) */
-#define CHIMERA_GL_OP_glVertexAttrib4fv 744
-struct ChimeraGlArgs_glVertexAttrib4fv {
-	GLuint index;
-	const GLfloat * v;
-};
-
 /* void glVertexAttrib4iv(GLuint index, const GLint * v) */
-#define CHIMERA_GL_OP_glVertexAttrib4iv 745
+#define CHIMERA_GL_OP_glVertexAttrib4iv 602
 struct ChimeraGlArgs_glVertexAttrib4iv {
 	GLuint index;
 	const GLint * v;
 };
 
 /* void glVertexAttrib4Nbv(GLuint index, const GLbyte * v) */
-#define CHIMERA_GL_OP_glVertexAttrib4Nbv 746
+#define CHIMERA_GL_OP_glVertexAttrib4Nbv 603
 struct ChimeraGlArgs_glVertexAttrib4Nbv {
 	GLuint index;
 	const GLbyte * v;
 };
 
 /* void glVertexAttrib4Niv(GLuint index, const GLint * v) */
-#define CHIMERA_GL_OP_glVertexAttrib4Niv 747
+#define CHIMERA_GL_OP_glVertexAttrib4Niv 604
 struct ChimeraGlArgs_glVertexAttrib4Niv {
 	GLuint index;
 	const GLint * v;
 };
 
 /* void glVertexAttrib4Nsv(GLuint index, const GLshort * v) */
-#define CHIMERA_GL_OP_glVertexAttrib4Nsv 748
+#define CHIMERA_GL_OP_glVertexAttrib4Nsv 605
 struct ChimeraGlArgs_glVertexAttrib4Nsv {
 	GLuint index;
 	const GLshort * v;
 };
 
 /* void glVertexAttrib4Nub(GLuint index, GLubyte x, GLubyte y, GLubyte z, GLubyte w) */
-#define CHIMERA_GL_OP_glVertexAttrib4Nub 749
+#define CHIMERA_GL_OP_glVertexAttrib4Nub 606
 struct ChimeraGlArgs_glVertexAttrib4Nub {
 	GLuint index;
 	GLubyte x;
@@ -5530,28 +4190,28 @@ struct ChimeraGlArgs_glVertexAttrib4Nub {
 };
 
 /* void glVertexAttrib4Nubv(GLuint index, const GLubyte * v) */
-#define CHIMERA_GL_OP_glVertexAttrib4Nubv 750
+#define CHIMERA_GL_OP_glVertexAttrib4Nubv 607
 struct ChimeraGlArgs_glVertexAttrib4Nubv {
 	GLuint index;
 	const GLubyte * v;
 };
 
 /* void glVertexAttrib4Nuiv(GLuint index, const GLuint * v) */
-#define CHIMERA_GL_OP_glVertexAttrib4Nuiv 751
+#define CHIMERA_GL_OP_glVertexAttrib4Nuiv 608
 struct ChimeraGlArgs_glVertexAttrib4Nuiv {
 	GLuint index;
 	const GLuint * v;
 };
 
 /* void glVertexAttrib4Nusv(GLuint index, const GLushort * v) */
-#define CHIMERA_GL_OP_glVertexAttrib4Nusv 752
+#define CHIMERA_GL_OP_glVertexAttrib4Nusv 609
 struct ChimeraGlArgs_glVertexAttrib4Nusv {
 	GLuint index;
 	const GLushort * v;
 };
 
 /* void glVertexAttrib4s(GLuint index, GLshort x, GLshort y, GLshort z, GLshort w) */
-#define CHIMERA_GL_OP_glVertexAttrib4s 753
+#define CHIMERA_GL_OP_glVertexAttrib4s 610
 struct ChimeraGlArgs_glVertexAttrib4s {
 	GLuint index;
 	GLshort x;
@@ -5561,56 +4221,42 @@ struct ChimeraGlArgs_glVertexAttrib4s {
 };
 
 /* void glVertexAttrib4sv(GLuint index, const GLshort * v) */
-#define CHIMERA_GL_OP_glVertexAttrib4sv 754
+#define CHIMERA_GL_OP_glVertexAttrib4sv 611
 struct ChimeraGlArgs_glVertexAttrib4sv {
 	GLuint index;
 	const GLshort * v;
 };
 
 /* void glVertexAttrib4ubv(GLuint index, const GLubyte * v) */
-#define CHIMERA_GL_OP_glVertexAttrib4ubv 755
+#define CHIMERA_GL_OP_glVertexAttrib4ubv 612
 struct ChimeraGlArgs_glVertexAttrib4ubv {
 	GLuint index;
 	const GLubyte * v;
 };
 
 /* void glVertexAttrib4uiv(GLuint index, const GLuint * v) */
-#define CHIMERA_GL_OP_glVertexAttrib4uiv 756
+#define CHIMERA_GL_OP_glVertexAttrib4uiv 613
 struct ChimeraGlArgs_glVertexAttrib4uiv {
 	GLuint index;
 	const GLuint * v;
 };
 
 /* void glVertexAttrib4usv(GLuint index, const GLushort * v) */
-#define CHIMERA_GL_OP_glVertexAttrib4usv 757
+#define CHIMERA_GL_OP_glVertexAttrib4usv 614
 struct ChimeraGlArgs_glVertexAttrib4usv {
 	GLuint index;
 	const GLushort * v;
 };
 
 /* void glVertexAttribBinding(GLuint attribindex, GLuint bindingindex) */
-#define CHIMERA_GL_OP_glVertexAttribBinding 758
+#define CHIMERA_GL_OP_glVertexAttribBinding 615
 struct ChimeraGlArgs_glVertexAttribBinding {
 	GLuint attribindex;
 	GLuint bindingindex;
 };
 
-/* void glVertexAttribDivisor(GLuint index, GLuint divisor) */
-#define CHIMERA_GL_OP_glVertexAttribDivisor 759
-struct ChimeraGlArgs_glVertexAttribDivisor {
-	GLuint index;
-	GLuint divisor;
-};
-
-/* void glVertexAttribDivisorARB(GLuint index, GLuint divisor) */
-#define CHIMERA_GL_OP_glVertexAttribDivisorARB 760
-struct ChimeraGlArgs_glVertexAttribDivisorARB {
-	GLuint index;
-	GLuint divisor;
-};
-
 /* void glVertexAttribFormat(GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset) */
-#define CHIMERA_GL_OP_glVertexAttribFormat 761
+#define CHIMERA_GL_OP_glVertexAttribFormat 616
 struct ChimeraGlArgs_glVertexAttribFormat {
 	GLuint attribindex;
 	GLint size;
@@ -5620,35 +4266,35 @@ struct ChimeraGlArgs_glVertexAttribFormat {
 };
 
 /* void glVertexAttribI1i(GLuint index, GLint x) */
-#define CHIMERA_GL_OP_glVertexAttribI1i 762
+#define CHIMERA_GL_OP_glVertexAttribI1i 617
 struct ChimeraGlArgs_glVertexAttribI1i {
 	GLuint index;
 	GLint x;
 };
 
 /* void glVertexAttribI1iv(GLuint index, const GLint * v) */
-#define CHIMERA_GL_OP_glVertexAttribI1iv 763
+#define CHIMERA_GL_OP_glVertexAttribI1iv 618
 struct ChimeraGlArgs_glVertexAttribI1iv {
 	GLuint index;
 	const GLint * v;
 };
 
 /* void glVertexAttribI1ui(GLuint index, GLuint x) */
-#define CHIMERA_GL_OP_glVertexAttribI1ui 764
+#define CHIMERA_GL_OP_glVertexAttribI1ui 619
 struct ChimeraGlArgs_glVertexAttribI1ui {
 	GLuint index;
 	GLuint x;
 };
 
 /* void glVertexAttribI1uiv(GLuint index, const GLuint * v) */
-#define CHIMERA_GL_OP_glVertexAttribI1uiv 765
+#define CHIMERA_GL_OP_glVertexAttribI1uiv 620
 struct ChimeraGlArgs_glVertexAttribI1uiv {
 	GLuint index;
 	const GLuint * v;
 };
 
 /* void glVertexAttribI2i(GLuint index, GLint x, GLint y) */
-#define CHIMERA_GL_OP_glVertexAttribI2i 766
+#define CHIMERA_GL_OP_glVertexAttribI2i 621
 struct ChimeraGlArgs_glVertexAttribI2i {
 	GLuint index;
 	GLint x;
@@ -5656,14 +4302,14 @@ struct ChimeraGlArgs_glVertexAttribI2i {
 };
 
 /* void glVertexAttribI2iv(GLuint index, const GLint * v) */
-#define CHIMERA_GL_OP_glVertexAttribI2iv 767
+#define CHIMERA_GL_OP_glVertexAttribI2iv 622
 struct ChimeraGlArgs_glVertexAttribI2iv {
 	GLuint index;
 	const GLint * v;
 };
 
 /* void glVertexAttribI2ui(GLuint index, GLuint x, GLuint y) */
-#define CHIMERA_GL_OP_glVertexAttribI2ui 768
+#define CHIMERA_GL_OP_glVertexAttribI2ui 623
 struct ChimeraGlArgs_glVertexAttribI2ui {
 	GLuint index;
 	GLuint x;
@@ -5671,14 +4317,14 @@ struct ChimeraGlArgs_glVertexAttribI2ui {
 };
 
 /* void glVertexAttribI2uiv(GLuint index, const GLuint * v) */
-#define CHIMERA_GL_OP_glVertexAttribI2uiv 769
+#define CHIMERA_GL_OP_glVertexAttribI2uiv 624
 struct ChimeraGlArgs_glVertexAttribI2uiv {
 	GLuint index;
 	const GLuint * v;
 };
 
 /* void glVertexAttribI3i(GLuint index, GLint x, GLint y, GLint z) */
-#define CHIMERA_GL_OP_glVertexAttribI3i 770
+#define CHIMERA_GL_OP_glVertexAttribI3i 625
 struct ChimeraGlArgs_glVertexAttribI3i {
 	GLuint index;
 	GLint x;
@@ -5687,14 +4333,14 @@ struct ChimeraGlArgs_glVertexAttribI3i {
 };
 
 /* void glVertexAttribI3iv(GLuint index, const GLint * v) */
-#define CHIMERA_GL_OP_glVertexAttribI3iv 771
+#define CHIMERA_GL_OP_glVertexAttribI3iv 626
 struct ChimeraGlArgs_glVertexAttribI3iv {
 	GLuint index;
 	const GLint * v;
 };
 
 /* void glVertexAttribI3ui(GLuint index, GLuint x, GLuint y, GLuint z) */
-#define CHIMERA_GL_OP_glVertexAttribI3ui 772
+#define CHIMERA_GL_OP_glVertexAttribI3ui 627
 struct ChimeraGlArgs_glVertexAttribI3ui {
 	GLuint index;
 	GLuint x;
@@ -5703,21 +4349,21 @@ struct ChimeraGlArgs_glVertexAttribI3ui {
 };
 
 /* void glVertexAttribI3uiv(GLuint index, const GLuint * v) */
-#define CHIMERA_GL_OP_glVertexAttribI3uiv 773
+#define CHIMERA_GL_OP_glVertexAttribI3uiv 628
 struct ChimeraGlArgs_glVertexAttribI3uiv {
 	GLuint index;
 	const GLuint * v;
 };
 
 /* void glVertexAttribI4bv(GLuint index, const GLbyte * v) */
-#define CHIMERA_GL_OP_glVertexAttribI4bv 774
+#define CHIMERA_GL_OP_glVertexAttribI4bv 629
 struct ChimeraGlArgs_glVertexAttribI4bv {
 	GLuint index;
 	const GLbyte * v;
 };
 
 /* void glVertexAttribI4i(GLuint index, GLint x, GLint y, GLint z, GLint w) */
-#define CHIMERA_GL_OP_glVertexAttribI4i 775
+#define CHIMERA_GL_OP_glVertexAttribI4i 630
 struct ChimeraGlArgs_glVertexAttribI4i {
 	GLuint index;
 	GLint x;
@@ -5727,28 +4373,28 @@ struct ChimeraGlArgs_glVertexAttribI4i {
 };
 
 /* void glVertexAttribI4iv(GLuint index, const GLint * v) */
-#define CHIMERA_GL_OP_glVertexAttribI4iv 776
+#define CHIMERA_GL_OP_glVertexAttribI4iv 631
 struct ChimeraGlArgs_glVertexAttribI4iv {
 	GLuint index;
 	const GLint * v;
 };
 
 /* void glVertexAttribI4sv(GLuint index, const GLshort * v) */
-#define CHIMERA_GL_OP_glVertexAttribI4sv 777
+#define CHIMERA_GL_OP_glVertexAttribI4sv 632
 struct ChimeraGlArgs_glVertexAttribI4sv {
 	GLuint index;
 	const GLshort * v;
 };
 
 /* void glVertexAttribI4ubv(GLuint index, const GLubyte * v) */
-#define CHIMERA_GL_OP_glVertexAttribI4ubv 778
+#define CHIMERA_GL_OP_glVertexAttribI4ubv 633
 struct ChimeraGlArgs_glVertexAttribI4ubv {
 	GLuint index;
 	const GLubyte * v;
 };
 
 /* void glVertexAttribI4ui(GLuint index, GLuint x, GLuint y, GLuint z, GLuint w) */
-#define CHIMERA_GL_OP_glVertexAttribI4ui 779
+#define CHIMERA_GL_OP_glVertexAttribI4ui 634
 struct ChimeraGlArgs_glVertexAttribI4ui {
 	GLuint index;
 	GLuint x;
@@ -5758,21 +4404,21 @@ struct ChimeraGlArgs_glVertexAttribI4ui {
 };
 
 /* void glVertexAttribI4uiv(GLuint index, const GLuint * v) */
-#define CHIMERA_GL_OP_glVertexAttribI4uiv 780
+#define CHIMERA_GL_OP_glVertexAttribI4uiv 635
 struct ChimeraGlArgs_glVertexAttribI4uiv {
 	GLuint index;
 	const GLuint * v;
 };
 
 /* void glVertexAttribI4usv(GLuint index, const GLushort * v) */
-#define CHIMERA_GL_OP_glVertexAttribI4usv 781
+#define CHIMERA_GL_OP_glVertexAttribI4usv 636
 struct ChimeraGlArgs_glVertexAttribI4usv {
 	GLuint index;
 	const GLushort * v;
 };
 
 /* void glVertexAttribIFormat(GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset) */
-#define CHIMERA_GL_OP_glVertexAttribIFormat 782
+#define CHIMERA_GL_OP_glVertexAttribIFormat 637
 struct ChimeraGlArgs_glVertexAttribIFormat {
 	GLuint attribindex;
 	GLint size;
@@ -5780,32 +4426,1459 @@ struct ChimeraGlArgs_glVertexAttribIFormat {
 	GLuint relativeoffset;
 };
 
-/* void glVertexAttribIPointer(GLuint index, GLint size, GLenum type, GLsizei stride, const void * pointer) */
-#define CHIMERA_GL_OP_glVertexAttribIPointer 783
-struct ChimeraGlArgs_glVertexAttribIPointer {
-	GLuint index;
+/* void glVertexAttribLFormat(GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset) */
+#define CHIMERA_GL_OP_glVertexAttribLFormat 638
+struct ChimeraGlArgs_glVertexAttribLFormat {
+	GLuint attribindex;
 	GLint size;
 	GLenum type;
+	GLuint relativeoffset;
+};
+
+/* void glVertexBindingDivisor(GLuint bindingindex, GLuint divisor) */
+#define CHIMERA_GL_OP_glVertexBindingDivisor 639
+struct ChimeraGlArgs_glVertexBindingDivisor {
+	GLuint bindingindex;
+	GLuint divisor;
+};
+
+/* void glViewportArrayv(GLuint first, GLsizei count, const GLfloat * v) */
+#define CHIMERA_GL_OP_glViewportArrayv 640
+struct ChimeraGlArgs_glViewportArrayv {
+	GLuint first;
+	GLsizei count;
+	const GLfloat * v;
+};
+
+/* void glViewportIndexedfv(GLuint index, const GLfloat * v) */
+#define CHIMERA_GL_OP_glViewportIndexedfv 641
+struct ChimeraGlArgs_glViewportIndexedfv {
+	GLuint index;
+	const GLfloat * v;
+};
+
+/* void glWaitSync(GLsync sync, GLbitfield flags, GLuint64 timeout) */
+#define CHIMERA_GL_OP_glWaitSync 642
+struct ChimeraGlArgs_glWaitSync {
+	GLsync sync;
+	GLbitfield flags;
+	GLuint64 timeout;
+};
+
+/* void glProgramUniform1f(GLuint program, GLint location, GLfloat v0) */
+#define CHIMERA_GL_OP_glProgramUniform1f 643
+struct ChimeraGlArgs_glProgramUniform1f {
+	GLuint program;
+	GLint location;
+	GLfloat v0;
+};
+
+/* void glProgramUniform1iv(GLuint program, GLint location, GLsizei count, const GLint * value) */
+#define CHIMERA_GL_OP_glProgramUniform1iv 644
+struct ChimeraGlArgs_glProgramUniform1iv {
+	GLuint program;
+	GLint location;
+	GLsizei count;
+	const GLint * value;
+};
+
+/* void glProgramUniform1ui(GLuint program, GLint location, GLuint v0) */
+#define CHIMERA_GL_OP_glProgramUniform1ui 645
+struct ChimeraGlArgs_glProgramUniform1ui {
+	GLuint program;
+	GLint location;
+	GLuint v0;
+};
+
+/* void glProgramUniform2i(GLuint program, GLint location, GLint v0, GLint v1) */
+#define CHIMERA_GL_OP_glProgramUniform2i 646
+struct ChimeraGlArgs_glProgramUniform2i {
+	GLuint program;
+	GLint location;
+	GLint v0;
+	GLint v1;
+};
+
+/* void glProgramUniform3f(GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2) */
+#define CHIMERA_GL_OP_glProgramUniform3f 647
+struct ChimeraGlArgs_glProgramUniform3f {
+	GLuint program;
+	GLint location;
+	GLfloat v0;
+	GLfloat v1;
+	GLfloat v2;
+};
+
+/* void glProgramUniform3i(GLuint program, GLint location, GLint v0, GLint v1, GLint v2) */
+#define CHIMERA_GL_OP_glProgramUniform3i 648
+struct ChimeraGlArgs_glProgramUniform3i {
+	GLuint program;
+	GLint location;
+	GLint v0;
+	GLint v1;
+	GLint v2;
+};
+
+/* void glProgramUniform4f(GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3) */
+#define CHIMERA_GL_OP_glProgramUniform4f 649
+struct ChimeraGlArgs_glProgramUniform4f {
+	GLuint program;
+	GLint location;
+	GLfloat v0;
+	GLfloat v1;
+	GLfloat v2;
+	GLfloat v3;
+};
+
+/* void glProgramUniform4i(GLuint program, GLint location, GLint v0, GLint v1, GLint v2, GLint v3) */
+#define CHIMERA_GL_OP_glProgramUniform4i 650
+struct ChimeraGlArgs_glProgramUniform4i {
+	GLuint program;
+	GLint location;
+	GLint v0;
+	GLint v1;
+	GLint v2;
+	GLint v3;
+};
+
+/* void glProgramUniformMatrix3fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value) */
+#define CHIMERA_GL_OP_glProgramUniformMatrix3fv 651
+struct ChimeraGlArgs_glProgramUniformMatrix3fv {
+	GLuint program;
+	GLint location;
+	GLsizei count;
+	GLboolean transpose;
+	const GLfloat * value;
+};
+
+/* void glGetIntegeri_v(GLenum target, GLuint index, GLint * data) */
+#define CHIMERA_GL_OP_glGetIntegeri_v 663
+struct ChimeraGlArgs_glGetIntegeri_v {
+	GLenum target;
+	GLuint index;
+	GLint * data;
+};
+
+/* void glGetInteger64i_v(GLenum target, GLuint index, GLint64 * data) */
+#define CHIMERA_GL_OP_glGetInteger64i_v 664
+struct ChimeraGlArgs_glGetInteger64i_v {
+	GLenum target;
+	GLuint index;
+	GLint64 * data;
+};
+
+/* void glGetBooleani_v(GLenum target, GLuint index, GLboolean * data) */
+#define CHIMERA_GL_OP_glGetBooleani_v 665
+struct ChimeraGlArgs_glGetBooleani_v {
+	GLenum target;
+	GLuint index;
+	GLboolean * data;
+};
+
+/* void glGetFloati_v(GLenum target, GLuint index, GLfloat * data) */
+#define CHIMERA_GL_OP_glGetFloati_v 666
+struct ChimeraGlArgs_glGetFloati_v {
+	GLenum target;
+	GLuint index;
+	GLfloat * data;
+};
+
+/* void glGetDoublei_v(GLenum target, GLuint index, GLdouble * data) */
+#define CHIMERA_GL_OP_glGetDoublei_v 667
+struct ChimeraGlArgs_glGetDoublei_v {
+	GLenum target;
+	GLuint index;
+	GLdouble * data;
+};
+
+/* void glActiveShaderProgram(GLuint pipeline, GLuint program) */
+#define CHIMERA_GL_OP_glActiveShaderProgram 683
+struct ChimeraGlArgs_glActiveShaderProgram {
+	GLuint pipeline;
+	GLuint program;
+};
+
+/* void glBeginQueryEXT(GLenum target, GLuint id) */
+#define CHIMERA_GL_OP_glBeginQueryEXT 684
+struct ChimeraGlArgs_glBeginQueryEXT {
+	GLenum target;
+	GLuint id;
+};
+
+/* void glBeginQueryIndexed(GLenum target, GLuint index, GLuint id) */
+#define CHIMERA_GL_OP_glBeginQueryIndexed 685
+struct ChimeraGlArgs_glBeginQueryIndexed {
+	GLenum target;
+	GLuint index;
+	GLuint id;
+};
+
+/* void glBindProgramPipeline(GLuint pipeline) */
+#define CHIMERA_GL_OP_glBindProgramPipeline 686
+struct ChimeraGlArgs_glBindProgramPipeline {
+	GLuint pipeline;
+};
+
+/* void glBindTransformFeedback(GLenum target, GLuint id) */
+#define CHIMERA_GL_OP_glBindTransformFeedback 687
+struct ChimeraGlArgs_glBindTransformFeedback {
+	GLenum target;
+	GLuint id;
+};
+
+/* void glBindVertexArrayAPPLE(GLuint array) */
+#define CHIMERA_GL_OP_glBindVertexArrayAPPLE 688
+struct ChimeraGlArgs_glBindVertexArrayAPPLE {
+	GLuint array;
+};
+
+/* void glBindVertexArrayOES(GLuint array) */
+#define CHIMERA_GL_OP_glBindVertexArrayOES 689
+struct ChimeraGlArgs_glBindVertexArrayOES {
+	GLuint array;
+};
+
+/* void glBlendBarrier(void) */
+#define CHIMERA_GL_OP_glBlendBarrier 690
+
+/* void glBlendEquationi(GLuint buf, GLenum mode) */
+#define CHIMERA_GL_OP_glBlendEquationi 691
+struct ChimeraGlArgs_glBlendEquationi {
+	GLuint buf;
+	GLenum mode;
+};
+
+/* void glBlendEquationSeparatei(GLuint buf, GLenum modeRGB, GLenum modeAlpha) */
+#define CHIMERA_GL_OP_glBlendEquationSeparatei 692
+struct ChimeraGlArgs_glBlendEquationSeparatei {
+	GLuint buf;
+	GLenum modeRGB;
+	GLenum modeAlpha;
+};
+
+/* void glBlendFunci(GLuint buf, GLenum src, GLenum dst) */
+#define CHIMERA_GL_OP_glBlendFunci 693
+struct ChimeraGlArgs_glBlendFunci {
+	GLuint buf;
+	GLenum src;
+	GLenum dst;
+};
+
+/* void glBlendFuncSeparatei(GLuint buf, GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha) */
+#define CHIMERA_GL_OP_glBlendFuncSeparatei 694
+struct ChimeraGlArgs_glBlendFuncSeparatei {
+	GLuint buf;
+	GLenum srcRGB;
+	GLenum dstRGB;
+	GLenum srcAlpha;
+	GLenum dstAlpha;
+};
+
+/* void glColorMaskIndexedEXT(GLuint index, GLboolean r, GLboolean g, GLboolean b, GLboolean a) */
+#define CHIMERA_GL_OP_glColorMaskIndexedEXT 695
+struct ChimeraGlArgs_glColorMaskIndexedEXT {
+	GLuint index;
+	GLboolean r;
+	GLboolean g;
+	GLboolean b;
+	GLboolean a;
+};
+
+/* void glCopyBufferSubData(GLenum readTarget, GLenum writeTarget, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size) */
+#define CHIMERA_GL_OP_glCopyBufferSubData 696
+struct ChimeraGlArgs_glCopyBufferSubData {
+	GLenum readTarget;
+	GLenum writeTarget;
+	GLintptr readOffset;
+	GLintptr writeOffset;
+	GLsizeiptr size;
+};
+
+/* void glCopyBufferSubDataNV(GLenum readTarget, GLenum writeTarget, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size) */
+#define CHIMERA_GL_OP_glCopyBufferSubDataNV 697
+struct ChimeraGlArgs_glCopyBufferSubDataNV {
+	GLenum readTarget;
+	GLenum writeTarget;
+	GLintptr readOffset;
+	GLintptr writeOffset;
+	GLsizeiptr size;
+};
+
+/* GLuint glCreateShaderProgramv(GLenum type, GLsizei count, const GLchar *const* strings) */
+#define CHIMERA_GL_OP_glCreateShaderProgramv 698
+struct ChimeraGlArgs_glCreateShaderProgramv {
+	GLenum type;
+	GLsizei count;
+	const GLchar *const* strings;
+};
+
+/* void glDebugMessageCallbackKHR(GLDEBUGPROCKHR callback, const void * userParam) */
+#define CHIMERA_GL_OP_glDebugMessageCallbackKHR 699
+struct ChimeraGlArgs_glDebugMessageCallbackKHR {
+	GLDEBUGPROCKHR callback;
+	const void * userParam;
+};
+
+/* void glDebugMessageControlKHR(GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint * ids, GLboolean enabled) */
+#define CHIMERA_GL_OP_glDebugMessageControlKHR 700
+struct ChimeraGlArgs_glDebugMessageControlKHR {
+	GLenum source;
+	GLenum type;
+	GLenum severity;
+	GLsizei count;
+	const GLuint * ids;
+	GLboolean enabled;
+};
+
+/* void glDebugMessageInsertKHR(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar * buf) */
+#define CHIMERA_GL_OP_glDebugMessageInsertKHR 701
+struct ChimeraGlArgs_glDebugMessageInsertKHR {
+	GLenum source;
+	GLenum type;
+	GLuint id;
+	GLenum severity;
+	GLsizei length;
+	const GLchar * buf;
+};
+
+/* void glDeleteProgramPipelines(GLsizei n, const GLuint * pipelines) */
+#define CHIMERA_GL_OP_glDeleteProgramPipelines 702
+struct ChimeraGlArgs_glDeleteProgramPipelines {
+	GLsizei n;
+	const GLuint * pipelines;
+};
+
+/* void glDeleteQueriesEXT(GLsizei n, const GLuint * ids) */
+#define CHIMERA_GL_OP_glDeleteQueriesEXT 703
+struct ChimeraGlArgs_glDeleteQueriesEXT {
+	GLsizei n;
+	const GLuint * ids;
+};
+
+/* void glDeleteTransformFeedbacks(GLsizei n, const GLuint * ids) */
+#define CHIMERA_GL_OP_glDeleteTransformFeedbacks 704
+struct ChimeraGlArgs_glDeleteTransformFeedbacks {
+	GLsizei n;
+	const GLuint * ids;
+};
+
+/* void glDeleteVertexArraysAPPLE(GLsizei n, const GLuint * arrays) */
+#define CHIMERA_GL_OP_glDeleteVertexArraysAPPLE 705
+struct ChimeraGlArgs_glDeleteVertexArraysAPPLE {
+	GLsizei n;
+	const GLuint * arrays;
+};
+
+/* void glDeleteVertexArraysOES(GLsizei n, const GLuint * arrays) */
+#define CHIMERA_GL_OP_glDeleteVertexArraysOES 706
+struct ChimeraGlArgs_glDeleteVertexArraysOES {
+	GLsizei n;
+	const GLuint * arrays;
+};
+
+/* void glDisableIndexedEXT(GLenum target, GLuint index) */
+#define CHIMERA_GL_OP_glDisableIndexedEXT 707
+struct ChimeraGlArgs_glDisableIndexedEXT {
+	GLenum target;
+	GLuint index;
+};
+
+/* void glDrawArraysIndirect(GLenum mode, const void * indirect) */
+#define CHIMERA_GL_OP_glDrawArraysIndirect 708
+struct ChimeraGlArgs_glDrawArraysIndirect {
+	GLenum mode;
+	const void * indirect;
+};
+
+/* void glDrawArraysInstancedARB(GLenum mode, GLint first, GLsizei count, GLsizei primcount) */
+#define CHIMERA_GL_OP_glDrawArraysInstancedARB 709
+struct ChimeraGlArgs_glDrawArraysInstancedARB {
+	GLenum mode;
+	GLint first;
+	GLsizei count;
+	GLsizei primcount;
+};
+
+/* void glDrawElementsIndirect(GLenum mode, GLenum type, const void * indirect) */
+#define CHIMERA_GL_OP_glDrawElementsIndirect 710
+struct ChimeraGlArgs_glDrawElementsIndirect {
+	GLenum mode;
+	GLenum type;
+	const void * indirect;
+};
+
+/* void glDrawElementsInstancedARB(GLenum mode, GLsizei count, GLenum type, const void * indices, GLsizei primcount) */
+#define CHIMERA_GL_OP_glDrawElementsInstancedARB 711
+struct ChimeraGlArgs_glDrawElementsInstancedARB {
+	GLenum mode;
+	GLsizei count;
+	GLenum type;
+	const void * indices;
+	GLsizei primcount;
+};
+
+/* void glDrawTransformFeedback(GLenum mode, GLuint id) */
+#define CHIMERA_GL_OP_glDrawTransformFeedback 712
+struct ChimeraGlArgs_glDrawTransformFeedback {
+	GLenum mode;
+	GLuint id;
+};
+
+/* void glDrawTransformFeedbackStream(GLenum mode, GLuint id, GLuint stream) */
+#define CHIMERA_GL_OP_glDrawTransformFeedbackStream 713
+struct ChimeraGlArgs_glDrawTransformFeedbackStream {
+	GLenum mode;
+	GLuint id;
+	GLuint stream;
+};
+
+/* void glEnableIndexedEXT(GLenum target, GLuint index) */
+#define CHIMERA_GL_OP_glEnableIndexedEXT 714
+struct ChimeraGlArgs_glEnableIndexedEXT {
+	GLenum target;
+	GLuint index;
+};
+
+/* void glEndQueryEXT(GLenum target) */
+#define CHIMERA_GL_OP_glEndQueryEXT 715
+struct ChimeraGlArgs_glEndQueryEXT {
+	GLenum target;
+};
+
+/* void glEndQueryIndexed(GLenum target, GLuint index) */
+#define CHIMERA_GL_OP_glEndQueryIndexed 716
+struct ChimeraGlArgs_glEndQueryIndexed {
+	GLenum target;
+	GLuint index;
+};
+
+/* void glFramebufferTexture2DMultisampleEXT(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLsizei samples) */
+#define CHIMERA_GL_OP_glFramebufferTexture2DMultisampleEXT 717
+struct ChimeraGlArgs_glFramebufferTexture2DMultisampleEXT {
+	GLenum target;
+	GLenum attachment;
+	GLenum textarget;
+	GLuint texture;
+	GLint level;
+	GLsizei samples;
+};
+
+/* void glGenProgramPipelines(GLsizei n, GLuint * pipelines) */
+#define CHIMERA_GL_OP_glGenProgramPipelines 718
+struct ChimeraGlArgs_glGenProgramPipelines {
+	GLsizei n;
+	GLuint * pipelines;
+};
+
+/* void glGenQueriesEXT(GLsizei n, GLuint * ids) */
+#define CHIMERA_GL_OP_glGenQueriesEXT 719
+struct ChimeraGlArgs_glGenQueriesEXT {
+	GLsizei n;
+	GLuint * ids;
+};
+
+/* void glGenTransformFeedbacks(GLsizei n, GLuint * ids) */
+#define CHIMERA_GL_OP_glGenTransformFeedbacks 720
+struct ChimeraGlArgs_glGenTransformFeedbacks {
+	GLsizei n;
+	GLuint * ids;
+};
+
+/* void glGenVertexArraysAPPLE(GLsizei n, GLuint * arrays) */
+#define CHIMERA_GL_OP_glGenVertexArraysAPPLE 721
+struct ChimeraGlArgs_glGenVertexArraysAPPLE {
+	GLsizei n;
+	GLuint * arrays;
+};
+
+/* void glGenVertexArraysOES(GLsizei n, GLuint * arrays) */
+#define CHIMERA_GL_OP_glGenVertexArraysOES 722
+struct ChimeraGlArgs_glGenVertexArraysOES {
+	GLsizei n;
+	GLuint * arrays;
+};
+
+/* void glGetActiveSubroutineName(GLuint program, GLenum shadertype, GLuint index, GLsizei bufSize, GLsizei * length, GLchar * name) */
+#define CHIMERA_GL_OP_glGetActiveSubroutineName 723
+struct ChimeraGlArgs_glGetActiveSubroutineName {
+	GLuint program;
+	GLenum shadertype;
+	GLuint index;
+	GLsizei bufSize;
+	GLsizei * length;
+	GLchar * name;
+};
+
+/* void glGetActiveSubroutineUniformiv(GLuint program, GLenum shadertype, GLuint index, GLenum pname, GLint * values) */
+#define CHIMERA_GL_OP_glGetActiveSubroutineUniformiv 724
+struct ChimeraGlArgs_glGetActiveSubroutineUniformiv {
+	GLuint program;
+	GLenum shadertype;
+	GLuint index;
+	GLenum pname;
+	GLint * values;
+};
+
+/* void glGetActiveSubroutineUniformName(GLuint program, GLenum shadertype, GLuint index, GLsizei bufSize, GLsizei * length, GLchar * name) */
+#define CHIMERA_GL_OP_glGetActiveSubroutineUniformName 725
+struct ChimeraGlArgs_glGetActiveSubroutineUniformName {
+	GLuint program;
+	GLenum shadertype;
+	GLuint index;
+	GLsizei bufSize;
+	GLsizei * length;
+	GLchar * name;
+};
+
+/* void glGetBooleanIndexedvEXT(GLenum target, GLuint index, GLboolean * data) */
+#define CHIMERA_GL_OP_glGetBooleanIndexedvEXT 726
+struct ChimeraGlArgs_glGetBooleanIndexedvEXT {
+	GLenum target;
+	GLuint index;
+	GLboolean * data;
+};
+
+/* GLuint glGetDebugMessageLogKHR(GLuint count, GLsizei bufSize, GLenum * sources, GLenum * types, GLuint * ids, GLenum * severities, GLsizei * lengths, GLchar * messageLog) */
+#define CHIMERA_GL_OP_glGetDebugMessageLogKHR 727
+struct ChimeraGlArgs_glGetDebugMessageLogKHR {
+	GLuint count;
+	GLsizei bufSize;
+	GLenum * sources;
+	GLenum * types;
+	GLuint * ids;
+	GLenum * severities;
+	GLsizei * lengths;
+	GLchar * messageLog;
+};
+
+/* void glGetInteger64vEXT(GLenum pname, GLint64 * data) */
+#define CHIMERA_GL_OP_glGetInteger64vEXT 728
+struct ChimeraGlArgs_glGetInteger64vEXT {
+	GLenum pname;
+	GLint64 * data;
+};
+
+/* void glGetIntegerIndexedvEXT(GLenum target, GLuint index, GLint * data) */
+#define CHIMERA_GL_OP_glGetIntegerIndexedvEXT 729
+struct ChimeraGlArgs_glGetIntegerIndexedvEXT {
+	GLenum target;
+	GLuint index;
+	GLint * data;
+};
+
+/* void glGetObjectLabelKHR(GLenum identifier, GLuint name, GLsizei bufSize, GLsizei * length, GLchar * label) */
+#define CHIMERA_GL_OP_glGetObjectLabelKHR 730
+struct ChimeraGlArgs_glGetObjectLabelKHR {
+	GLenum identifier;
+	GLuint name;
+	GLsizei bufSize;
+	GLsizei * length;
+	GLchar * label;
+};
+
+/* void glGetObjectPtrLabelKHR(const void * ptr, GLsizei bufSize, GLsizei * length, GLchar * label) */
+#define CHIMERA_GL_OP_glGetObjectPtrLabelKHR 731
+struct ChimeraGlArgs_glGetObjectPtrLabelKHR {
+	const void * ptr;
+	GLsizei bufSize;
+	GLsizei * length;
+	GLchar * label;
+};
+
+/* void glGetPointervKHR(GLenum pname, void ** params) */
+#define CHIMERA_GL_OP_glGetPointervKHR 732
+struct ChimeraGlArgs_glGetPointervKHR {
+	GLenum pname;
+	void ** params;
+};
+
+/* void glGetProgramPipelineInfoLog(GLuint pipeline, GLsizei bufSize, GLsizei * length, GLchar * infoLog) */
+#define CHIMERA_GL_OP_glGetProgramPipelineInfoLog 733
+struct ChimeraGlArgs_glGetProgramPipelineInfoLog {
+	GLuint pipeline;
+	GLsizei bufSize;
+	GLsizei * length;
+	GLchar * infoLog;
+};
+
+/* void glGetProgramPipelineiv(GLuint pipeline, GLenum pname, GLint * params) */
+#define CHIMERA_GL_OP_glGetProgramPipelineiv 734
+struct ChimeraGlArgs_glGetProgramPipelineiv {
+	GLuint pipeline;
+	GLenum pname;
+	GLint * params;
+};
+
+/* void glGetProgramStageiv(GLuint program, GLenum shadertype, GLenum pname, GLint * values) */
+#define CHIMERA_GL_OP_glGetProgramStageiv 735
+struct ChimeraGlArgs_glGetProgramStageiv {
+	GLuint program;
+	GLenum shadertype;
+	GLenum pname;
+	GLint * values;
+};
+
+/* void glGetQueryIndexediv(GLenum target, GLuint index, GLenum pname, GLint * params) */
+#define CHIMERA_GL_OP_glGetQueryIndexediv 736
+struct ChimeraGlArgs_glGetQueryIndexediv {
+	GLenum target;
+	GLuint index;
+	GLenum pname;
+	GLint * params;
+};
+
+/* void glGetQueryivEXT(GLenum target, GLenum pname, GLint * params) */
+#define CHIMERA_GL_OP_glGetQueryivEXT 737
+struct ChimeraGlArgs_glGetQueryivEXT {
+	GLenum target;
+	GLenum pname;
+	GLint * params;
+};
+
+/* void glGetQueryObjecti64v(GLuint id, GLenum pname, GLint64 * params) */
+#define CHIMERA_GL_OP_glGetQueryObjecti64v 738
+struct ChimeraGlArgs_glGetQueryObjecti64v {
+	GLuint id;
+	GLenum pname;
+	GLint64 * params;
+};
+
+/* void glGetQueryObjecti64vEXT(GLuint id, GLenum pname, GLint64 * params) */
+#define CHIMERA_GL_OP_glGetQueryObjecti64vEXT 739
+struct ChimeraGlArgs_glGetQueryObjecti64vEXT {
+	GLuint id;
+	GLenum pname;
+	GLint64 * params;
+};
+
+/* void glGetQueryObjectivEXT(GLuint id, GLenum pname, GLint * params) */
+#define CHIMERA_GL_OP_glGetQueryObjectivEXT 740
+struct ChimeraGlArgs_glGetQueryObjectivEXT {
+	GLuint id;
+	GLenum pname;
+	GLint * params;
+};
+
+/* void glGetQueryObjectui64vEXT(GLuint id, GLenum pname, GLuint64 * params) */
+#define CHIMERA_GL_OP_glGetQueryObjectui64vEXT 741
+struct ChimeraGlArgs_glGetQueryObjectui64vEXT {
+	GLuint id;
+	GLenum pname;
+	GLuint64 * params;
+};
+
+/* void glGetQueryObjectuivEXT(GLuint id, GLenum pname, GLuint * params) */
+#define CHIMERA_GL_OP_glGetQueryObjectuivEXT 742
+struct ChimeraGlArgs_glGetQueryObjectuivEXT {
+	GLuint id;
+	GLenum pname;
+	GLuint * params;
+};
+
+/* GLuint glGetSubroutineIndex(GLuint program, GLenum shadertype, const GLchar * name) */
+#define CHIMERA_GL_OP_glGetSubroutineIndex 743
+struct ChimeraGlArgs_glGetSubroutineIndex {
+	GLuint program;
+	GLenum shadertype;
+	const GLchar * name;
+};
+
+/* GLint glGetSubroutineUniformLocation(GLuint program, GLenum shadertype, const GLchar * name) */
+#define CHIMERA_GL_OP_glGetSubroutineUniformLocation 744
+struct ChimeraGlArgs_glGetSubroutineUniformLocation {
+	GLuint program;
+	GLenum shadertype;
+	const GLchar * name;
+};
+
+/* void glGetTransformFeedbacki64_v(GLuint xfb, GLenum pname, GLuint index, GLint64 * param) */
+#define CHIMERA_GL_OP_glGetTransformFeedbacki64_v 745
+struct ChimeraGlArgs_glGetTransformFeedbacki64_v {
+	GLuint xfb;
+	GLenum pname;
+	GLuint index;
+	GLint64 * param;
+};
+
+/* void glGetTransformFeedbacki_v(GLuint xfb, GLenum pname, GLuint index, GLint * param) */
+#define CHIMERA_GL_OP_glGetTransformFeedbacki_v 746
+struct ChimeraGlArgs_glGetTransformFeedbacki_v {
+	GLuint xfb;
+	GLenum pname;
+	GLuint index;
+	GLint * param;
+};
+
+/* void glGetUniformdv(GLuint program, GLint location, GLdouble * params) */
+#define CHIMERA_GL_OP_glGetUniformdv 747
+struct ChimeraGlArgs_glGetUniformdv {
+	GLuint program;
+	GLint location;
+	GLdouble * params;
+};
+
+/* void glGetUniformSubroutineuiv(GLenum shadertype, GLint location, GLuint * params) */
+#define CHIMERA_GL_OP_glGetUniformSubroutineuiv 748
+struct ChimeraGlArgs_glGetUniformSubroutineuiv {
+	GLenum shadertype;
+	GLint location;
+	GLuint * params;
+};
+
+/* void glGetVertexAttribLdv(GLuint index, GLenum pname, GLdouble * params) */
+#define CHIMERA_GL_OP_glGetVertexAttribLdv 749
+struct ChimeraGlArgs_glGetVertexAttribLdv {
+	GLuint index;
+	GLenum pname;
+	GLdouble * params;
+};
+
+/* GLboolean glIsEnabledIndexedEXT(GLenum target, GLuint index) */
+#define CHIMERA_GL_OP_glIsEnabledIndexedEXT 750
+struct ChimeraGlArgs_glIsEnabledIndexedEXT {
+	GLenum target;
+	GLuint index;
+};
+
+/* GLboolean glIsProgramPipeline(GLuint pipeline) */
+#define CHIMERA_GL_OP_glIsProgramPipeline 751
+struct ChimeraGlArgs_glIsProgramPipeline {
+	GLuint pipeline;
+};
+
+/* GLboolean glIsQueryEXT(GLuint id) */
+#define CHIMERA_GL_OP_glIsQueryEXT 752
+struct ChimeraGlArgs_glIsQueryEXT {
+	GLuint id;
+};
+
+/* GLboolean glIsTransformFeedback(GLuint id) */
+#define CHIMERA_GL_OP_glIsTransformFeedback 753
+struct ChimeraGlArgs_glIsTransformFeedback {
+	GLuint id;
+};
+
+/* GLboolean glIsVertexArrayAPPLE(GLuint array) */
+#define CHIMERA_GL_OP_glIsVertexArrayAPPLE 754
+struct ChimeraGlArgs_glIsVertexArrayAPPLE {
+	GLuint array;
+};
+
+/* GLboolean glIsVertexArrayOES(GLuint array) */
+#define CHIMERA_GL_OP_glIsVertexArrayOES 755
+struct ChimeraGlArgs_glIsVertexArrayOES {
+	GLuint array;
+};
+
+/* void glMaxShaderCompilerThreadsARB(GLuint count) */
+#define CHIMERA_GL_OP_glMaxShaderCompilerThreadsARB 756
+struct ChimeraGlArgs_glMaxShaderCompilerThreadsARB {
+	GLuint count;
+};
+
+/* void glMaxShaderCompilerThreadsKHR(GLuint count) */
+#define CHIMERA_GL_OP_glMaxShaderCompilerThreadsKHR 757
+struct ChimeraGlArgs_glMaxShaderCompilerThreadsKHR {
+	GLuint count;
+};
+
+/* void glMultiDrawArraysIndirectCount(GLenum mode, const void * indirect, GLintptr drawcount, GLsizei maxdrawcount, GLsizei stride) */
+#define CHIMERA_GL_OP_glMultiDrawArraysIndirectCount 758
+struct ChimeraGlArgs_glMultiDrawArraysIndirectCount {
+	GLenum mode;
+	const void * indirect;
+	GLintptr drawcount;
+	GLsizei maxdrawcount;
 	GLsizei stride;
-	const void * pointer;
+};
+
+/* void glMultiDrawElementsIndirectCount(GLenum mode, GLenum type, const void * indirect, GLintptr drawcount, GLsizei maxdrawcount, GLsizei stride) */
+#define CHIMERA_GL_OP_glMultiDrawElementsIndirectCount 759
+struct ChimeraGlArgs_glMultiDrawElementsIndirectCount {
+	GLenum mode;
+	GLenum type;
+	const void * indirect;
+	GLintptr drawcount;
+	GLsizei maxdrawcount;
+	GLsizei stride;
+};
+
+/* void glObjectLabelKHR(GLenum identifier, GLuint name, GLsizei length, const GLchar * label) */
+#define CHIMERA_GL_OP_glObjectLabelKHR 760
+struct ChimeraGlArgs_glObjectLabelKHR {
+	GLenum identifier;
+	GLuint name;
+	GLsizei length;
+	const GLchar * label;
+};
+
+/* void glObjectPtrLabelKHR(const void * ptr, GLsizei length, const GLchar * label) */
+#define CHIMERA_GL_OP_glObjectPtrLabelKHR 761
+struct ChimeraGlArgs_glObjectPtrLabelKHR {
+	const void * ptr;
+	GLsizei length;
+	const GLchar * label;
+};
+
+/* void glPatchParameterfv(GLenum pname, const GLfloat * values) */
+#define CHIMERA_GL_OP_glPatchParameterfv 762
+struct ChimeraGlArgs_glPatchParameterfv {
+	GLenum pname;
+	const GLfloat * values;
+};
+
+/* void glPatchParameteri(GLenum pname, GLint value) */
+#define CHIMERA_GL_OP_glPatchParameteri 763
+struct ChimeraGlArgs_glPatchParameteri {
+	GLenum pname;
+	GLint value;
+};
+
+/* void glPauseTransformFeedback(void) */
+#define CHIMERA_GL_OP_glPauseTransformFeedback 764
+
+/* void glPolygonOffsetClamp(GLfloat factor, GLfloat units, GLfloat clamp) */
+#define CHIMERA_GL_OP_glPolygonOffsetClamp 765
+struct ChimeraGlArgs_glPolygonOffsetClamp {
+	GLfloat factor;
+	GLfloat units;
+	GLfloat clamp;
+};
+
+/* void glPopDebugGroupKHR(void) */
+#define CHIMERA_GL_OP_glPopDebugGroupKHR 766
+
+/* void glPrimitiveBoundingBox(GLfloat minX, GLfloat minY, GLfloat minZ, GLfloat minW, GLfloat maxX, GLfloat maxY, GLfloat maxZ, GLfloat maxW) */
+#define CHIMERA_GL_OP_glPrimitiveBoundingBox 767
+struct ChimeraGlArgs_glPrimitiveBoundingBox {
+	GLfloat minX;
+	GLfloat minY;
+	GLfloat minZ;
+	GLfloat minW;
+	GLfloat maxX;
+	GLfloat maxY;
+	GLfloat maxZ;
+	GLfloat maxW;
+};
+
+/* void glProgramUniform1d(GLuint program, GLint location, GLdouble v0) */
+#define CHIMERA_GL_OP_glProgramUniform1d 768
+struct ChimeraGlArgs_glProgramUniform1d {
+	GLuint program;
+	GLint location;
+	GLdouble v0;
+};
+
+/* void glProgramUniform1dv(GLuint program, GLint location, GLsizei count, const GLdouble * value) */
+#define CHIMERA_GL_OP_glProgramUniform1dv 769
+struct ChimeraGlArgs_glProgramUniform1dv {
+	GLuint program;
+	GLint location;
+	GLsizei count;
+	const GLdouble * value;
+};
+
+/* void glProgramUniform1fv(GLuint program, GLint location, GLsizei count, const GLfloat * value) */
+#define CHIMERA_GL_OP_glProgramUniform1fv 770
+struct ChimeraGlArgs_glProgramUniform1fv {
+	GLuint program;
+	GLint location;
+	GLsizei count;
+	const GLfloat * value;
+};
+
+/* void glProgramUniform1uiv(GLuint program, GLint location, GLsizei count, const GLuint * value) */
+#define CHIMERA_GL_OP_glProgramUniform1uiv 771
+struct ChimeraGlArgs_glProgramUniform1uiv {
+	GLuint program;
+	GLint location;
+	GLsizei count;
+	const GLuint * value;
+};
+
+/* void glProgramUniform2d(GLuint program, GLint location, GLdouble v0, GLdouble v1) */
+#define CHIMERA_GL_OP_glProgramUniform2d 772
+struct ChimeraGlArgs_glProgramUniform2d {
+	GLuint program;
+	GLint location;
+	GLdouble v0;
+	GLdouble v1;
+};
+
+/* void glProgramUniform2dv(GLuint program, GLint location, GLsizei count, const GLdouble * value) */
+#define CHIMERA_GL_OP_glProgramUniform2dv 773
+struct ChimeraGlArgs_glProgramUniform2dv {
+	GLuint program;
+	GLint location;
+	GLsizei count;
+	const GLdouble * value;
+};
+
+/* void glProgramUniform2fv(GLuint program, GLint location, GLsizei count, const GLfloat * value) */
+#define CHIMERA_GL_OP_glProgramUniform2fv 774
+struct ChimeraGlArgs_glProgramUniform2fv {
+	GLuint program;
+	GLint location;
+	GLsizei count;
+	const GLfloat * value;
+};
+
+/* void glProgramUniform2iv(GLuint program, GLint location, GLsizei count, const GLint * value) */
+#define CHIMERA_GL_OP_glProgramUniform2iv 775
+struct ChimeraGlArgs_glProgramUniform2iv {
+	GLuint program;
+	GLint location;
+	GLsizei count;
+	const GLint * value;
+};
+
+/* void glProgramUniform2ui(GLuint program, GLint location, GLuint v0, GLuint v1) */
+#define CHIMERA_GL_OP_glProgramUniform2ui 776
+struct ChimeraGlArgs_glProgramUniform2ui {
+	GLuint program;
+	GLint location;
+	GLuint v0;
+	GLuint v1;
+};
+
+/* void glProgramUniform2uiv(GLuint program, GLint location, GLsizei count, const GLuint * value) */
+#define CHIMERA_GL_OP_glProgramUniform2uiv 777
+struct ChimeraGlArgs_glProgramUniform2uiv {
+	GLuint program;
+	GLint location;
+	GLsizei count;
+	const GLuint * value;
+};
+
+/* void glProgramUniform3d(GLuint program, GLint location, GLdouble v0, GLdouble v1, GLdouble v2) */
+#define CHIMERA_GL_OP_glProgramUniform3d 778
+struct ChimeraGlArgs_glProgramUniform3d {
+	GLuint program;
+	GLint location;
+	GLdouble v0;
+	GLdouble v1;
+	GLdouble v2;
+};
+
+/* void glProgramUniform3dv(GLuint program, GLint location, GLsizei count, const GLdouble * value) */
+#define CHIMERA_GL_OP_glProgramUniform3dv 779
+struct ChimeraGlArgs_glProgramUniform3dv {
+	GLuint program;
+	GLint location;
+	GLsizei count;
+	const GLdouble * value;
+};
+
+/* void glProgramUniform3fv(GLuint program, GLint location, GLsizei count, const GLfloat * value) */
+#define CHIMERA_GL_OP_glProgramUniform3fv 780
+struct ChimeraGlArgs_glProgramUniform3fv {
+	GLuint program;
+	GLint location;
+	GLsizei count;
+	const GLfloat * value;
+};
+
+/* void glProgramUniform3iv(GLuint program, GLint location, GLsizei count, const GLint * value) */
+#define CHIMERA_GL_OP_glProgramUniform3iv 781
+struct ChimeraGlArgs_glProgramUniform3iv {
+	GLuint program;
+	GLint location;
+	GLsizei count;
+	const GLint * value;
+};
+
+/* void glProgramUniform3ui(GLuint program, GLint location, GLuint v0, GLuint v1, GLuint v2) */
+#define CHIMERA_GL_OP_glProgramUniform3ui 782
+struct ChimeraGlArgs_glProgramUniform3ui {
+	GLuint program;
+	GLint location;
+	GLuint v0;
+	GLuint v1;
+	GLuint v2;
+};
+
+/* void glProgramUniform3uiv(GLuint program, GLint location, GLsizei count, const GLuint * value) */
+#define CHIMERA_GL_OP_glProgramUniform3uiv 783
+struct ChimeraGlArgs_glProgramUniform3uiv {
+	GLuint program;
+	GLint location;
+	GLsizei count;
+	const GLuint * value;
+};
+
+/* void glProgramUniform4d(GLuint program, GLint location, GLdouble v0, GLdouble v1, GLdouble v2, GLdouble v3) */
+#define CHIMERA_GL_OP_glProgramUniform4d 784
+struct ChimeraGlArgs_glProgramUniform4d {
+	GLuint program;
+	GLint location;
+	GLdouble v0;
+	GLdouble v1;
+	GLdouble v2;
+	GLdouble v3;
+};
+
+/* void glProgramUniform4dv(GLuint program, GLint location, GLsizei count, const GLdouble * value) */
+#define CHIMERA_GL_OP_glProgramUniform4dv 785
+struct ChimeraGlArgs_glProgramUniform4dv {
+	GLuint program;
+	GLint location;
+	GLsizei count;
+	const GLdouble * value;
+};
+
+/* void glProgramUniform4fv(GLuint program, GLint location, GLsizei count, const GLfloat * value) */
+#define CHIMERA_GL_OP_glProgramUniform4fv 786
+struct ChimeraGlArgs_glProgramUniform4fv {
+	GLuint program;
+	GLint location;
+	GLsizei count;
+	const GLfloat * value;
+};
+
+/* void glProgramUniform4iv(GLuint program, GLint location, GLsizei count, const GLint * value) */
+#define CHIMERA_GL_OP_glProgramUniform4iv 787
+struct ChimeraGlArgs_glProgramUniform4iv {
+	GLuint program;
+	GLint location;
+	GLsizei count;
+	const GLint * value;
+};
+
+/* void glProgramUniform4ui(GLuint program, GLint location, GLuint v0, GLuint v1, GLuint v2, GLuint v3) */
+#define CHIMERA_GL_OP_glProgramUniform4ui 788
+struct ChimeraGlArgs_glProgramUniform4ui {
+	GLuint program;
+	GLint location;
+	GLuint v0;
+	GLuint v1;
+	GLuint v2;
+	GLuint v3;
+};
+
+/* void glProgramUniform4uiv(GLuint program, GLint location, GLsizei count, const GLuint * value) */
+#define CHIMERA_GL_OP_glProgramUniform4uiv 789
+struct ChimeraGlArgs_glProgramUniform4uiv {
+	GLuint program;
+	GLint location;
+	GLsizei count;
+	const GLuint * value;
+};
+
+/* void glProgramUniformMatrix2dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value) */
+#define CHIMERA_GL_OP_glProgramUniformMatrix2dv 790
+struct ChimeraGlArgs_glProgramUniformMatrix2dv {
+	GLuint program;
+	GLint location;
+	GLsizei count;
+	GLboolean transpose;
+	const GLdouble * value;
+};
+
+/* void glProgramUniformMatrix2fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value) */
+#define CHIMERA_GL_OP_glProgramUniformMatrix2fv 791
+struct ChimeraGlArgs_glProgramUniformMatrix2fv {
+	GLuint program;
+	GLint location;
+	GLsizei count;
+	GLboolean transpose;
+	const GLfloat * value;
+};
+
+/* void glProgramUniformMatrix2x3dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value) */
+#define CHIMERA_GL_OP_glProgramUniformMatrix2x3dv 792
+struct ChimeraGlArgs_glProgramUniformMatrix2x3dv {
+	GLuint program;
+	GLint location;
+	GLsizei count;
+	GLboolean transpose;
+	const GLdouble * value;
+};
+
+/* void glProgramUniformMatrix2x3fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value) */
+#define CHIMERA_GL_OP_glProgramUniformMatrix2x3fv 793
+struct ChimeraGlArgs_glProgramUniformMatrix2x3fv {
+	GLuint program;
+	GLint location;
+	GLsizei count;
+	GLboolean transpose;
+	const GLfloat * value;
+};
+
+/* void glProgramUniformMatrix2x4dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value) */
+#define CHIMERA_GL_OP_glProgramUniformMatrix2x4dv 794
+struct ChimeraGlArgs_glProgramUniformMatrix2x4dv {
+	GLuint program;
+	GLint location;
+	GLsizei count;
+	GLboolean transpose;
+	const GLdouble * value;
+};
+
+/* void glProgramUniformMatrix2x4fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value) */
+#define CHIMERA_GL_OP_glProgramUniformMatrix2x4fv 795
+struct ChimeraGlArgs_glProgramUniformMatrix2x4fv {
+	GLuint program;
+	GLint location;
+	GLsizei count;
+	GLboolean transpose;
+	const GLfloat * value;
+};
+
+/* void glProgramUniformMatrix3dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value) */
+#define CHIMERA_GL_OP_glProgramUniformMatrix3dv 796
+struct ChimeraGlArgs_glProgramUniformMatrix3dv {
+	GLuint program;
+	GLint location;
+	GLsizei count;
+	GLboolean transpose;
+	const GLdouble * value;
+};
+
+/* void glProgramUniformMatrix3x2dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value) */
+#define CHIMERA_GL_OP_glProgramUniformMatrix3x2dv 797
+struct ChimeraGlArgs_glProgramUniformMatrix3x2dv {
+	GLuint program;
+	GLint location;
+	GLsizei count;
+	GLboolean transpose;
+	const GLdouble * value;
+};
+
+/* void glProgramUniformMatrix3x2fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value) */
+#define CHIMERA_GL_OP_glProgramUniformMatrix3x2fv 798
+struct ChimeraGlArgs_glProgramUniformMatrix3x2fv {
+	GLuint program;
+	GLint location;
+	GLsizei count;
+	GLboolean transpose;
+	const GLfloat * value;
+};
+
+/* void glProgramUniformMatrix3x4dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value) */
+#define CHIMERA_GL_OP_glProgramUniformMatrix3x4dv 799
+struct ChimeraGlArgs_glProgramUniformMatrix3x4dv {
+	GLuint program;
+	GLint location;
+	GLsizei count;
+	GLboolean transpose;
+	const GLdouble * value;
+};
+
+/* void glProgramUniformMatrix3x4fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value) */
+#define CHIMERA_GL_OP_glProgramUniformMatrix3x4fv 800
+struct ChimeraGlArgs_glProgramUniformMatrix3x4fv {
+	GLuint program;
+	GLint location;
+	GLsizei count;
+	GLboolean transpose;
+	const GLfloat * value;
+};
+
+/* void glProgramUniformMatrix4dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value) */
+#define CHIMERA_GL_OP_glProgramUniformMatrix4dv 801
+struct ChimeraGlArgs_glProgramUniformMatrix4dv {
+	GLuint program;
+	GLint location;
+	GLsizei count;
+	GLboolean transpose;
+	const GLdouble * value;
+};
+
+/* void glProgramUniformMatrix4fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value) */
+#define CHIMERA_GL_OP_glProgramUniformMatrix4fv 802
+struct ChimeraGlArgs_glProgramUniformMatrix4fv {
+	GLuint program;
+	GLint location;
+	GLsizei count;
+	GLboolean transpose;
+	const GLfloat * value;
+};
+
+/* void glProgramUniformMatrix4x2dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value) */
+#define CHIMERA_GL_OP_glProgramUniformMatrix4x2dv 803
+struct ChimeraGlArgs_glProgramUniformMatrix4x2dv {
+	GLuint program;
+	GLint location;
+	GLsizei count;
+	GLboolean transpose;
+	const GLdouble * value;
+};
+
+/* void glProgramUniformMatrix4x2fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value) */
+#define CHIMERA_GL_OP_glProgramUniformMatrix4x2fv 804
+struct ChimeraGlArgs_glProgramUniformMatrix4x2fv {
+	GLuint program;
+	GLint location;
+	GLsizei count;
+	GLboolean transpose;
+	const GLfloat * value;
+};
+
+/* void glProgramUniformMatrix4x3dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble * value) */
+#define CHIMERA_GL_OP_glProgramUniformMatrix4x3dv 805
+struct ChimeraGlArgs_glProgramUniformMatrix4x3dv {
+	GLuint program;
+	GLint location;
+	GLsizei count;
+	GLboolean transpose;
+	const GLdouble * value;
+};
+
+/* void glProgramUniformMatrix4x3fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat * value) */
+#define CHIMERA_GL_OP_glProgramUniformMatrix4x3fv 806
+struct ChimeraGlArgs_glProgramUniformMatrix4x3fv {
+	GLuint program;
+	GLint location;
+	GLsizei count;
+	GLboolean transpose;
+	const GLfloat * value;
+};
+
+/* void glPushDebugGroupKHR(GLenum source, GLuint id, GLsizei length, const GLchar * message) */
+#define CHIMERA_GL_OP_glPushDebugGroupKHR 807
+struct ChimeraGlArgs_glPushDebugGroupKHR {
+	GLenum source;
+	GLuint id;
+	GLsizei length;
+	const GLchar * message;
+};
+
+/* void glQueryCounter(GLuint id, GLenum target) */
+#define CHIMERA_GL_OP_glQueryCounter 808
+struct ChimeraGlArgs_glQueryCounter {
+	GLuint id;
+	GLenum target;
+};
+
+/* void glQueryCounterEXT(GLuint id, GLenum target) */
+#define CHIMERA_GL_OP_glQueryCounterEXT 809
+struct ChimeraGlArgs_glQueryCounterEXT {
+	GLuint id;
+	GLenum target;
+};
+
+/* void glRenderbufferStorageMultisampleEXT(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height) */
+#define CHIMERA_GL_OP_glRenderbufferStorageMultisampleEXT 810
+struct ChimeraGlArgs_glRenderbufferStorageMultisampleEXT {
+	GLenum target;
+	GLsizei samples;
+	GLenum internalformat;
+	GLsizei width;
+	GLsizei height;
+};
+
+/* void glResumeTransformFeedback(void) */
+#define CHIMERA_GL_OP_glResumeTransformFeedback 811
+
+/* void glSpecializeShader(GLuint shader, const GLchar * pEntryPoint, GLuint numSpecializationConstants, const GLuint * pConstantIndex, const GLuint * pConstantValue) */
+#define CHIMERA_GL_OP_glSpecializeShader 812
+struct ChimeraGlArgs_glSpecializeShader {
+	GLuint shader;
+	const GLchar * pEntryPoint;
+	GLuint numSpecializationConstants;
+	const GLuint * pConstantIndex;
+	const GLuint * pConstantValue;
+};
+
+/* void glUniform1d(GLint location, GLdouble x) */
+#define CHIMERA_GL_OP_glUniform1d 813
+struct ChimeraGlArgs_glUniform1d {
+	GLint location;
+	GLdouble x;
+};
+
+/* void glUniform1dv(GLint location, GLsizei count, const GLdouble * value) */
+#define CHIMERA_GL_OP_glUniform1dv 814
+struct ChimeraGlArgs_glUniform1dv {
+	GLint location;
+	GLsizei count;
+	const GLdouble * value;
+};
+
+/* void glUniform2d(GLint location, GLdouble x, GLdouble y) */
+#define CHIMERA_GL_OP_glUniform2d 815
+struct ChimeraGlArgs_glUniform2d {
+	GLint location;
+	GLdouble x;
+	GLdouble y;
+};
+
+/* void glUniform2dv(GLint location, GLsizei count, const GLdouble * value) */
+#define CHIMERA_GL_OP_glUniform2dv 816
+struct ChimeraGlArgs_glUniform2dv {
+	GLint location;
+	GLsizei count;
+	const GLdouble * value;
+};
+
+/* void glUniform3d(GLint location, GLdouble x, GLdouble y, GLdouble z) */
+#define CHIMERA_GL_OP_glUniform3d 817
+struct ChimeraGlArgs_glUniform3d {
+	GLint location;
+	GLdouble x;
+	GLdouble y;
+	GLdouble z;
+};
+
+/* void glUniform3dv(GLint location, GLsizei count, const GLdouble * value) */
+#define CHIMERA_GL_OP_glUniform3dv 818
+struct ChimeraGlArgs_glUniform3dv {
+	GLint location;
+	GLsizei count;
+	const GLdouble * value;
+};
+
+/* void glUniform4d(GLint location, GLdouble x, GLdouble y, GLdouble z, GLdouble w) */
+#define CHIMERA_GL_OP_glUniform4d 819
+struct ChimeraGlArgs_glUniform4d {
+	GLint location;
+	GLdouble x;
+	GLdouble y;
+	GLdouble z;
+	GLdouble w;
+};
+
+/* void glUniform4dv(GLint location, GLsizei count, const GLdouble * value) */
+#define CHIMERA_GL_OP_glUniform4dv 820
+struct ChimeraGlArgs_glUniform4dv {
+	GLint location;
+	GLsizei count;
+	const GLdouble * value;
+};
+
+/* void glUniformMatrix2dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value) */
+#define CHIMERA_GL_OP_glUniformMatrix2dv 821
+struct ChimeraGlArgs_glUniformMatrix2dv {
+	GLint location;
+	GLsizei count;
+	GLboolean transpose;
+	const GLdouble * value;
+};
+
+/* void glUniformMatrix2x3dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value) */
+#define CHIMERA_GL_OP_glUniformMatrix2x3dv 822
+struct ChimeraGlArgs_glUniformMatrix2x3dv {
+	GLint location;
+	GLsizei count;
+	GLboolean transpose;
+	const GLdouble * value;
+};
+
+/* void glUniformMatrix2x4dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value) */
+#define CHIMERA_GL_OP_glUniformMatrix2x4dv 823
+struct ChimeraGlArgs_glUniformMatrix2x4dv {
+	GLint location;
+	GLsizei count;
+	GLboolean transpose;
+	const GLdouble * value;
+};
+
+/* void glUniformMatrix3dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value) */
+#define CHIMERA_GL_OP_glUniformMatrix3dv 824
+struct ChimeraGlArgs_glUniformMatrix3dv {
+	GLint location;
+	GLsizei count;
+	GLboolean transpose;
+	const GLdouble * value;
+};
+
+/* void glUniformMatrix3x2dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value) */
+#define CHIMERA_GL_OP_glUniformMatrix3x2dv 825
+struct ChimeraGlArgs_glUniformMatrix3x2dv {
+	GLint location;
+	GLsizei count;
+	GLboolean transpose;
+	const GLdouble * value;
+};
+
+/* void glUniformMatrix3x4dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value) */
+#define CHIMERA_GL_OP_glUniformMatrix3x4dv 826
+struct ChimeraGlArgs_glUniformMatrix3x4dv {
+	GLint location;
+	GLsizei count;
+	GLboolean transpose;
+	const GLdouble * value;
+};
+
+/* void glUniformMatrix4dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value) */
+#define CHIMERA_GL_OP_glUniformMatrix4dv 827
+struct ChimeraGlArgs_glUniformMatrix4dv {
+	GLint location;
+	GLsizei count;
+	GLboolean transpose;
+	const GLdouble * value;
+};
+
+/* void glUniformMatrix4x2dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value) */
+#define CHIMERA_GL_OP_glUniformMatrix4x2dv 828
+struct ChimeraGlArgs_glUniformMatrix4x2dv {
+	GLint location;
+	GLsizei count;
+	GLboolean transpose;
+	const GLdouble * value;
+};
+
+/* void glUniformMatrix4x3dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble * value) */
+#define CHIMERA_GL_OP_glUniformMatrix4x3dv 829
+struct ChimeraGlArgs_glUniformMatrix4x3dv {
+	GLint location;
+	GLsizei count;
+	GLboolean transpose;
+	const GLdouble * value;
+};
+
+/* void glUniformSubroutinesuiv(GLenum shadertype, GLsizei count, const GLuint * indices) */
+#define CHIMERA_GL_OP_glUniformSubroutinesuiv 830
+struct ChimeraGlArgs_glUniformSubroutinesuiv {
+	GLenum shadertype;
+	GLsizei count;
+	const GLuint * indices;
+};
+
+/* void glUseProgramStages(GLuint pipeline, GLbitfield stages, GLuint program) */
+#define CHIMERA_GL_OP_glUseProgramStages 831
+struct ChimeraGlArgs_glUseProgramStages {
+	GLuint pipeline;
+	GLbitfield stages;
+	GLuint program;
+};
+
+/* void glValidateProgramPipeline(GLuint pipeline) */
+#define CHIMERA_GL_OP_glValidateProgramPipeline 832
+struct ChimeraGlArgs_glValidateProgramPipeline {
+	GLuint pipeline;
+};
+
+/* void glVertexAttribDivisor(GLuint index, GLuint divisor) */
+#define CHIMERA_GL_OP_glVertexAttribDivisor 833
+struct ChimeraGlArgs_glVertexAttribDivisor {
+	GLuint index;
+	GLuint divisor;
+};
+
+/* void glVertexAttribDivisorARB(GLuint index, GLuint divisor) */
+#define CHIMERA_GL_OP_glVertexAttribDivisorARB 834
+struct ChimeraGlArgs_glVertexAttribDivisorARB {
+	GLuint index;
+	GLuint divisor;
 };
 
 /* void glVertexAttribL1d(GLuint index, GLdouble x) */
-#define CHIMERA_GL_OP_glVertexAttribL1d 784
+#define CHIMERA_GL_OP_glVertexAttribL1d 835
 struct ChimeraGlArgs_glVertexAttribL1d {
 	GLuint index;
 	GLdouble x;
 };
 
 /* void glVertexAttribL1dv(GLuint index, const GLdouble * v) */
-#define CHIMERA_GL_OP_glVertexAttribL1dv 785
+#define CHIMERA_GL_OP_glVertexAttribL1dv 836
 struct ChimeraGlArgs_glVertexAttribL1dv {
 	GLuint index;
 	const GLdouble * v;
 };
 
 /* void glVertexAttribL2d(GLuint index, GLdouble x, GLdouble y) */
-#define CHIMERA_GL_OP_glVertexAttribL2d 786
+#define CHIMERA_GL_OP_glVertexAttribL2d 837
 struct ChimeraGlArgs_glVertexAttribL2d {
 	GLuint index;
 	GLdouble x;
@@ -5813,14 +5886,14 @@ struct ChimeraGlArgs_glVertexAttribL2d {
 };
 
 /* void glVertexAttribL2dv(GLuint index, const GLdouble * v) */
-#define CHIMERA_GL_OP_glVertexAttribL2dv 787
+#define CHIMERA_GL_OP_glVertexAttribL2dv 838
 struct ChimeraGlArgs_glVertexAttribL2dv {
 	GLuint index;
 	const GLdouble * v;
 };
 
 /* void glVertexAttribL3d(GLuint index, GLdouble x, GLdouble y, GLdouble z) */
-#define CHIMERA_GL_OP_glVertexAttribL3d 788
+#define CHIMERA_GL_OP_glVertexAttribL3d 839
 struct ChimeraGlArgs_glVertexAttribL3d {
 	GLuint index;
 	GLdouble x;
@@ -5829,14 +5902,14 @@ struct ChimeraGlArgs_glVertexAttribL3d {
 };
 
 /* void glVertexAttribL3dv(GLuint index, const GLdouble * v) */
-#define CHIMERA_GL_OP_glVertexAttribL3dv 789
+#define CHIMERA_GL_OP_glVertexAttribL3dv 840
 struct ChimeraGlArgs_glVertexAttribL3dv {
 	GLuint index;
 	const GLdouble * v;
 };
 
 /* void glVertexAttribL4d(GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w) */
-#define CHIMERA_GL_OP_glVertexAttribL4d 790
+#define CHIMERA_GL_OP_glVertexAttribL4d 841
 struct ChimeraGlArgs_glVertexAttribL4d {
 	GLuint index;
 	GLdouble x;
@@ -5846,23 +5919,14 @@ struct ChimeraGlArgs_glVertexAttribL4d {
 };
 
 /* void glVertexAttribL4dv(GLuint index, const GLdouble * v) */
-#define CHIMERA_GL_OP_glVertexAttribL4dv 791
+#define CHIMERA_GL_OP_glVertexAttribL4dv 842
 struct ChimeraGlArgs_glVertexAttribL4dv {
 	GLuint index;
 	const GLdouble * v;
 };
 
-/* void glVertexAttribLFormat(GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset) */
-#define CHIMERA_GL_OP_glVertexAttribLFormat 792
-struct ChimeraGlArgs_glVertexAttribLFormat {
-	GLuint attribindex;
-	GLint size;
-	GLenum type;
-	GLuint relativeoffset;
-};
-
 /* void glVertexAttribLPointer(GLuint index, GLint size, GLenum type, GLsizei stride, const void * pointer) */
-#define CHIMERA_GL_OP_glVertexAttribLPointer 793
+#define CHIMERA_GL_OP_glVertexAttribLPointer 843
 struct ChimeraGlArgs_glVertexAttribLPointer {
 	GLuint index;
 	GLint size;
@@ -5872,7 +5936,7 @@ struct ChimeraGlArgs_glVertexAttribLPointer {
 };
 
 /* void glVertexAttribP1ui(GLuint index, GLenum type, GLboolean normalized, GLuint value) */
-#define CHIMERA_GL_OP_glVertexAttribP1ui 794
+#define CHIMERA_GL_OP_glVertexAttribP1ui 844
 struct ChimeraGlArgs_glVertexAttribP1ui {
 	GLuint index;
 	GLenum type;
@@ -5881,7 +5945,7 @@ struct ChimeraGlArgs_glVertexAttribP1ui {
 };
 
 /* void glVertexAttribP1uiv(GLuint index, GLenum type, GLboolean normalized, const GLuint * value) */
-#define CHIMERA_GL_OP_glVertexAttribP1uiv 795
+#define CHIMERA_GL_OP_glVertexAttribP1uiv 845
 struct ChimeraGlArgs_glVertexAttribP1uiv {
 	GLuint index;
 	GLenum type;
@@ -5890,7 +5954,7 @@ struct ChimeraGlArgs_glVertexAttribP1uiv {
 };
 
 /* void glVertexAttribP2ui(GLuint index, GLenum type, GLboolean normalized, GLuint value) */
-#define CHIMERA_GL_OP_glVertexAttribP2ui 796
+#define CHIMERA_GL_OP_glVertexAttribP2ui 846
 struct ChimeraGlArgs_glVertexAttribP2ui {
 	GLuint index;
 	GLenum type;
@@ -5899,7 +5963,7 @@ struct ChimeraGlArgs_glVertexAttribP2ui {
 };
 
 /* void glVertexAttribP2uiv(GLuint index, GLenum type, GLboolean normalized, const GLuint * value) */
-#define CHIMERA_GL_OP_glVertexAttribP2uiv 797
+#define CHIMERA_GL_OP_glVertexAttribP2uiv 847
 struct ChimeraGlArgs_glVertexAttribP2uiv {
 	GLuint index;
 	GLenum type;
@@ -5908,7 +5972,7 @@ struct ChimeraGlArgs_glVertexAttribP2uiv {
 };
 
 /* void glVertexAttribP3ui(GLuint index, GLenum type, GLboolean normalized, GLuint value) */
-#define CHIMERA_GL_OP_glVertexAttribP3ui 798
+#define CHIMERA_GL_OP_glVertexAttribP3ui 848
 struct ChimeraGlArgs_glVertexAttribP3ui {
 	GLuint index;
 	GLenum type;
@@ -5917,7 +5981,7 @@ struct ChimeraGlArgs_glVertexAttribP3ui {
 };
 
 /* void glVertexAttribP3uiv(GLuint index, GLenum type, GLboolean normalized, const GLuint * value) */
-#define CHIMERA_GL_OP_glVertexAttribP3uiv 799
+#define CHIMERA_GL_OP_glVertexAttribP3uiv 849
 struct ChimeraGlArgs_glVertexAttribP3uiv {
 	GLuint index;
 	GLenum type;
@@ -5926,7 +5990,7 @@ struct ChimeraGlArgs_glVertexAttribP3uiv {
 };
 
 /* void glVertexAttribP4ui(GLuint index, GLenum type, GLboolean normalized, GLuint value) */
-#define CHIMERA_GL_OP_glVertexAttribP4ui 800
+#define CHIMERA_GL_OP_glVertexAttribP4ui 850
 struct ChimeraGlArgs_glVertexAttribP4ui {
 	GLuint index;
 	GLenum type;
@@ -5935,71 +5999,11 @@ struct ChimeraGlArgs_glVertexAttribP4ui {
 };
 
 /* void glVertexAttribP4uiv(GLuint index, GLenum type, GLboolean normalized, const GLuint * value) */
-#define CHIMERA_GL_OP_glVertexAttribP4uiv 801
+#define CHIMERA_GL_OP_glVertexAttribP4uiv 851
 struct ChimeraGlArgs_glVertexAttribP4uiv {
 	GLuint index;
 	GLenum type;
 	GLboolean normalized;
 	const GLuint * value;
-};
-
-/* void glVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void * pointer) */
-#define CHIMERA_GL_OP_glVertexAttribPointer 802
-struct ChimeraGlArgs_glVertexAttribPointer {
-	GLuint index;
-	GLint size;
-	GLenum type;
-	GLboolean normalized;
-	GLsizei stride;
-	const void * pointer;
-};
-
-/* void glVertexBindingDivisor(GLuint bindingindex, GLuint divisor) */
-#define CHIMERA_GL_OP_glVertexBindingDivisor 803
-struct ChimeraGlArgs_glVertexBindingDivisor {
-	GLuint bindingindex;
-	GLuint divisor;
-};
-
-/* void glViewport(GLint x, GLint y, GLsizei width, GLsizei height) */
-#define CHIMERA_GL_OP_glViewport 804
-struct ChimeraGlArgs_glViewport {
-	GLint x;
-	GLint y;
-	GLsizei width;
-	GLsizei height;
-};
-
-/* void glViewportArrayv(GLuint first, GLsizei count, const GLfloat * v) */
-#define CHIMERA_GL_OP_glViewportArrayv 805
-struct ChimeraGlArgs_glViewportArrayv {
-	GLuint first;
-	GLsizei count;
-	const GLfloat * v;
-};
-
-/* void glViewportIndexedf(GLuint index, GLfloat x, GLfloat y, GLfloat w, GLfloat h) */
-#define CHIMERA_GL_OP_glViewportIndexedf 806
-struct ChimeraGlArgs_glViewportIndexedf {
-	GLuint index;
-	GLfloat x;
-	GLfloat y;
-	GLfloat w;
-	GLfloat h;
-};
-
-/* void glViewportIndexedfv(GLuint index, const GLfloat * v) */
-#define CHIMERA_GL_OP_glViewportIndexedfv 807
-struct ChimeraGlArgs_glViewportIndexedfv {
-	GLuint index;
-	const GLfloat * v;
-};
-
-/* void glWaitSync(GLsync sync, GLbitfield flags, GLuint64 timeout) */
-#define CHIMERA_GL_OP_glWaitSync 808
-struct ChimeraGlArgs_glWaitSync {
-	GLsync sync;
-	GLbitfield flags;
-	GLuint64 timeout;
 };
 

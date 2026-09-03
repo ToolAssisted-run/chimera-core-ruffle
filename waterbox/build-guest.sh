@@ -29,32 +29,40 @@ mkdir -p "$here/build"
 "$mb/musl-gcc" -c -mcmodel=large -fno-pic -fno-pie -fno-stack-protector \
   -o "$here/build/libgcc-builtins.o" "$guest/libgcc-builtins.c"
 
-# The guest's end of the GPU bridge: 709 GL entry points, generated from glad's
-# declarations (tools/gen-gl-bridge.py). No GL implementation lives in here -
-# these are wrappers that hand each call to the host.
+# The guest's end of the GPU bridge. The opcodes are miniBox's shared,
+# append-only table (source/gl/gl-entry-points.txt), because a package is a
+# guest binary and the host half lives in whatever runs it - both sides have to
+# mean the same thing by 'opcode 137'. waterbox/gl-entry-points.txt is just the
+# subset this core's renderer names.
 cxxinc="-I$mb/guest-sysroot/include/c++/13.3.0 -I$mb/guest-sysroot/include/c++/13.3.0/x86_64-linux-musl"
 "$mb/musl-gcc" -c -x c++ -std=gnu++17 -mcmodel=large -fno-pic -fno-pie \
   -fno-stack-protector -fcf-protection=none -fno-exceptions -fno-rtti \
-  $cxxinc -I"$here/extern/glad/include" -I"$here" -I"$here/generated" \
+  $cxxinc -I"$here/extern/glad/include" -I"$minibox/source/gl" -I"$here" -I"$here/generated" \
   -o "$here/build/gl-bridge-guest.o" "$here/generated/gl-bridge-guest.cpp"
+# glad itself: the shared generator installs the wrappers INTO glad's function
+# pointers as well as into the lookup table, so the pointers have to exist here.
+"$mb/musl-gcc" -c -mcmodel=large -fno-pic -fno-pie -fno-stack-protector \
+  -fcf-protection=none -I"$here/extern/glad/include" \
+  -o "$here/build/glad.o" "$here/extern/glad/src/gl.c"
+
 # buffer mapping, emulated on this side (a driver pointer cannot cross)
 "$mb/musl-gcc" -c -x c++ -std=gnu++17 -mcmodel=large -fno-pic -fno-pie \
   -fno-stack-protector -fcf-protection=none -fno-exceptions -fno-rtti \
-  $cxxinc -I"$here/extern/glad/include" -I"$here" -I"$here/generated" \
+  $cxxinc -I"$here/extern/glad/include" -I"$minibox/source/gl" -I"$here" -I"$here/generated" \
   -o "$here/build/gl-map.o" "$here/gl-map.cpp"
 
-exports="-Wl,-u,SetGpuBridge -Wl,-u,GetVideoBgra -Wl,-u,GetVideoWidth -Wl,-u,GetVideoHeight -Wl,-u,Init -Wl,-u,SetSpoofUrl -Wl,-u,GetAudio -Wl,-u,GetAudioSampleCount -Wl,-u,AllocSwf -Wl,-u,SetButton -Wl,-u,SetAxis -Wl,-u,SetTextInput -Wl,-u,FrameAdvance -Wl,-u,GetTty -Wl,-u,GetTtySize -Wl,-u,GetTraceDigest -Wl,-u,GetFrameCount -Wl,-u,GetLoadError -Wl,-u,IsRunning"
+exports="-Wl,-u,GetMemoryDomainCount -Wl,-u,GetMemoryDomainName -Wl,-u,GetMemoryDomainPtr -Wl,-u,GetMemoryDomainSize -Wl,-u,GetMemoryDomainWritable -Wl,-u,SetMousePixels -Wl,-u,GetVsyncNumerator -Wl,-u,GetVsyncDenominator -Wl,-u,SetGpuBridge -Wl,-u,GetVideoBgra -Wl,-u,GetVideoWidth -Wl,-u,GetVideoHeight -Wl,-u,Init -Wl,-u,SetSpoofUrl -Wl,-u,GetAudio -Wl,-u,GetAudioSampleCount -Wl,-u,AllocSwf -Wl,-u,SetButton -Wl,-u,SetAxis -Wl,-u,SetTextInput -Wl,-u,FrameAdvance -Wl,-u,GetTty -Wl,-u,GetTtySize -Wl,-u,GetTraceDigest -Wl,-u,GetFrameCount -Wl,-u,GetLoadError -Wl,-u,IsRunning"
 "$mb/musl-gcc" -mcmodel=large -fno-pic -fno-pie -static -no-pie \
   -Wl,--eh-frame-hdr,-O2,--no-relax -T "$minibox/source/guest/linkscript.T" \
   $exports -o "$here/build/core.wbx" \
   "$minibox/source/guest/cxxglue.c" "$mb/source/guest/emulibc.c.o" \
   "$a" "$here/build/unwind-stubs.o" "$here/build/libgcc-builtins.o" \
-  "$here/build/gl-bridge-guest.o" "$here/build/gl-map.o" -lm
+  "$here/build/gl-bridge-guest.o" "$here/build/gl-map.o" "$here/build/glad.o" -lm
 echo "built: $here/build/core.wbx"
 
 # the frontend-free runner, against the same miniBox host the gates use
 if [ -f "$mb/source/host/libminiboxhost.so" ]; then
-	cc -O2 -DCHIMERA_GL_BRIDGE -I"$minibox/source/host" -I"$here" \
+	cc -O2 -DCHIMERA_GL_BRIDGE -I"$minibox/source/host" -I"$minibox/source/gl" -I"$here" \
 		-I"$here/extern/glad/include" -I"$here/generated" \
 		-o "$here/build/run-wbx" "$here/run-wbx.c" "$here/gl-host.c" \
 		"$here/extern/glad/src/gl.c" \

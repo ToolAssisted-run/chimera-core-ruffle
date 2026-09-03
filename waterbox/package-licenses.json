@@ -1,0 +1,27 @@
+{
+  "package": "ruffle",
+  "effectiveTerms": "MIT or Apache-2.0",
+  "commercialUse": "permitted",
+  "note": "Ruffle is dual-licensed MIT or Apache-2.0, and so is this integration. Mesa's glad loader headers are MIT. Nothing here restricts commercial use.",
+  "components": [
+    {
+      "name": "chimera-core-ruffle (integration)",
+      "license": "MIT",
+      "url": "https://github.com/ToolAssisted-run/chimera-core-ruffle",
+      "commit": "{selfCommit}",
+      "file": "LICENSE"
+    },
+    {
+      "name": "Ruffle",
+      "license": "MIT or Apache-2.0",
+      "url": "https://github.com/ruffle-rs/ruffle",
+      "commit": "{file:extern/ruffle-pinned-commit.txt}",
+      "sourceUrl": "https://github.com/ruffle-rs/ruffle/archive/{commit}.tar.gz"
+    },
+    {
+      "name": "glad (OpenGL loader used by the GPU bridge)",
+      "license": "MIT",
+      "url": "https://github.com/Dav1dde/glad"
+    }
+  ]
+}

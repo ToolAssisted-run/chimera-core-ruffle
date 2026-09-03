@@ -31,8 +31,9 @@ use ruffle_render_wgpu::target::TextureTarget;
 pub type GuestRenderer = WgpuRenderBackend<TextureTarget>;
 
 extern "C" {
-    fn chimera_gl_install(bridge: u64);
-    fn chimera_gl_lookup(name: *const c_char) -> *const c_void;
+    fn chimera_gl_install(bridge: u64) -> bool;
+    /// the shared table, with buffer mapping displaced by gl-map.cpp
+    fn chimera_gl_lookup_guest(name: *const c_char) -> *const c_void;
 }
 
 /// The host's callback address, handed over by SetGpuBridge before Init.
@@ -40,8 +41,12 @@ static mut BRIDGE: u64 = 0;
 
 pub fn set_bridge(addr: u64) {
     unsafe {
-        *core::ptr::addr_of_mut!(BRIDGE) = addr;
-        chimera_gl_install(addr);
+        // install() asks the host how long its opcode list is and refuses a
+        // host that is behind this core; a refusal leaves BRIDGE clear, and
+        // Init then fails with something a person can act on.
+        if chimera_gl_install(addr) {
+            *core::ptr::addr_of_mut!(BRIDGE) = addr;
+        }
     }
 }
 
@@ -80,7 +85,7 @@ pub fn build(w: u32, h: u32) -> Result<GuestRenderer, String> {
         wgpu::hal::gles::Adapter::new_external(
             |sym| {
                 match CString::new(sym) {
-                    Ok(c) => unsafe { chimera_gl_lookup(c.as_ptr()) },
+                    Ok(c) => unsafe { chimera_gl_lookup_guest(c.as_ptr()) },
                     Err(_) => std::ptr::null(),
                 }
             },
