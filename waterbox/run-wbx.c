@@ -13,6 +13,13 @@
  *   "A<axis>=<v>" / "B<button>=<0|1>" tokens, applied before that frame.
  */
 #include "minibox.h"
+#include <stdint.h>
+
+/* the host's end of the GPU bridge (waterbox/gl-host.c) */
+int chimera_gl_host_init(char *err, int errlen);
+const char *chimera_gl_host_description(void);
+uintptr_t chimera_gl_host_dispatch(uintptr_t op, uintptr_t a, uintptr_t b,
+                                   uintptr_t c, uintptr_t d, uintptr_t e);
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -35,6 +42,7 @@ int main(int argc, char **argv) {
 	long frames = 1;
 	int quiet = 0;
 	const char *movespath = NULL, *audiopath = NULL, *peakspath = NULL, *spoofurl = NULL;
+	const char *videopath = NULL;
 	const char *files[64][2]; int nfiles = 0;
 	for (int i = 3; i < argc; i++) {
 		if (!strcmp(argv[i], "--frames") && i + 1 < argc) frames = atol(argv[++i]);
@@ -43,6 +51,7 @@ int main(int argc, char **argv) {
 		else if (!strcmp(argv[i], "--audio-out") && i + 1 < argc) audiopath = argv[++i];
 		else if (!strcmp(argv[i], "--audio-peaks") && i + 1 < argc) peakspath = argv[++i];
 		else if (!strcmp(argv[i], "--spoof-url") && i + 1 < argc) spoofurl = argv[++i];
+		else if (!strcmp(argv[i], "--video-out") && i + 1 < argc) videopath = argv[++i];
 		else if (!strcmp(argv[i], "--file") && i + 1 < argc && nfiles < 64) {
 			char *eq = strchr(argv[++i], '=');
 			if (eq) { *eq = 0; files[nfiles][0] = argv[i]; files[nfiles][1] = eq + 1; nfiles++; }
@@ -89,6 +98,27 @@ int main(int argc, char **argv) {
 		SetSpoofUrl(spoofurl, (int32_t)strlen(spoofurl));
 	}
 
+	/* The GPU bridge: bring up a real GL context on this side and hand the
+	 * guest the one callback it is allowed to call. This must happen before
+	 * Init, which builds the renderer through it. */
+	{
+		char glerr[256] = {0};
+		if (chimera_gl_host_init(glerr, sizeof glerr) != 0) {
+			fprintf(stderr, "gpu bridge: no GL context (%s)\n", glerr);
+			return 1;
+		}
+		void (*SetGpuBridge)(uint64_t) = (void (*)(uint64_t))proc(h, "SetGpuBridge");
+		mb_return cb;
+		wbx_get_callback_addr(h, (mb_external_callback)chimera_gl_host_dispatch, 0, &cb);
+		if (cb.error_message[0]) {
+			fprintf(stderr, "gpu bridge: %s\n", cb.error_message);
+			return 1;
+		}
+		SetGpuBridge(cb.data);
+		if (!quiet)
+			fprintf(stderr, "gpu bridge: %s\n", chimera_gl_host_description());
+	}
+
 	int (*Init)(void) = (int (*)(void))proc(h, "Init");
 	void (*FrameAdvance)(uint64_t) = (void (*)(uint64_t))proc(h, "FrameAdvance");
 	const uint8_t *(*GetTty)(void) = (const uint8_t *(*)(void))proc(h, "GetTty");
@@ -99,9 +129,15 @@ int main(int argc, char **argv) {
 	void (*SetTextInput)(int32_t) = (void (*)(int32_t))proc(h, "SetTextInput");
 	const int16_t *(*GetAudio)(void) = (const int16_t *(*)(void))proc(h, "GetAudio");
 	int32_t (*GetAudioSampleCount)(void) = (int32_t (*)(void))proc(h, "GetAudioSampleCount");
+	const uint8_t *(*GetVideoBgra)(void) = (const uint8_t *(*)(void))proc(h, "GetVideoBgra");
+	int32_t (*GetVideoWidth)(void) = (int32_t (*)(void))proc(h, "GetVideoWidth");
+	int32_t (*GetVideoHeight)(void) = (int32_t (*)(void))proc(h, "GetVideoHeight");
 	FILE *audiof = audiopath ? fopen(audiopath, "wb") : NULL;
 	FILE *peaksf = peakspath ? fopen(peakspath, "w") : NULL;
 	uint64_t ah = 1469598103934665603ull; uint64_t audio_bytes = 0;
+	uint64_t vh_hash = 1469598103934665603ull, lit = 0;
+	int32_t vw = 0, vh = 0;
+	const uint8_t *last_px = NULL;
 
 	if (!Init()) {
 		const char *(*GetLoadError)(void) = (const char *(*)(void))proc(h, "GetLoadError");
@@ -133,6 +169,33 @@ int main(int argc, char **argv) {
 		audio_bytes += (uint64_t)n * 4;
 		if (audiof && n > 0) fwrite(a, 4, (size_t)n, audiof);
 		if (peaksf) fprintf(peaksf, "%.6f\n", peak / 32767.0);
+
+		/* this frame's picture: digest every pixel, and count the ones that are
+		 * neither black nor transparent. A digest alone cannot tell a real
+		 * frame from a uniformly blank one, and a blank frame is exactly what a
+		 * broken renderer produces. */
+		vw = GetVideoWidth(); vh = GetVideoHeight();
+		const uint8_t *px = GetVideoBgra();
+		if (px && vw > 0 && vh > 0) {
+			size_t bytes = (size_t)vw * (size_t)vh * 4;
+			lit = 0;
+			for (size_t k = 0; k < bytes; k++) { vh_hash ^= px[k]; vh_hash *= 1099511628211ull; }
+			for (size_t k = 0; k + 3 < bytes; k += 4)
+				if (px[k] || px[k+1] || px[k+2]) lit++;
+			last_px = px;
+		}
+	}
+	if (videopath && last_px && vw > 0 && vh > 0) {
+		/* PPM: no encoder needed, and any tool can read it */
+		FILE *vf = fopen(videopath, "wb");
+		if (vf) {
+			fprintf(vf, "P6\n%d %d\n255\n", vw, vh);
+			for (size_t k = 0; k < (size_t)vw * (size_t)vh; k++) {
+				unsigned char rgb[3] = { last_px[k*4+2], last_px[k*4+1], last_px[k*4+0] };
+				fwrite(rgb, 1, 3, vf);
+			}
+			fclose(vf);
+		}
 	}
 	if (audiof) fclose(audiof);
 	if (peaksf) fclose(peaksf);
@@ -143,5 +206,18 @@ int main(int argc, char **argv) {
 	fprintf(stderr, "ruffle: frames=%ld traceBytes=%lld traceDigest=%016llx audioBytes=%llu audioDigest=%016llx\n",
 	        frames, (long long)n, (unsigned long long)GetTraceDigest(),
 	        (unsigned long long)audio_bytes, (unsigned long long)ah);
+	fprintf(stderr, "ruffle: video=%dx%d videoDigest=%016llx litPixels=%llu\n",
+	        vw, vh, (unsigned long long)vh_hash, (unsigned long long)lit);
+	if (last_px && vw > 0 && vh > 0) {
+		unsigned long long sb=0,sg=0,sr=0,sa=0; unsigned char mb=0,mg=0,mr=0,ma=0;
+		size_t n2 = (size_t)vw*(size_t)vh;
+		for (size_t k=0;k<n2;k++) {
+			unsigned char b=last_px[k*4],g=last_px[k*4+1],r=last_px[k*4+2],a=last_px[k*4+3];
+			sb+=b; sg+=g; sr+=r; sa+=a;
+			if(b>mb)mb=b; if(g>mg)mg=g; if(r>mr)mr=r; if(a>ma)ma=a;
+		}
+		fprintf(stderr, "ruffle: channel means B=%.1f G=%.1f R=%.1f A=%.1f  max B=%u G=%u R=%u A=%u\n",
+		        (double)sb/n2,(double)sg/n2,(double)sr/n2,(double)sa/n2,mb,mg,mr,ma);
+	}
 	return 0;
 }

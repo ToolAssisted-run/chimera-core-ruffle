@@ -157,3 +157,49 @@ approximates. That is the pitch.
 Never push without explicit say-so. No copyrighted SWFs in the repo (ruffle's
 own MIT test corpus only). Witness gate before chimera commits. Gates run one
 at a time, never concurrent.
+
+
+## M4 - the picture (DONE)
+
+ruffle's own wgpu renderer runs in the guest; the OpenGL it draws with belongs
+to the host. Every GL call leaves through the single callback miniBox allows a
+guest, and the driver executes it in the same address space, so vertex data and
+textures are read where they already are. 709 entry points, both sides
+generated from glad's declarations by `tools/gen-gl-bridge.py`.
+
+**Gate:** `ruffle image gate: 197/197` - each movie's frame compared against
+ruffle's own `output.expected.png` (8 per channel, 99% of pixels; ruffle's own
+harness allows up to 128 for the same reason) and rendered twice to show the
+frame does not wander. The other legs are unchanged and still green: 120/120
+trace, 92/92 navigator, 17/17 input, 2/2 audio.
+
+**What this costs, plainly:** the GPU is outside the sandbox, so it is outside
+the savestate and different on every machine. The machine's own state stays
+deterministic - the frame is computed from the display list, not read back from
+it - with one exception worth naming: `BitmapData.draw()` rasterises display
+objects into a bitmap ActionScript can then read, and there the picture does
+feed the machine.
+
+### What was tried first, and why it was abandoned
+
+A software rasteriser INSIDE the sandbox would have made the picture
+deterministic too. Mesa's **softpipe** was built for the guest and proven to
+draw (the smoke test's `hash=a2962dc5`), but it cannot draw ruffle's frames: it
+reads ruffle's second uniform block as zeros, every vertex collapses, and
+nothing rasterises - with no GL error anywhere. This is not a sandbox problem;
+it reproduces natively with the system Mesa under `GALLIUM_DRIVER=softpipe`,
+while llvmpipe renders the same code correctly. Every individual primitive
+(clears, uploads, shader draws, indexed draws, sampling, render-then-sample,
+stencil attachments, uniform buffers with and without dynamic offsets) passes
+on softpipe in isolation, so no minimal trigger was found.
+
+llvmpipe does work, but it is llvmpipe because it JITs through LLVM, and that
+means carrying LLVM in the guest.
+
+### Three bugs this milestone found
+
+- **miniBox** ran host callbacks on the guest's `%fs` (fixed there, 9b3fa9d).
+- **wgpu's GL backend claims 2x/4x MSAA whatever `GL_MAX_SAMPLES` says**, so
+  ruffle asked for a multisampled stencil buffer softpipe cannot allocate.
+- **`panic = "immediate-abort"` while std still unwinds** is undefined, and it
+  showed up only once the core did real work. The guest now uses `abort`.

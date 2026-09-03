@@ -35,8 +35,10 @@ use ruffle_core::{FloatDuration, Player, PlayerBuilder, PlayerEvent};
 
 mod input_table;
 mod navigator;
+mod renderer;
 use input_table::{Btn, BUTTONS, BUTTON_COUNT, SHIFT_LEFT, SHIFT_RIGHT};
 use navigator::{run_tasks, GuestNavigator, Tasks};
+use renderer::GuestRenderer;
 
 /// Captures ActionScript trace() into a buffer the host can read back.
 #[derive(Clone)]
@@ -111,6 +113,12 @@ struct Machine {
     /// The navigator's load futures, drained each frame after the movie runs -
     /// where ruffle's own runner drains its executor.
     tasks: Tasks,
+    /// This frame's picture, BGRA, read back out of the offscreen GL target.
+    /// GetVideoBgra hands out a pointer into it, so it must not move during
+    /// the host's read.
+    video: Vec<u8>,
+    video_w: u32,
+    video_h: u32,
 }
 
 // One machine per sandbox, driven by one thread (vsched runs guest threads one
@@ -184,8 +192,20 @@ pub extern "C" fn Init() -> i32 {
     let trace = Rc::new(RefCell::new(Vec::new()));
     let audio_f32 = Rc::new(RefCell::new(Vec::new()));
     let tasks: Tasks = std::rc::Rc::new(RefCell::new(Vec::new()));
+    // A real GL renderer, in the sandbox, on software: see renderer.rs. It is
+    // required, not optional - a core that quietly ran without a picture would
+    // still pass a trace gate and be useless for a TAS.
+    let render_backend = match renderer::build(vw, vh) {
+        Ok(r) => r,
+        Err(e) => {
+            set_load_error(&format!("no renderer: {e}"));
+            return 0;
+        }
+    };
+
     let mut builder = PlayerBuilder::new()
         .with_movie(movie)
+        .with_renderer(render_backend)
         .with_log(CaptureLog { out: trace.clone() })
         .with_audio(WaterboxAudio { mixer: AudioMixer::new(WaterboxAudio::CHANNELS, WaterboxAudio::RATE), buffer: audio_f32.clone() })
         .with_navigator(GuestNavigator { tasks: tasks.clone() })
@@ -210,6 +230,7 @@ pub extern "C" fn Init() -> i32 {
                 buttons: [0; BUTTON_COUNT], prev_buttons: [0; BUTTON_COUNT],
                 mouse: (0, 0), prev_mouse: (0, 0), text_input: true,
                 audio_f32, audio_i16: Vec::new(), tasks,
+                video: Vec::new(), video_w: vw.max(1), video_h: vh.max(1),
             });
     }
     1
@@ -245,6 +266,21 @@ pub extern "C" fn FrameAdvance(_input: u64) {
         }
         inject_edges(&mut p, &mut m.buttons, &mut m.prev_buttons, m.mouse, &mut m.prev_mouse, m.text_input);
         p.render();
+        // Read the frame back out of the offscreen target. ruffle's own image
+        // tests capture exactly here, through the same downcast.
+        if let Some(rb) = (p.renderer_mut() as &mut dyn std::any::Any).downcast_mut::<GuestRenderer>() {
+            if let Some(img) = rb.capture_frame() {
+                m.video_w = img.width();
+                m.video_h = img.height();
+                let src = img.as_raw();
+                m.video.clear();
+                m.video.reserve(src.len());
+                // ruffle gives RGBA; every chimera host reads BGRA
+                for px in src.chunks_exact(4) {
+                    m.video.extend_from_slice(&[px[2], px[1], px[0], px[3]]);
+                }
+            }
+        }
         drop(p);
         m.frames += 1;
     }
@@ -406,6 +442,40 @@ pub extern "C" fn SetTextInput(on: i32) {
         if let Some(m) = &mut *core::ptr::addr_of_mut!(MACHINE) {
             m.text_input = on != 0;
         }
+    }
+}
+
+/// The frame's picture, BGRA, as the chimera video contract wants it: a pointer
+/// into guest memory the host reads GetVideoWidth x GetVideoHeight pixels from.
+/// The host's GL callback, handed over before Init. Without it there is no
+/// renderer and Init refuses, rather than running blind: a core that quietly
+/// produced no picture would still pass a trace gate and be useless for a TAS.
+#[no_mangle]
+pub extern "C" fn SetGpuBridge(addr: u64) {
+    renderer::set_bridge(addr);
+}
+
+#[no_mangle]
+pub extern "C" fn GetVideoBgra() -> *const u8 {
+    unsafe {
+        match &*core::ptr::addr_of!(MACHINE) {
+            Some(m) => m.video.as_ptr(),
+            None => core::ptr::null(),
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn GetVideoWidth() -> i32 {
+    unsafe {
+        match &*core::ptr::addr_of!(MACHINE) { Some(m) => m.video_w as i32, None => 0 }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn GetVideoHeight() -> i32 {
+    unsafe {
+        match &*core::ptr::addr_of!(MACHINE) { Some(m) => m.video_h as i32, None => 0 }
     }
 }
 

@@ -10,6 +10,10 @@ name = "ruffle_guest"
 crate-type = ["staticlib"]
 
 [dependencies]
+# ruffle's own wgpu renderer, on a software GL we build ourselves (renderer.rs)
+ruffle_render_wgpu = { path = "../../../ruffle-src/render/wgpu" }
+ruffle_render = { path = "../../../ruffle-src/render" }
+wgpu = { version = "=30.0.1", default-features = false, features = ["gles"] }
 # The pinned ruffle checkout (extern/ruffle-pinned-commit.txt); a path dep so
 # the guest compiles the same source the native reference does.
 ruffle_core = { path = "../../../ruffle-src/core", features = ["audio", "mp3", "aac", "default_font"] }  # the feature set ruffle's own test harness builds with
@@ -21,5 +25,10 @@ async-channel = "=2.5.0"
 indexmap = "=2.14.0"
 
 [profile.release]
-panic = "immediate-abort"
+# NOT "immediate-abort": that strategy applied to this crate while std was
+# still built to unwind, and the mismatch corrupted thread-local and Arc
+# reads once the core did real work (a blank frame, then a fault on a
+# pointer that was never a pointer). "abort" is consistent and costs only a
+# little size, since nothing here unwinds either way.
+panic = "abort"
 opt-level = 2

@@ -12,6 +12,11 @@
 #                  trace as ruffle expects AND the same digest as native. This
 #                  is the milestone: Flash running inside the sandbox, where
 #                  the determinism is enforced rather than hoped for.
+#   image        - (M4) the PICTURE. Each movie in tests/image-list.txt is
+#                  rendered through the core's GL renderer and compared with
+#                  ruffle's own output.expected.png, and rendered twice to show
+#                  the frame does not wander. This is the leg that proves the
+#                  core draws Flash rather than merely running it.
 #   input        - (M2) tests that ship an input.json: the stream is converted
 #                  to per-frame levels (tests/input2moves.py), replayed through
 #                  SetAxis/SetButton, and the trace must again equal ruffle's
@@ -141,7 +146,43 @@ if [ "$have_sandbox" = 1 ] && [ -f "$alist" ]; then
   done < "$alist"
 fi
 
+# ---- image: does the core draw what ruffle draws? ----
+gok=0; gbad=0; gtotal=0
+glist="$root/tests/image-list.txt"
+if [ "$have_sandbox" = 1 ] && [ -f "$glist" ]; then
+  gtmp=$(mktemp -d)
+  while IFS='|' read -r rel nf; do
+    case "$rel" in ''|\#*) continue ;; esac
+    gtotal=$((gtotal+1))
+    d="$swfs/$rel"
+    exp="$d/output.expected.png"
+    [ -f "$exp" ] || { gbad=$((gbad+1)); echo "  image MISSING EXPECTED $rel"; continue; }
+    fargs=""
+    for f in $(cd "$d" && ls | grep -vE '^(test\.swf|output.*|test\.toml|input\.json|source\.as|Test\.as|.*\.fla|.*\.flad|regenerate.*\.sh|.*\.md|.*\.rs)$'); do
+      case "$f" in *.swf|*.mp3|*.bin|*.txt|*.xml|*.flv|*.csv|*.dat|*.gif|*.jpg|*.jpeg|*.png) fargs="$fargs --file $f=$d/$f" ;; esac
+    done
+    iarg=""; mv=""
+    if [ -f "$d/input.json" ]; then mv=$(mktemp); python3 "$root/tests/input2moves.py" "$d/input.json" > "$mv" 2>/dev/null && iarg="--input $mv"; fi
+    p1="$gtmp/a.ppm"; p2="$gtmp/b.ppm"
+    d1=$(timeout 120 "$wbx" "$core" "$d/test.swf" --frames "$nf" --quiet $iarg $fargs --video-out "$p1" 2>&1 | grep -oE 'videoDigest=[0-9a-f]+')
+    d2=$(timeout 120 "$wbx" "$core" "$d/test.swf" --frames "$nf" --quiet $iarg $fargs --video-out "$p2" 2>&1 | grep -oE 'videoDigest=[0-9a-f]+')
+    [ -n "$mv" ] && rm -f "$mv"
+    if [ ! -s "$p1" ]; then gbad=$((gbad+1)); echo "  image NO FRAME $rel"; continue; fi
+    if [ "$d1" != "$d2" ]; then gbad=$((gbad+1)); echo "  image NONDETERMINISTIC $rel ($d1 vs $d2)"; continue; fi
+    # the stated budget: 8 per channel, at most 1% of pixels (see image-list.txt)
+    px=$(head -2 "$p1" | tail -1 | awk '{print $1*$2}')
+    if python3 "$root/tests/image-compare.py" "$exp" "$p1" 8 $((px/100)) >/dev/null 2>&1; then
+      gok=$((gok+1))
+    else
+      gbad=$((gbad+1))
+      echo "  image MISMATCH $rel: $(python3 "$root/tests/image-compare.py" "$exp" "$p1" 8 $((px/100)) 2>&1)"
+    fi
+  done < "$glist"
+  rm -rf "$gtmp"
+fi
+
 if [ "$have_sandbox" = 1 ]; then
+  echo "ruffle image gate: $gok/$gtotal movies draw the frame ruffle draws (8/channel, 99% of pixels), reruns identical; $gbad failures"
   echo "ruffle navigator gate: $nok/$ntotal movies load their associated files (loadMovie/loadSound/loadVariables/URLLoader) with the trace ruffle expects, reruns identical; $nbad failures"
   echo "ruffle audio gate: $aok/$atotal sound movies: ruffle's amplitude assertions hold, native == sandbox byte for byte, reruns identical; $abad failures"
   echo "ruffle input gate: $iok/$itotal input.json streams replayed as levels, trace identical to ruffle; $ibad failures"
@@ -149,4 +190,4 @@ if [ "$have_sandbox" = 1 ]; then
 else
   echo "ruffle gate: $ok/$total trace-identical to ruffle AND deterministic; $bad correctness, $nondet determinism failures (sandbox SKIPPED: build waterbox/build/core.wbx with build-guest.sh)"
 fi
-[ "$bad" -eq 0 ] && [ "$nondet" -eq 0 ] && [ "$sbad" -eq 0 ] && [ "$ibad" -eq 0 ] && [ "$abad" -eq 0 ] && [ "$nbad" -eq 0 ]
+[ "$bad" -eq 0 ] && [ "$nondet" -eq 0 ] && [ "$sbad" -eq 0 ] && [ "$ibad" -eq 0 ] && [ "$abad" -eq 0 ] && [ "$nbad" -eq 0 ] && [ "$gbad" -eq 0 ]
