@@ -47,12 +47,16 @@ approximates. That is the pitch.
 
 ## Milestones (native reference first, like every core)
 
-- **M0** native `run-native`: build `ruffle_core` with all-null backends + a
-  trace-capturing log backend; load a SWF, `num_frames` steps, print the trace
-  log + a state digest; reproduce ruffle's own `output.txt` for a batch of the
-  corpus. Proves determinism (identical reruns) + correctness (matches ruffle).
-  NOTE: ruffle_core needs **Java** to build playerglobal (AS3 builtins) - not
-  installed here yet (`apt install default-jdk`).
+- **M0 DONE (2026-09-03).** `waterbox/run-native` drives ruffle_core with
+  null backends + a trace-capturing log, loads a SWF, runs `num_frames` at the
+  movie's own rate, prints the trace + a summary (`traceSha1`). The native gate
+  (`waterbox/run-gate.sh`) is **120/120**: every test in
+  `tests/oracle-list.txt` reproduces ruffle's committed `output.txt` byte for
+  byte AND is identical across three runs. Determinism separately spot-checked
+  93/93 SWFs. The ~26% of simple corpus tests that null backends cannot serve
+  (navigator/network, input injection, fonts) are deferred to M2/M3/M5, not on
+  the list. Java: a portable JDK lives at ~/.local/jdk (asc.jar needs it);
+  `build-native.sh` puts it on PATH.
 - **M1** Rust guest toolchain: `core` as one static musl blob linked to the
   miniBox guest ABI; boot + frame advance + main-memory domain; native ==
   sandbox digest.

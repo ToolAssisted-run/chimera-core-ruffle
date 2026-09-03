@@ -1,0 +1,19 @@
+[package]
+name = "ruffle-run-native"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+# The native reference for the chimera Ruffle core (M0). It drives ruffle_core
+# exactly as ruffle's own test framework does - null backends, a trace-capturing
+# log - so its output can be checked against ruffle's committed output.txt.
+# Path dep on the pinned ruffle checkout; not a member of ruffle's workspace.
+[dependencies]
+ruffle_core = { path = "../../../ruffle-src/core" }
+
+[[bin]]
+name = "run-native"
+path = "src/main.rs"
+
+[profile.release]
+opt-level = 2

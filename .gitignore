@@ -1,4 +1,5 @@
 build/
+waterbox/run-native/target/
 extern/ruffle/target/
 tests/roms-local/
 *.log
