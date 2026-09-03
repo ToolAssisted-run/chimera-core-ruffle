@@ -1,0 +1,14 @@
+cargo-features = ["panic-immediate-abort"]
+
+[package]
+name = "ruffle_guest"
+version = "0.0.0"
+edition = "2021"
+
+[lib]
+name = "ruffle_guest"
+crate-type = ["staticlib"]
+
+[profile.release]
+panic = "immediate-abort"
+opt-level = 2

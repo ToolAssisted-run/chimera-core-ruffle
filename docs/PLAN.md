@@ -57,9 +57,20 @@ approximates. That is the pitch.
   (navigator/network, input injection, fonts) are deferred to M2/M3/M5, not on
   the list. Java: a portable JDK lives at ~/.local/jdk (asc.jar needs it);
   `build-native.sh` puts it on PATH.
-- **M1** Rust guest toolchain: `core` as one static musl blob linked to the
-  miniBox guest ABI; boot + frame advance + main-memory domain; native ==
-  sandbox digest.
+- **M1 IN PROGRESS.** The Rust-in-waterbox toolchain is PROVEN (2026-09-03):
+  a trivial Rust guest (std Vec/sort/hash) runs inside miniBox byte-identical
+  to native (digest 885242c4a6382a93) and savestate round-trips. Recipe
+  (waterbox/build-guest.sh, waterbox/guest/): nightly `-Z build-std`
+  recompiles std for x86_64-unknown-linux-musl with LARGE code model + static
+  reloc (the waterbox base) against our musl; `panic = "immediate-abort"`
+  (cargo-features opt-in) strips the unwinder; inert abort() stubs
+  (unwind-stubs.c) satisfy std's leftover libgcc `_Unwind_*` refs instead of
+  the host's small-model glibc libgcc_eh; `musl-gcc` links with emulibc +
+  cxxglue + linkscript.T, exports forced with `-u`. REMAINING: swap the
+  trivial crate for a guest wrapper around ruffle_core (the big dep tree - may
+  surface threads/TLS/C-dep issues), wire the WaterboxCore export surface
+  (Init/FrameAdvance/memory domains/GetTty for trace), and prove the M0 trace
+  digests reproduce in the sandbox.
 - **M2** input (mouse 2 axes + buttons + keyboard). **M3** audio.
 - **M4** rendering (wgpu/Mesa-softpipe over the GPU bridge, or software).
 - **M5** URL spoofing + associated-file navigator backed by the sandbox FS.
