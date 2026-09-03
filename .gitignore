@@ -5,3 +5,4 @@ tests/roms-local/
 *.log
 waterbox/build/
 waterbox/guest/target/
+tests/work/
