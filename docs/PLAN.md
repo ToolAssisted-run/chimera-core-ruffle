@@ -70,7 +70,8 @@ approximates. That is the pitch.
   compiles AND links AND runs for the musl guest with ZERO undefined symbols -
   the big dep tree is not the problem. It runs past getrandom(318) (std's
   HashMap seed), now implemented deterministically in miniBox (cb7bed6).
-  **Current frontier: guest %fs TLS** - the wbx has .tdata/.tbss and 149 %fs:
+  **SOLVED (miniBox 62ca831): guest %fs TLS.** ruffle_core now RUNS in the
+  sandbox (PlayerBuilder constructs, Init returns). Was: guest %fs TLS - the wbx has .tdata/.tbss and 149 %fs:
   accesses, and Init faults at the first thread_local read (HashMap
   RandomState) because the guest thread pointer is not established (arch_prctl
   158 absent from miniBox's dispatch; host-context %fs switching unwired).
