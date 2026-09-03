@@ -203,3 +203,25 @@ means carrying LLVM in the guest.
   ruffle asked for a multisampled stencil buffer softpipe cannot allocate.
 - **`panic = "immediate-abort"` while std still unwinds** is undefined, and it
   showed up only once the core did real work. The guest now uses `abort`.
+
+
+## M6 - savestates (DONE)
+
+`ruffle state gate: 30/30`. Each movie runs twice: once normally, once with the
+whole machine saved and reloaded before EVERY frame. Both runs agree on the
+trace, the audio AND the picture, byte for byte - across trace movies, movies
+that take input, and movies that draw.
+
+The picture surviving is worth a note, because the GPU is outside the sandbox
+and therefore outside the savestate: it survives because ruffle redraws each
+frame from the display list rather than accumulating it, so a reloaded machine
+draws the same frame again from the same state.
+
+Getting here needed a fix in miniBox (96514d3): page snapshots were taken with
+malloc inside the SIGSEGV handler, which is not async-signal-safe. It survived
+while few pages were taken and stopped surviving the moment a core was sealed -
+sealing marks every dirty page clean, so the next frame takes thousands of
+snapshots at once while the graphics driver is itself allocating, and the
+handler re-enters the allocator on a held lock. The failure was mute (a fault
+inside the handler is delivered with SIGSEGV blocked, so the process is killed
+with no diagnosis). Snapshots now come from pages miniBox maps itself.

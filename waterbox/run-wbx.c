@@ -15,6 +15,34 @@
 #include "minibox.h"
 #include <stdint.h>
 
+/* --rerecord saves and reloads the machine before every single frame. If any
+ * of the machine lives outside the sandbox's memory - or the core keeps a
+ * pointer across a load - the run diverges from an ordinary one. */
+struct statebuf { uint8_t *p; size_t len, cap, pos; };
+static struct statebuf g_state;
+static int32_t state_write(uintptr_t ud, const uint8_t *d, uintptr_t n)
+{
+	struct statebuf *b = (struct statebuf *)ud;
+	if (b->len + n > b->cap) {
+		size_t want = (b->len + n) * 2;
+		uint8_t *q = (uint8_t *)realloc(b->p, want);
+		if (!q) return -1;
+		b->p = q; b->cap = want;
+	}
+	memcpy(b->p + b->len, d, n);
+	b->len += n;
+	return 0;
+}
+static intptr_t state_read(uintptr_t ud, uint8_t *d, uintptr_t n)
+{
+	struct statebuf *b = (struct statebuf *)ud;
+	size_t left = b->len - b->pos;
+	if (n > left) n = left;
+	memcpy(d, b->p + b->pos, n);
+	b->pos += n;
+	return (intptr_t)n;
+}
+
 /* the host's end of the GPU bridge (waterbox/gl-host.c) */
 int chimera_gl_host_init(char *err, int errlen);
 const char *chimera_gl_host_description(void);
@@ -43,6 +71,7 @@ int main(int argc, char **argv) {
 	int quiet = 0;
 	const char *movespath = NULL, *audiopath = NULL, *peakspath = NULL, *spoofurl = NULL;
 	const char *videopath = NULL;
+	int rerecord = 0;
 	const char *files[64][2]; int nfiles = 0;
 	for (int i = 3; i < argc; i++) {
 		if (!strcmp(argv[i], "--frames") && i + 1 < argc) frames = atol(argv[++i]);
@@ -52,6 +81,7 @@ int main(int argc, char **argv) {
 		else if (!strcmp(argv[i], "--audio-peaks") && i + 1 < argc) peakspath = argv[++i];
 		else if (!strcmp(argv[i], "--spoof-url") && i + 1 < argc) spoofurl = argv[++i];
 		else if (!strcmp(argv[i], "--video-out") && i + 1 < argc) videopath = argv[++i];
+		else if (!strcmp(argv[i], "--rerecord")) rerecord = 1;
 		else if (!strcmp(argv[i], "--file") && i + 1 < argc && nfiles < 64) {
 			char *eq = strchr(argv[++i], '=');
 			if (eq) { *eq = 0; files[nfiles][0] = argv[i]; files[nfiles][1] = eq + 1; nfiles++; }
@@ -144,6 +174,16 @@ int main(int argc, char **argv) {
 		fprintf(stderr, "init failed: %s\n", GetLoadError());
 		return 1;
 	}
+
+	/* Sealed once the movie is loaded: the savestate is a diff from here, and
+	 * everything the SWF brought with it is baseline rather than state. */
+	{
+		mb_return sr;
+		fprintf(stderr, "[seal] starting\n"); fflush(stderr);
+		wbx_seal(h, &sr);
+		fprintf(stderr, "[seal] done\n"); fflush(stderr);
+		if (sr.error_message[0]) { fprintf(stderr, "seal: %s\n", sr.error_message); return 1; }
+	}
 	/* the corpus protocol scripts TextInput as its own event, so a replayed
 	 * moves file must not have key presses type characters on top */
 	if (moves) SetTextInput(0);
@@ -155,6 +195,15 @@ int main(int argc, char **argv) {
 				if (sscanf(tok, "A%ld=%ld", &idx, &val) == 2) SetAxis((int32_t)idx, (int32_t)val);
 				else if (sscanf(tok, "B%ld=%ld", &idx, &val) == 2) SetButton((int32_t)idx, (int32_t)val);
 			}
+		}
+		if (rerecord) {
+			mb_return sr;
+			g_state.len = 0;
+			wbx_save_state(h, state_write, (uintptr_t)&g_state, &sr);
+			if (sr.error_message[0]) { fprintf(stderr, "save_state: %s\n", sr.error_message); return 1; }
+			g_state.pos = 0;
+			wbx_load_state(h, state_read, (uintptr_t)&g_state, &sr);
+			if (sr.error_message[0]) { fprintf(stderr, "load_state: %s\n", sr.error_message); return 1; }
 		}
 		FrameAdvance(0);
 		/* this frame's audio: digest it (and dump it) the way the native reference does */

@@ -17,6 +17,11 @@
 #                  ruffle's own output.expected.png, and rendered twice to show
 #                  the frame does not wander. This is the leg that proves the
 #                  core draws Flash rather than merely running it.
+#   state        - (M6) savestates. Each movie in tests/state-list.txt is run
+#                  twice: normally, and with the whole machine saved and
+#                  reloaded before EVERY frame. Both runs must agree on the
+#                  trace, the audio and the picture - which is the question a
+#                  rewind asks, asked harder than a rewind asks it.
 #   input        - (M2) tests that ship an input.json: the stream is converted
 #                  to per-frame levels (tests/input2moves.py), replayed through
 #                  SetAxis/SetButton, and the trace must again equal ruffle's
@@ -146,6 +151,30 @@ if [ "$have_sandbox" = 1 ] && [ -f "$alist" ]; then
   done < "$alist"
 fi
 
+# ---- state: does the machine survive being saved and reloaded? ----
+sok=0; sbadstate=0; stotal=0
+slist="$root/tests/state-list.txt"
+if [ "$have_sandbox" = 1 ] && [ -f "$slist" ]; then
+  while IFS='|' read -r rel nf; do
+    case "$rel" in ''|\#*) continue ;; esac
+    stotal=$((stotal+1))
+    d="$swfs/$rel"
+    fargs=""
+    for f in $(cd "$d" && ls | grep -vE '^(test\.swf|output.*|test\.toml|input\.json|source\.as|Test\.as|.*\.fla|.*\.flad|regenerate.*\.sh|.*\.md|.*\.rs)$'); do
+      case "$f" in *.swf|*.mp3|*.bin|*.txt|*.xml|*.flv|*.csv|*.dat|*.gif|*.jpg|*.jpeg|*.png) fargs="$fargs --file $f=$d/$f" ;; esac
+    done
+    iarg=""; mv=""
+    if [ -f "$d/input.json" ]; then mv=$(mktemp); python3 "$root/tests/input2moves.py" "$d/input.json" > "$mv" 2>/dev/null && iarg="--input $mv"; fi
+    plain=$(timeout 120 "$wbx" "$core" "$d/test.swf" --frames "$nf" --quiet $iarg $fargs 2>&1 | grep -oE '(traceDigest|audioDigest|videoDigest)=[0-9a-f]+' | tr '\n' ' ')
+    rer=$(timeout 300 "$wbx" "$core" "$d/test.swf" --frames "$nf" --quiet $iarg $fargs --rerecord 2>&1 | grep -oE '(traceDigest|audioDigest|videoDigest)=[0-9a-f]+' | tr '\n' ' ')
+    [ -n "$mv" ] && rm -f "$mv"
+    if [ -z "$plain" ]; then sbadstate=$((sbadstate+1)); echo "  state NO RUN $rel"; continue; fi
+    if [ "$plain" = "$rer" ]; then sok=$((sok+1)); else
+      sbadstate=$((sbadstate+1)); echo "  state DIVERGED $rel"; echo "    plain:    $plain"; echo "    rerecord: $rer"
+    fi
+  done < "$slist"
+fi
+
 # ---- image: does the core draw what ruffle draws? ----
 gok=0; gbad=0; gtotal=0
 glist="$root/tests/image-list.txt"
@@ -182,6 +211,7 @@ if [ "$have_sandbox" = 1 ] && [ -f "$glist" ]; then
 fi
 
 if [ "$have_sandbox" = 1 ]; then
+  echo "ruffle state gate: $sok/$stotal movies survive a save and reload before every frame with the same trace, audio and picture; $sbadstate failures"
   echo "ruffle image gate: $gok/$gtotal movies draw the frame ruffle draws (8/channel, 99% of pixels), reruns identical; $gbad failures"
   echo "ruffle navigator gate: $nok/$ntotal movies load their associated files (loadMovie/loadSound/loadVariables/URLLoader) with the trace ruffle expects, reruns identical; $nbad failures"
   echo "ruffle audio gate: $aok/$atotal sound movies: ruffle's amplitude assertions hold, native == sandbox byte for byte, reruns identical; $abad failures"
@@ -190,4 +220,4 @@ if [ "$have_sandbox" = 1 ]; then
 else
   echo "ruffle gate: $ok/$total trace-identical to ruffle AND deterministic; $bad correctness, $nondet determinism failures (sandbox SKIPPED: build waterbox/build/core.wbx with build-guest.sh)"
 fi
-[ "$bad" -eq 0 ] && [ "$nondet" -eq 0 ] && [ "$sbad" -eq 0 ] && [ "$ibad" -eq 0 ] && [ "$abad" -eq 0 ] && [ "$nbad" -eq 0 ] && [ "$gbad" -eq 0 ]
+[ "$bad" -eq 0 ] && [ "$nondet" -eq 0 ] && [ "$sbad" -eq 0 ] && [ "$ibad" -eq 0 ] && [ "$abad" -eq 0 ] && [ "$nbad" -eq 0 ] && [ "$gbad" -eq 0 ] && [ "$sbadstate" -eq 0 ]

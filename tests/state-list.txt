@@ -1,0 +1,36 @@
+avm1/access_unnamed_shape|1
+avm1/action_to_integer|1
+avm1/add|1
+avm1/add2|1
+avm1/add_property|1
+avm1/add_swf4|1
+avm1/add_swf5|1
+avm1/arguments|1
+avm1/array_call_method|1
+avm1/array_concat|1
+avm1/array_constructor|1
+avm1/array_enumerate|1
+avm1/array_length|1
+avm1/array_properties|1
+avm1/array_prototyping|1
+avm1/array_slice|1
+avm1/array_sort|1
+avm1/array_sort_random|1
+avm1/array_splice|1
+avm1/array_trivial|1
+avm1/bitmap_data_copypixels|2
+avm1/color|1
+avm1/bitmap_data_fillrect|1
+avm1/bitmap_data_perlinnoise|1
+avm1/bitmap_data_pixeldissolve_image|1
+avm1/bitmapdata_applyfilter_colormatrix|1
+avm1/define_font_glyph_table_order|1
+avm1/define_font_glyph_table_overlap|1
+avm1/display_object_properties|1
+avm1/edittext_stylesheet|1
+# A cross-section - trace movies, movies that take input, movies that draw.
+# The leg runs each one twice: once normally, once saving and loading the whole
+# machine before EVERY frame. Both runs must agree on the trace, the audio and
+# the picture. Saving every frame is the harshest form of the question a
+# rewind or a TAStudio branch asks, and it is deliberately more than either
+# does in practice.
