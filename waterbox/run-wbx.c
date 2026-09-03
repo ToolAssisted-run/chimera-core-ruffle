@@ -6,7 +6,9 @@
  * ruffle's corpus ships the expected output.txt next to each test.swf, so all
  * three can be compared with cmp.
  *
- * Usage: run-wbx <core.wbx> <file.swf> --frames <n> [--quiet]
+ * Usage: run-wbx <core.wbx> <file.swf> --frames <n> [--quiet] [--input <moves>]
+ *   --input replays a moves file (tests/input2moves.py): one line per frame of
+ *   "A<axis>=<v>" / "B<button>=<0|1>" tokens, applied before that frame.
  */
 #include "minibox.h"
 #include <stdio.h>
@@ -30,10 +32,14 @@ int main(int argc, char **argv) {
 	const char *corepath = argv[1], *swfpath = argv[2];
 	long frames = 1;
 	int quiet = 0;
+	const char *movespath = NULL;
 	for (int i = 3; i < argc; i++) {
 		if (!strcmp(argv[i], "--frames") && i + 1 < argc) frames = atol(argv[++i]);
 		else if (!strcmp(argv[i], "--quiet")) quiet = 1;
+		else if (!strcmp(argv[i], "--input") && i + 1 < argc) movespath = argv[++i];
 	}
+	FILE *moves = movespath ? fopen(movespath, "r") : NULL;
+	if (movespath && !moves) { perror(movespath); return 1; }
 
 	FILE *cf = fopen(corepath, "rb");
 	if (!cf) { perror(corepath); return 1; }
@@ -66,13 +72,29 @@ int main(int argc, char **argv) {
 	const uint8_t *(*GetTty)(void) = (const uint8_t *(*)(void))proc(h, "GetTty");
 	int64_t (*GetTtySize)(void) = (int64_t (*)(void))proc(h, "GetTtySize");
 	uint64_t (*GetTraceDigest)(void) = (uint64_t (*)(void))proc(h, "GetTraceDigest");
+	void (*SetButton)(int32_t, int32_t) = (void (*)(int32_t, int32_t))proc(h, "SetButton");
+	void (*SetAxis)(int32_t, int32_t) = (void (*)(int32_t, int32_t))proc(h, "SetAxis");
+	void (*SetTextInput)(int32_t) = (void (*)(int32_t))proc(h, "SetTextInput");
 
 	if (!Init()) {
 		const char *(*GetLoadError)(void) = (const char *(*)(void))proc(h, "GetLoadError");
 		fprintf(stderr, "init failed: %s\n", GetLoadError());
 		return 1;
 	}
-	for (long i = 0; i < frames; i++) FrameAdvance(0);
+	/* the corpus protocol scripts TextInput as its own event, so a replayed
+	 * moves file must not have key presses type characters on top */
+	if (moves) SetTextInput(0);
+	char line[4096];
+	for (long i = 0; i < frames; i++) {
+		if (moves && fgets(line, sizeof line, moves)) {
+			for (char *tok = strtok(line, " \n"); tok; tok = strtok(NULL, " \n")) {
+				long idx, val;
+				if (sscanf(tok, "A%ld=%ld", &idx, &val) == 2) SetAxis((int32_t)idx, (int32_t)val);
+				else if (sscanf(tok, "B%ld=%ld", &idx, &val) == 2) SetButton((int32_t)idx, (int32_t)val);
+			}
+		}
+		FrameAdvance(0);
+	}
 
 	int64_t n = GetTtySize();
 	const uint8_t *tty = GetTty();

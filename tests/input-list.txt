@@ -1,0 +1,26 @@
+# Corpus tests whose input.json the level model can express (tests/input2moves.py
+# rejects a press-and-release inside one frame), replayed through SetAxis/SetButton.
+#
+# NOT here, and why:
+#   avm1/root_button_mode - its input is plain mouse, but the movie does
+#     loadMovie("test.swf", "mc2"): it loads ITSELF into a child through the
+#     navigator, which ruffle's harness serves from disk and the null navigator
+#     cannot. That is M5 (associated files / URLs), not input. The child stays
+#     empty and every mc2.* line is missing until then.
+avm1/button_goto|11
+avm1/button_keypress|12
+avm1/button_properties_special_cases|20
+avm1/clip_event_propagation_order|6
+avm1/drag_drop|14
+avm1/hittest_morph_input|3
+avm1/mouse_events|8
+avm1/string_paths_eval|1
+avm1/text_blocks_clicks|6
+avm1/unload_nested_child|3
+avm2/avm2_catchup_dobj|9
+avm2/drag_drop|14
+avm2/movieclip_displayevents_clickgoto|32
+avm2/movieclip_displayevents_clickgoto2|46
+avm2/movieclip_displayevents_clickplay|32
+avm2/movieclip_displayevents_clicksymbol|32
+avm2/movieclip_text_mousedown|1

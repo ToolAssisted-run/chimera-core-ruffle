@@ -85,8 +85,8 @@ fn main() {
     let mut frames: u32 = 1;
     let mut fps: Option<f64> = None;
     let mut spoof_url: Option<String> = None;
-    let mut width: u32 = 550;
-    let mut height: u32 = 400;
+    let mut width: u32 = 0; // 0 = the movie's own stage size, like ruffle's runner
+    let mut height: u32 = 0;
     let mut i = 2;
     while i < args.len() {
         match args[i].as_str() {
@@ -103,6 +103,8 @@ fn main() {
     let movie = SwfMovie::from_data(&data, format!("file://{swf_path}"), None, None)
         .expect("parse swf");
     let frame_rate = fps.unwrap_or_else(|| movie.frame_rate().to_f64());
+    if width == 0 { width = (movie.width().to_pixels() as u32).max(1); }
+    if height == 0 { height = (movie.height().to_pixels() as u32).max(1); }
     let frame_time = FloatDuration::from_millis(1000.0 / frame_rate);
 
     let log = CaptureLog::new();
@@ -120,9 +122,11 @@ fn main() {
     let mut last_frame = 0u16;
     for _ in 0..frames {
         let mut p = player.lock().unwrap();
-        p.tick(frame_time);
+        // exactly ruffle's runner for a frame-counted test (not tick(): see the guest)
         p.run_frame();
+        p.update_timers(frame_time);
         p.audio_mut().tick();
+        p.render(); // ruffle's runner renders every frame; it has display-list side effects
         last_frame = p.current_frame().unwrap_or(last_frame);
     }
 

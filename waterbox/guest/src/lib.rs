@@ -23,9 +23,13 @@ use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 
 use ruffle_core::backend::log::LogBackend;
+use ruffle_core::events::{KeyDescriptor, KeyLocation, LogicalKey};
 use ruffle_core::limits::ExecutionLimit;
 use ruffle_core::tag_utils::SwfMovie;
-use ruffle_core::{FloatDuration, Player, PlayerBuilder};
+use ruffle_core::{FloatDuration, Player, PlayerBuilder, PlayerEvent};
+
+mod input_table;
+use input_table::{Btn, BUTTONS, BUTTON_COUNT, SHIFT_LEFT, SHIFT_RIGHT};
 
 /// Captures ActionScript trace() into a buffer the host can read back.
 #[derive(Clone)]
@@ -49,6 +53,16 @@ struct Machine {
     /// so it must outlive the call and not move while the host reads it.
     tty: Vec<u8>,
     frames: u64,
+    /// Levels the host set for this frame (SetButton/SetAxis) and what the
+    /// guest last injected, so a change becomes exactly one edge event.
+    buttons: [u8; BUTTON_COUNT],
+    prev_buttons: [u8; BUTTON_COUNT],
+    mouse: (i32, i32),
+    prev_mouse: (i32, i32),
+    /// A printable key press also types its character (TextInput), the way an
+    /// OS delivers typing to a real player. Off reproduces ruffle's own test
+    /// protocol, which sends the two as separate scripted events.
+    text_input: bool,
 }
 
 // One machine per sandbox, driven by one thread (vsched runs guest threads one
@@ -99,20 +113,29 @@ pub extern "C" fn Init() -> i32 {
     };
     let frame_rate = movie.frame_rate().to_f64();
     let frame_time = FloatDuration::from_millis(1000.0 / frame_rate);
+    // The viewport IS the stage, at scale 1, so a pointer coordinate the host
+    // sends is a stage pixel. Any other size scales the stage to fit and every
+    // click lands somewhere else: the per-object hit tests silently miss while
+    // the root-level handlers still fire. (Same rule as ruffle's own runner.)
+    let (vw, vh) = (movie.width().to_pixels() as u32, movie.height().to_pixels() as u32);
 
     let trace = Rc::new(RefCell::new(Vec::new()));
     let player = PlayerBuilder::new()
         .with_movie(movie)
         .with_log(CaptureLog { out: trace.clone() })
         .with_autoplay(true)
-        .with_viewport_dimensions(550, 400, 1.0)
+        .with_viewport_dimensions(vw.max(1), vh.max(1), 1.0)
         .build();
 
     player.lock().unwrap().preload(&mut ExecutionLimit::exhausted());
 
     unsafe {
         *core::ptr::addr_of_mut!(MACHINE) =
-            Some(Machine { player, frame_time, trace, tty: Vec::new(), frames: 0 });
+            Some(Machine {
+                player, frame_time, trace, tty: Vec::new(), frames: 0,
+                buttons: [0; BUTTON_COUNT], prev_buttons: [0; BUTTON_COUNT],
+                mouse: (0, 0), prev_mouse: (0, 0), text_input: true,
+            });
     }
     1
 }
@@ -124,10 +147,20 @@ pub extern "C" fn FrameAdvance(_input: u64) {
             Some(m) => m,
             None => return,
         };
+        // Ruffle's own test runner, for a frame-counted test, does EXACTLY:
+        // run_frame, update_timers(frame_time), audio.tick, THEN inject this
+        // frame's input, THEN render (which has display-list side effects). Not
+        // tick(): that is the wall-clock path with its own frame accumulator and
+        // AVM2 catch-up logic, and calling it as well doubles frame work in
+        // ways only timer- and input-sensitive movies notice. Same order here,
+        // so a movie's frame-k input lands exactly where ruffle's block k does
+        // and the corpus is a valid oracle.
         let mut p = m.player.lock().unwrap();
-        p.tick(m.frame_time);
         p.run_frame();
+        p.update_timers(m.frame_time);
         p.audio_mut().tick();
+        inject_edges(&mut p, &mut m.buttons, &mut m.prev_buttons, m.mouse, &mut m.prev_mouse, m.text_input);
+        p.render();
         drop(p);
         m.frames += 1;
     }
@@ -186,4 +219,108 @@ pub extern "C" fn GetFrameCount() -> u64 {
 #[no_mangle]
 pub extern "C" fn IsRunning() -> i32 {
     unsafe { if (*core::ptr::addr_of!(MACHINE)).is_some() { 1 } else { 0 } }
+}
+
+/// Turn the host's LEVELS into Ruffle's EDGES: one MouseMove if the pointer
+/// moved, then one Down/Up per button whose level changed, in wire order (a
+/// fixed order is what makes two frames with the same levels identical).
+fn inject_edges(
+    p: &mut Player,
+    buttons: &mut [u8; BUTTON_COUNT],
+    prev: &mut [u8; BUTTON_COUNT],
+    mouse: (i32, i32),
+    prev_mouse: &mut (i32, i32),
+    text_input: bool,
+) {
+    let (x, y) = (mouse.0 as f64, mouse.1 as f64);
+    // A pointer that moved AND pressed in the same frame gets one event, the
+    // press, which carries the position: Ruffle's own protocol sends a bare
+    // MouseDown at a position, and a preceding synthetic move would fire hover
+    // events the scripted stream never had. A move on its own is a MouseMove.
+    let mouse_edge = (0..3).any(|i| buttons[i] != prev[i]);
+    if mouse != *prev_mouse {
+        if !mouse_edge {
+            p.handle_event(PlayerEvent::MouseMove { x, y });
+        }
+        *prev_mouse = mouse;
+    }
+    let shift = buttons[SHIFT_LEFT] != 0 || buttons[SHIFT_RIGHT] != 0;
+    for i in 0..BUTTON_COUNT {
+        if buttons[i] == prev[i] {
+            continue;
+        }
+        let down = buttons[i] != 0;
+        match &BUTTONS[i] {
+            Btn::Mouse(b) => {
+                let button = *b;
+                if down {
+                    // index: Some(0) is what ruffle's own harness sends - click
+                    // counting from wall-clock time is exactly what a TAS must not have
+                    p.handle_event(PlayerEvent::MouseDown { x, y, button, index: Some(0) });
+                } else {
+                    p.handle_event(PlayerEvent::MouseUp { x, y, button });
+                }
+            }
+            Btn::Char(lo, hi, pk) => {
+                let ch = if shift { *hi } else { *lo };
+                let key = KeyDescriptor { physical_key: *pk, logical_key: LogicalKey::Character(ch), key_location: KeyLocation::Standard };
+                if down {
+                    p.handle_event(PlayerEvent::KeyDown { key });
+                    if text_input { p.handle_event(PlayerEvent::TextInput { codepoint: ch }); }
+                } else {
+                    p.handle_event(PlayerEvent::KeyUp { key });
+                }
+            }
+            Btn::Named(nk, pk, loc) => {
+                let key = KeyDescriptor { physical_key: *pk, logical_key: LogicalKey::Named(*nk), key_location: *loc };
+                if down { p.handle_event(PlayerEvent::KeyDown { key }); } else { p.handle_event(PlayerEvent::KeyUp { key }); }
+            }
+            Btn::NumChar(ch, pk) => {
+                let key = KeyDescriptor { physical_key: *pk, logical_key: LogicalKey::Character(*ch), key_location: KeyLocation::Numpad };
+                if down {
+                    p.handle_event(PlayerEvent::KeyDown { key });
+                    if text_input { p.handle_event(PlayerEvent::TextInput { codepoint: *ch }); }
+                } else {
+                    p.handle_event(PlayerEvent::KeyUp { key });
+                }
+            }
+        }
+        prev[i] = buttons[i];
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn SetButton(index: i32, state: i32) {
+    unsafe {
+        if let Some(m) = &mut *core::ptr::addr_of_mut!(MACHINE) {
+            if index >= 0 && (index as usize) < BUTTON_COUNT {
+                m.buttons[index as usize] = if state != 0 { 1 } else { 0 };
+            }
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn SetAxis(index: i32, value: i32) {
+    unsafe {
+        if let Some(m) = &mut *core::ptr::addr_of_mut!(MACHINE) {
+            match index {
+                0 => m.mouse.0 = value,
+                1 => m.mouse.1 = value,
+                _ => {}
+            }
+        }
+    }
+}
+
+/// Whether a printable key press also types its character. On by default
+/// (what a player at a real keyboard gets); the corpus oracle runs with it
+/// off, because ruffle's test protocol scripts TextInput separately.
+#[no_mangle]
+pub extern "C" fn SetTextInput(on: i32) {
+    unsafe {
+        if let Some(m) = &mut *core::ptr::addr_of_mut!(MACHINE) {
+            m.text_input = on != 0;
+        }
+    }
 }
