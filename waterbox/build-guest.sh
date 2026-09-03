@@ -21,16 +21,22 @@ guest="$here/guest"
 
 ( cd "$guest" && cargo +nightly build --release --target x86_64-unknown-linux-musl )
 a="$guest/target/x86_64-unknown-linux-musl/release/libruffle_guest.a"
-[ -f "$a" ] || a="$guest/target/x86_64-unknown-linux-musl/release/librustguest.a"  # trivial proof crate
 
 mkdir -p "$here/build"
 "$mb/musl-gcc" -c -mcmodel=large -fno-pic -fno-pie -fno-stack-protector \
   -o "$here/build/unwind-stubs.o" "$guest/unwind-stubs.c"
 
-exports="-Wl,-u,Init -Wl,-u,FrameAdvance -Wl,-u,GetDigest"
+exports="-Wl,-u,Init -Wl,-u,AllocSwf -Wl,-u,FrameAdvance -Wl,-u,GetTty -Wl,-u,GetTtySize -Wl,-u,GetTraceDigest -Wl,-u,GetFrameCount -Wl,-u,GetLoadError -Wl,-u,IsRunning"
 "$mb/musl-gcc" -mcmodel=large -fno-pic -fno-pie -static -no-pie \
   -Wl,--eh-frame-hdr,-O2,--no-relax -T "$minibox/source/guest/linkscript.T" \
   $exports -o "$here/build/core.wbx" \
   "$minibox/source/guest/cxxglue.c" "$mb/source/guest/emulibc.c.o" \
   "$a" "$here/build/unwind-stubs.o"
 echo "built: $here/build/core.wbx"
+
+# the frontend-free runner, against the same miniBox host the gates use
+if [ -f "$mb/source/host/libminiboxhost.so" ]; then
+	cc -O2 -I"$minibox/source/host" -o "$here/build/run-wbx" "$here/run-wbx.c" \
+		"$mb/source/host/libminiboxhost.so" -Wl,-rpath,"$mb/source/host"
+	echo "built: $here/build/run-wbx"
+fi

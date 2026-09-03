@@ -7,7 +7,11 @@
 #                  of trace-only tests (tests/oracle-list.txt), byte for byte.
 #   determinism  - each of those SWFs, run three times, gives an identical
 #                  trace digest. This is the property the whole core exists to
-#                  provide, and the sandbox will have to preserve it.
+#                  provide.
+#   sandbox      - the SAME SWF through the waterboxed core produces the same
+#                  trace as ruffle expects AND the same digest as native. This
+#                  is the milestone: Flash running inside the sandbox, where
+#                  the determinism is enforced rather than hoped for.
 #
 # The oracle list holds only tests the null-backend player can fully serve
 # (trace + frame stepping); tests needing input, a navigator or fonts arrive
@@ -19,6 +23,8 @@ here="$(cd "$(dirname "$0")" && pwd)"
 root="$(cd "$here/.." && pwd)"
 ruffle="${RUFFLE_SRC:-$HOME/ruffle-src}"
 bin="$root/waterbox/run-native/target/release/run-native"
+wbx="$root/waterbox/build/run-wbx"
+core="$root/waterbox/build/core.wbx"
 while [ $# -gt 0 ]; do
   case "$1" in
     --ruffle) ruffle="$2"; shift 2 ;;
@@ -32,7 +38,9 @@ list="$root/tests/oracle-list.txt"
 [ -d "$swfs" ] || { echo "ruffle corpus not found: $swfs (set RUFFLE_SRC)" >&2; exit 1; }
 [ -f "$list" ] || { echo "oracle list missing: $list" >&2; exit 1; }
 
-ok=0; bad=0; nondet=0; total=0
+ok=0; bad=0; nondet=0; total=0; sbad=0; sskip=0
+have_sandbox=1
+[ -x "$wbx" ] && [ -f "$core" ] || have_sandbox=0
 while IFS='|' read -r rel nf; do
   [ -n "$rel" ] || continue
   total=$((total+1))
@@ -43,9 +51,22 @@ while IFS='|' read -r rel nf; do
   d1=$(timeout 30 "$bin" "$sw" --frames "$nf" 2>&1 >/dev/null | grep -oP 'traceSha1=\K\w+')
   d2=$(timeout 30 "$bin" "$sw" --frames "$nf" 2>&1 >/dev/null | grep -oP 'traceSha1=\K\w+')
   if [ "$d1" != "$d2" ]; then echo "FAIL determinism: $rel ($d1 vs $d2)"; nondet=$((nondet+1)); continue; fi
+  if [ "$have_sandbox" = 1 ]; then
+    sout=$(timeout 60 "$wbx" "$core" "$sw" --frames "$nf" 2>/dev/null)
+    # against ruffle's own expectation AND against what native produced: the
+    # second is the one that says the sandbox changed nothing.
+    if [ "$sout" != "$(cat "$exp")" ]; then echo "FAIL sandbox trace: $rel"; sbad=$((sbad+1)); continue; fi
+    if [ "$sout" != "$a" ]; then echo "FAIL sandbox != native: $rel"; sbad=$((sbad+1)); continue; fi
+  else
+    sskip=$((sskip+1))
+  fi
   ok=$((ok+1))
 done < "$list"
 
 echo "-----"
-echo "ruffle M0 native gate: $ok/$total trace-identical to ruffle AND deterministic; $bad correctness, $nondet determinism failures"
-[ "$bad" -eq 0 ] && [ "$nondet" -eq 0 ]
+if [ "$have_sandbox" = 1 ]; then
+  echo "ruffle gate: $ok/$total trace-identical to ruffle, deterministic, and IDENTICAL IN THE SANDBOX; $bad correctness, $nondet determinism, $sbad sandbox failures"
+else
+  echo "ruffle gate: $ok/$total trace-identical to ruffle AND deterministic; $bad correctness, $nondet determinism failures (sandbox SKIPPED: build waterbox/build/core.wbx with build-guest.sh)"
+fi
+[ "$bad" -eq 0 ] && [ "$nondet" -eq 0 ] && [ "$sbad" -eq 0 ]

@@ -57,7 +57,7 @@ approximates. That is the pitch.
   (navigator/network, input injection, fonts) are deferred to M2/M3/M5, not on
   the list. Java: a portable JDK lives at ~/.local/jdk (asc.jar needs it);
   `build-native.sh` puts it on PATH.
-- **M1 IN PROGRESS.** The Rust-in-waterbox toolchain is PROVEN (2026-09-03):
+- **M1 DONE (2026-09-03).** The Rust-in-waterbox toolchain is PROVEN (2026-09-03):
   a trivial Rust guest (std Vec/sort/hash) runs inside miniBox byte-identical
   to native (digest 885242c4a6382a93) and savestate round-trips. Recipe
   (waterbox/build-guest.sh, waterbox/guest/): nightly `-Z build-std`
@@ -70,8 +70,21 @@ approximates. That is the pitch.
   compiles AND links AND runs for the musl guest with ZERO undefined symbols -
   the big dep tree is not the problem. It runs past getrandom(318) (std's
   HashMap seed), now implemented deterministically in miniBox (cb7bed6).
-  **SOLVED (miniBox 62ca831): guest %fs TLS.** ruffle_core now RUNS in the
-  sandbox (PlayerBuilder constructs, Init returns). Was: guest %fs TLS - the wbx has .tdata/.tbss and 149 %fs:
+  **Flash now runs inside the waterbox.** The gate is 120/120 on all three
+  properties: the trace matches ruffle's own committed output.txt, three runs
+  agree, and the SANDBOX trace is byte-identical to the native one. Needed
+  (a) guest %fs TLS (miniBox 62ca831) and (b) fcntl's descriptor-flag commands
+  (miniBox 7e3d82e). The export surface is waterbox/guest/src/lib.rs
+  (AllocSwf/Init/FrameAdvance/GetTty/GetTtySize/GetTraceDigest/GetFrameCount/
+  GetLoadError/IsRunning) driven by waterbox/run-wbx.c.
+
+  **KNOWN BUG, deferred: Rust std file IO inside the sandbox.** musl's open
+  returns a good fd (3) but Rust's File reports a corrupted one
+  (as_raw_fd gave 16728), so std::fs::read fails; reproducible in a ten-line
+  guest, and NOT caused by the %fs work (it happens with the swap forced off).
+  M1 sidesteps it - the host hands the movie over through AllocSwf, writing
+  guest memory directly - but M5's navigator (associated files, URL spoofing)
+  will need it fixed. Was: guest %fs TLS - the wbx has .tdata/.tbss and 149 %fs:
   accesses, and Init faults at the first thread_local read (HashMap
   RandomState) because the guest thread pointer is not established (arch_prctl
   158 absent from miniBox's dispatch; host-context %fs switching unwired).

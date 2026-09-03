@@ -9,6 +9,11 @@ edition = "2021"
 name = "ruffle_guest"
 crate-type = ["staticlib"]
 
+[dependencies]
+# The pinned ruffle checkout (extern/ruffle-pinned-commit.txt); a path dep so
+# the guest compiles the same source the native reference does.
+ruffle_core = { path = "../../../ruffle-src/core" }
+
 [profile.release]
 panic = "immediate-abort"
 opt-level = 2
