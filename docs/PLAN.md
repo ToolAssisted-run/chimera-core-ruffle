@@ -66,11 +66,17 @@ approximates. That is the pitch.
   (cargo-features opt-in) strips the unwinder; inert abort() stubs
   (unwind-stubs.c) satisfy std's leftover libgcc `_Unwind_*` refs instead of
   the host's small-model glibc libgcc_eh; `musl-gcc` links with emulibc +
-  cxxglue + linkscript.T, exports forced with `-u`. REMAINING: swap the
-  trivial crate for a guest wrapper around ruffle_core (the big dep tree - may
-  surface threads/TLS/C-dep issues), wire the WaterboxCore export surface
-  (Init/FrameAdvance/memory domains/GetTty for trace), and prove the M0 trace
-  digests reproduce in the sandbox.
+  cxxglue + linkscript.T, exports forced with `-u`. FINDINGS (recon done): ruffle_core
+  compiles AND links AND runs for the musl guest with ZERO undefined symbols -
+  the big dep tree is not the problem. It runs past getrandom(318) (std's
+  HashMap seed), now implemented deterministically in miniBox (cb7bed6).
+  **Current frontier: guest %fs TLS** - the wbx has .tdata/.tbss and 149 %fs:
+  accesses, and Init faults at the first thread_local read (HashMap
+  RandomState) because the guest thread pointer is not established (arch_prctl
+  158 absent from miniBox's dispatch; host-context %fs switching unwired).
+  NEXT: make guest TLS work, then wire the WaterboxCore exports
+  (Init/FrameAdvance/memory domains/GetTty for trace) and reproduce M0's trace
+  digests in the sandbox.
 - **M2** input (mouse 2 axes + buttons + keyboard). **M3** audio.
 - **M4** rendering (wgpu/Mesa-softpipe over the GPU bridge, or software).
 - **M5** URL spoofing + associated-file navigator backed by the sandbox FS.
