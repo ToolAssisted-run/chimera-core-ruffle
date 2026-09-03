@@ -1,0 +1,4 @@
+build/
+extern/ruffle/target/
+tests/roms-local/
+*.log
