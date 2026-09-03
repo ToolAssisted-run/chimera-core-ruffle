@@ -12,7 +12,7 @@ crate-type = ["staticlib"]
 [dependencies]
 # The pinned ruffle checkout (extern/ruffle-pinned-commit.txt); a path dep so
 # the guest compiles the same source the native reference does.
-ruffle_core = { path = "../../../ruffle-src/core" }
+ruffle_core = { path = "../../../ruffle-src/core", features = ["audio", "mp3", "aac", "default_font"] }  # the feature set ruffle's own test harness builds with
 
 [profile.release]
 panic = "immediate-abort"

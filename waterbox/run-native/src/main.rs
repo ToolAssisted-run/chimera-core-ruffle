@@ -8,14 +8,38 @@
 // oracle - no console, no rendering, no copyrighted content.
 //
 // Usage: run-native <file.swf> --frames <n> [--fps <f>] [--spoof-url <url>]
-//                    [--width <px>] [--height <px>]
+//                    [--width <px>] [--height <px>] [--audio-out <raw i16 stereo>]
+//                    [--audio-peaks <one max-amplitude per frame>]
 // Prints the trace to stdout and, on stderr, one summary line:
 //   ruffle: frames=<n> traceBytes=<k> traceSha1=<hex> lastFrame=<cur>
 
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use ruffle_core::backend::audio::{
+    swf, AudioBackend, AudioMixer, DecodeError, RegisterError, SoundHandle, SoundInstanceHandle,
+    SoundStreamInfo, SoundTransform,
+};
 use ruffle_core::backend::log::LogBackend;
+use ruffle_core::impl_audio_mixer_backend;
+
+/// Ruffle's software mixer a frame at a time - identical to the guest's, so the
+/// two produce the same samples or the gate says so.
+struct NativeAudio { mixer: AudioMixer, buffer: Rc<RefCell<Vec<f32>>> }
+impl AudioBackend for NativeAudio {
+    impl_audio_mixer_backend!(mixer);
+    fn play(&mut self) {}
+    fn pause(&mut self) {}
+    fn set_frame_rate(&mut self, frame_rate: f64) {
+        // whole stereo frames, exactly as the guest (see its comment)
+        let frames = (44100f64 / frame_rate).round() as usize;
+        self.buffer.borrow_mut().resize(frames * 2, 0.0);
+    }
+    fn tick(&mut self) {
+        let mut b = self.buffer.borrow_mut();
+        if !b.is_empty() { self.mixer.mix::<f32>(b.as_mut()); }
+    }
+}
 use ruffle_core::tag_utils::SwfMovie;
 use ruffle_core::limits::ExecutionLimit;
 use ruffle_core::{FloatDuration, PlayerBuilder};
@@ -87,6 +111,8 @@ fn main() {
     let mut spoof_url: Option<String> = None;
     let mut width: u32 = 0; // 0 = the movie's own stage size, like ruffle's runner
     let mut height: u32 = 0;
+    let mut audio_out: Option<String> = None;
+    let mut audio_peaks: Option<String> = None;
     let mut i = 2;
     while i < args.len() {
         match args[i].as_str() {
@@ -95,6 +121,8 @@ fn main() {
             "--spoof-url" => { spoof_url = Some(args[i + 1].clone()); i += 2; }
             "--width" => { width = args[i + 1].parse().unwrap(); i += 2; }
             "--height" => { height = args[i + 1].parse().unwrap(); i += 2; }
+            "--audio-out" => { audio_out = Some(args[i + 1].clone()); i += 2; }
+            "--audio-peaks" => { audio_peaks = Some(args[i + 1].clone()); i += 2; }
             other => { eprintln!("unknown arg: {other}"); std::process::exit(2); }
         }
     }
@@ -108,9 +136,11 @@ fn main() {
     let frame_time = FloatDuration::from_millis(1000.0 / frame_rate);
 
     let log = CaptureLog::new();
+    let audio_buf = Rc::new(RefCell::new(Vec::new()));
     let mut builder = PlayerBuilder::new()
         .with_movie(movie)
         .with_log(log.clone())
+        .with_audio(NativeAudio { mixer: AudioMixer::new(2, 44100), buffer: audio_buf.clone() })
         .with_autoplay(true)
         .with_viewport_dimensions(width, height, 1.0);
     if let Some(url) = spoof_url {
@@ -120,6 +150,8 @@ fn main() {
 
     player.lock().unwrap().preload(&mut ExecutionLimit::exhausted());
     let mut last_frame = 0u16;
+    let mut audio_all: Vec<u8> = Vec::new();
+    let mut peaks: Vec<f32> = Vec::new();
     for _ in 0..frames {
         let mut p = player.lock().unwrap();
         // exactly ruffle's runner for a frame-counted test (not tick(): see the guest)
@@ -128,13 +160,29 @@ fn main() {
         p.audio_mut().tick();
         p.render(); // ruffle's runner renders every frame; it has display-list side effects
         last_frame = p.current_frame().unwrap_or(last_frame);
+        // the same f32 -> i16 the guest does; peaks from the i16 so both sides agree
+        let f = audio_buf.borrow();
+        let mut peak = 0i32;
+        for v in f.iter() {
+            let s16 = (v.clamp(-1.0, 1.0) * 32767.0) as i16;
+            audio_all.extend_from_slice(&s16.to_le_bytes());
+            peak = peak.max((s16 as i32).abs());
+        }
+        peaks.push(peak as f32 / 32767.0);
     }
 
     let trace = log.take();
     print!("{trace}");
+    if let Some(pth) = audio_out { std::fs::write(pth, &audio_all).expect("write audio"); }
+    if let Some(pth) = audio_peaks {
+        std::fs::write(pth, peaks.iter().map(|p| format!("{p:.6}\n")).collect::<String>()).expect("write peaks");
+    }
+    let mut ah: u64 = 1469598103934665603;
+    for b in &audio_all { ah ^= *b as u64; ah = ah.wrapping_mul(1099511628211); }
     eprintln!(
-        "ruffle: frames={frames} traceBytes={} traceSha1={} lastFrame={last_frame}",
+        "ruffle: frames={frames} traceBytes={} traceSha1={} lastFrame={last_frame} audioBytes={} audioDigest={ah:016x}",
         trace.len(),
-        sha1_hex(trace.as_bytes())
+        sha1_hex(trace.as_bytes()),
+        audio_all.len()
     );
 }

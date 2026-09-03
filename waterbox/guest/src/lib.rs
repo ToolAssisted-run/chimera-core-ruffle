@@ -22,7 +22,12 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 
+use ruffle_core::backend::audio::{
+    swf, AudioBackend, AudioMixer, DecodeError, RegisterError, SoundHandle, SoundInstanceHandle,
+    SoundStreamInfo, SoundTransform,
+};
 use ruffle_core::backend::log::LogBackend;
+use ruffle_core::impl_audio_mixer_backend;
 use ruffle_core::events::{KeyDescriptor, KeyLocation, LogicalKey};
 use ruffle_core::limits::ExecutionLimit;
 use ruffle_core::tag_utils::SwfMovie;
@@ -45,6 +50,40 @@ impl LogBackend for CaptureLog {
     fn avm_warning(&self, _message: &str) {}
 }
 
+/// Ruffle's software mixer, driven a frame at a time - the same shape as the
+/// TestAudioBackend ruffle's own harness uses, so the corpus's amplitude
+/// assertions are a valid oracle. The player sizes the buffer through
+/// set_frame_rate when the movie loads, and tick() mixes one frame into it.
+/// The buffer is shared with the machine, which hands it to the host as i16.
+struct WaterboxAudio {
+    mixer: AudioMixer,
+    buffer: Rc<RefCell<Vec<f32>>>,
+}
+impl WaterboxAudio {
+    const CHANNELS: u8 = 2;
+    const RATE: u32 = 44100;
+}
+impl AudioBackend for WaterboxAudio {
+    impl_audio_mixer_backend!(mixer);
+    fn play(&mut self) {}
+    fn pause(&mut self) {}
+    fn set_frame_rate(&mut self, frame_rate: f64) {
+        // Whole stereo frames. Ruffle's own harness rounds the INTERLEAVED
+        // sample count, which can be odd (24 fps: 88200/24 = 3675, a lone left
+        // sample); a host can only take whole frames, and the mixer should not
+        // be handed half of one either. Rounding the frame count is at most one
+        // sample per frame away from the harness and identical on both sides.
+        let frames = (Self::RATE as f64 / frame_rate).round() as usize;
+        self.buffer.borrow_mut().resize(frames * Self::CHANNELS as usize, 0.0);
+    }
+    fn tick(&mut self) {
+        let mut b = self.buffer.borrow_mut();
+        if !b.is_empty() {
+            self.mixer.mix::<f32>(b.as_mut());
+        }
+    }
+}
+
 struct Machine {
     player: Arc<Mutex<Player>>,
     frame_time: FloatDuration,
@@ -63,6 +102,10 @@ struct Machine {
     /// OS delivers typing to a real player. Off reproduces ruffle's own test
     /// protocol, which sends the two as separate scripted events.
     text_input: bool,
+    /// This frame's mixed audio: the mixer's f32 buffer, and the i16 stereo
+    /// copy the host reads through GetAudio (it must not move during the read).
+    audio_f32: Rc<RefCell<Vec<f32>>>,
+    audio_i16: Vec<i16>,
 }
 
 // One machine per sandbox, driven by one thread (vsched runs guest threads one
@@ -120,9 +163,11 @@ pub extern "C" fn Init() -> i32 {
     let (vw, vh) = (movie.width().to_pixels() as u32, movie.height().to_pixels() as u32);
 
     let trace = Rc::new(RefCell::new(Vec::new()));
+    let audio_f32 = Rc::new(RefCell::new(Vec::new()));
     let player = PlayerBuilder::new()
         .with_movie(movie)
         .with_log(CaptureLog { out: trace.clone() })
+        .with_audio(WaterboxAudio { mixer: AudioMixer::new(WaterboxAudio::CHANNELS, WaterboxAudio::RATE), buffer: audio_f32.clone() })
         .with_autoplay(true)
         .with_viewport_dimensions(vw.max(1), vh.max(1), 1.0)
         .build();
@@ -135,6 +180,7 @@ pub extern "C" fn Init() -> i32 {
                 player, frame_time, trace, tty: Vec::new(), frames: 0,
                 buttons: [0; BUTTON_COUNT], prev_buttons: [0; BUTTON_COUNT],
                 mouse: (0, 0), prev_mouse: (0, 0), text_input: true,
+                audio_f32, audio_i16: Vec::new(),
             });
     }
     1
@@ -159,6 +205,12 @@ pub extern "C" fn FrameAdvance(_input: u64) {
         p.run_frame();
         p.update_timers(m.frame_time);
         p.audio_mut().tick();
+        {
+            // f32 -> i16, the conversion every host expects; clamp, never wrap
+            let f = m.audio_f32.borrow();
+            m.audio_i16.clear();
+            m.audio_i16.extend(f.iter().map(|v| (v.clamp(-1.0, 1.0) * 32767.0) as i16));
+        }
         inject_edges(&mut p, &mut m.buttons, &mut m.prev_buttons, m.mouse, &mut m.prev_mouse, m.text_input);
         p.render();
         drop(p);
@@ -321,6 +373,27 @@ pub extern "C" fn SetTextInput(on: i32) {
     unsafe {
         if let Some(m) = &mut *core::ptr::addr_of_mut!(MACHINE) {
             m.text_input = on != 0;
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn GetAudio() -> *const i16 {
+    unsafe {
+        match &*core::ptr::addr_of!(MACHINE) {
+            Some(m) => m.audio_i16.as_ptr(),
+            None => core::ptr::null(),
+        }
+    }
+}
+
+/// Stereo frames this frame (interleaved L R), at 44100 Hz.
+#[no_mangle]
+pub extern "C" fn GetAudioSampleCount() -> i32 {
+    unsafe {
+        match &*core::ptr::addr_of!(MACHINE) {
+            Some(m) => (m.audio_i16.len() / 2) as i32,
+            None => 0,
         }
     }
 }

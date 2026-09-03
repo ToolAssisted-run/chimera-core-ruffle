@@ -1,0 +1,11 @@
+# Corpus tests with [audio_assertions], frame-counted (num_frames), not
+# known_failure, whose sound is INSIDE the movie. Judged by per-frame peak
+# amplitude the way ruffle's harness does, and byte-for-byte native == sandbox.
+#
+# NOT here, and why (each fails identically on the NATIVE reference, so it is
+# not the sandbox; the sound reaches the movie through the navigator - M5):
+#   avm1/depth_replacement_audio_unloading - loadMovie("child.swf"), which plays sound.mp3
+#   avm1/sound_load_multiple_instances     - Sound.loadSound("sound.mp3")
+#   avm1/sound_mixed_attach_load           - Sound.loadSound("sound.mp3") mixed with attachSound
+avm1/sound_start_stop|5
+avm2/soundchannel_stop|4

@@ -62,6 +62,10 @@ while IFS='|' read -r rel nf; do
     # second is the one that says the sandbox changed nothing.
     if [ "$sout" != "$(cat "$exp")" ]; then echo "FAIL sandbox trace: $rel"; sbad=$((sbad+1)); continue; fi
     if [ "$sout" != "$a" ]; then echo "FAIL sandbox != native: $rel"; sbad=$((sbad+1)); continue; fi
+    # and the AUDIO the two produced, byte for byte (M3): a digest each side prints
+    nad=$(timeout 60 "$bin" "$sw" --frames "$nf" 2>&1 >/dev/null | grep -oP 'audioDigest=\K\w+')
+    sad=$(timeout 60 "$wbx" "$core" "$sw" --frames "$nf" 2>&1 >/dev/null | grep -oP 'audioDigest=\K\w+')
+    if [ -n "$nad" ] && [ "$nad" != "$sad" ]; then echo "FAIL sandbox audio != native: $rel ($sad vs $nad)"; sbad=$((sbad+1)); continue; fi
   else
     sskip=$((sskip+1))
   fi
@@ -89,10 +93,33 @@ if [ "$have_sandbox" = 1 ] && [ -f "$ilist" ]; then
   done < "$ilist"
 fi
 
+# ---- audio (M3): the corpus's amplitude assertions, plus native == sandbox ----
+aok=0; abad=0; atotal=0
+alist="$root/tests/audio-list.txt"
+if [ "$have_sandbox" = 1 ] && [ -f "$alist" ]; then
+  while IFS='|' read -r rel nf; do
+    [ -n "$rel" ] || continue
+    case "$rel" in \#*) continue ;; esac
+    atotal=$((atotal+1))
+    sw="$swfs/$rel/test.swf"; exp="$swfs/$rel/output.txt"; tml="$swfs/$rel/test.toml"
+    t="$(mktemp -d)"
+    nout=$(timeout 120 "$bin" "$sw" --frames "$nf" --audio-out "$t/n.raw" --audio-peaks "$t/n.pk" 2>/dev/null)
+    sout=$(timeout 120 "$wbx" "$core" "$sw" --frames "$nf" --audio-out "$t/s.raw" --audio-peaks "$t/s.pk" 2>/dev/null)
+    timeout 120 "$wbx" "$core" "$sw" --frames "$nf" --audio-out "$t/s2.raw" >/dev/null 2>&1
+    if [ "$nout" != "$(cat "$exp")" ] || [ "$sout" != "$(cat "$exp")" ]; then echo "FAIL audio trace: $rel"; abad=$((abad+1))
+    elif ! cmp -s "$t/n.raw" "$t/s.raw"; then echo "FAIL audio sandbox != native: $rel"; abad=$((abad+1))
+    elif ! cmp -s "$t/s.raw" "$t/s2.raw"; then echo "FAIL audio determinism: $rel"; abad=$((abad+1))
+    elif ! msg=$(python3 "$root/tests/audio-assert.py" "$tml" "$t/s.pk"); then echo "FAIL audio assertion: $rel: $msg"; abad=$((abad+1))
+    else aok=$((aok+1)); fi
+    rm -rf "$t"
+  done < "$alist"
+fi
+
 if [ "$have_sandbox" = 1 ]; then
+  echo "ruffle audio gate: $aok/$atotal sound movies: ruffle's amplitude assertions hold, native == sandbox byte for byte, reruns identical; $abad failures"
   echo "ruffle input gate: $iok/$itotal input.json streams replayed as levels, trace identical to ruffle; $ibad failures"
   echo "ruffle gate: $ok/$total trace-identical to ruffle, deterministic, and IDENTICAL IN THE SANDBOX; $bad correctness, $nondet determinism, $sbad sandbox failures"
 else
   echo "ruffle gate: $ok/$total trace-identical to ruffle AND deterministic; $bad correctness, $nondet determinism failures (sandbox SKIPPED: build waterbox/build/core.wbx with build-guest.sh)"
 fi
-[ "$bad" -eq 0 ] && [ "$nondet" -eq 0 ] && [ "$sbad" -eq 0 ] && [ "$ibad" -eq 0 ]
+[ "$bad" -eq 0 ] && [ "$nondet" -eq 0 ] && [ "$sbad" -eq 0 ] && [ "$ibad" -eq 0 ] && [ "$abad" -eq 0 ]

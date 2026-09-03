@@ -110,7 +110,26 @@ approximates. That is the pitch.
   k -> frame k) replay 17/17 trace-identical; the full gate stays 120/120.
   Not mapped yet: MouseWheel, TextControl, IME, clipboard, focus; a press AND
   release inside one frame is inexpressible as levels (every core's limit).
-  **M3** audio.
+  **M3 DONE (2026-09-03): audio.** Ruffle's own software mixer (AudioMixer,
+  44.1 kHz stereo) driven a frame at a time - the same backend shape as
+  ruffle's TestAudioBackend, via `impl_audio_mixer_backend!`, so the corpus's
+  amplitude assertions are a valid oracle. The player sizes the buffer itself
+  through set_frame_rate; tick() mixes one frame; the guest hands it to the
+  host as i16 through GetAudio/GetAudioSampleCount (capacity 44100 frames, a
+  1 fps movie). ruffle_core is built with the harness's feature set
+  (audio, mp3, aac, default_font) in both the guest and run-native.
+  ONE FACT THAT COST A ROUND: ruffle's harness rounds the INTERLEAVED sample
+  count, which is odd at 24 fps (88200/24 = 3675, a lone left sample); native
+  wrote it, the sandbox's len/2 dropped it, and every test's audio digest
+  differed by two bytes. Both sides now round the FRAME count (whole stereo
+  frames - the only thing a host can take, and the mixer never sees half a
+  frame). Gate: every one of the 120 oracle tests now also requires native
+  and sandbox audio digests to be identical; the audio leg (tests/audio-list.txt,
+  tests/audio-assert.py mirroring the harness's test_audio) requires ruffle's
+  amplitude assertions to hold, native == sandbox byte for byte, and reruns
+  identical. Three assertion tests are excluded with reasons: their sound
+  reaches the movie through the navigator (loadMovie/loadSound) and native
+  is just as silent - M5, not audio.
 - **M4** rendering (wgpu/Mesa-softpipe over the GPU bridge, or software).
 - **M5** URL spoofing + associated-file navigator backed by the sandbox FS.
 - **M6** savestates. **M7** frontend leg + package + keybinds.

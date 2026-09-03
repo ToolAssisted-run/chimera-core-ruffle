@@ -26,7 +26,7 @@ mkdir -p "$here/build"
 "$mb/musl-gcc" -c -mcmodel=large -fno-pic -fno-pie -fno-stack-protector \
   -o "$here/build/unwind-stubs.o" "$guest/unwind-stubs.c"
 
-exports="-Wl,-u,Init -Wl,-u,AllocSwf -Wl,-u,SetButton -Wl,-u,SetAxis -Wl,-u,SetTextInput -Wl,-u,FrameAdvance -Wl,-u,GetTty -Wl,-u,GetTtySize -Wl,-u,GetTraceDigest -Wl,-u,GetFrameCount -Wl,-u,GetLoadError -Wl,-u,IsRunning"
+exports="-Wl,-u,Init -Wl,-u,GetAudio -Wl,-u,GetAudioSampleCount -Wl,-u,AllocSwf -Wl,-u,SetButton -Wl,-u,SetAxis -Wl,-u,SetTextInput -Wl,-u,FrameAdvance -Wl,-u,GetTty -Wl,-u,GetTtySize -Wl,-u,GetTraceDigest -Wl,-u,GetFrameCount -Wl,-u,GetLoadError -Wl,-u,IsRunning"
 "$mb/musl-gcc" -mcmodel=large -fno-pic -fno-pie -static -no-pie \
   -Wl,--eh-frame-hdr,-O2,--no-relax -T "$minibox/source/guest/linkscript.T" \
   $exports -o "$here/build/core.wbx" \
