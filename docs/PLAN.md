@@ -131,7 +131,25 @@ approximates. That is the pitch.
   reaches the movie through the navigator (loadMovie/loadSound) and native
   is just as silent - M5, not audio.
 - **M4** rendering (wgpu/Mesa-softpipe over the GPU bridge, or software).
-- **M5** URL spoofing + associated-file navigator backed by the sandbox FS.
+- **M5 DONE (2026-09-03): navigator.** A movie's associated files
+  (loadMovie/loadSound/loadVariables/URLLoader/getURL of a relative file) are
+  served from the guest VFS the host mounts (run-wbx --file name=path); the
+  guest navigator (waterbox/guest/src/navigator.rs) ports ruffle's
+  TestNavigatorBackend - resolve relative to file:///, read the file - but reads
+  through std::fs (now that guest file IO works) and runs the load futures on an
+  IN-HOUSE executor. futures::executor::LocalPool parks a thread and never polls
+  in the single-threaded sandbox, so the navigator queues futures and the
+  machine polls them each frame with a no-op waker (deterministic: no wall
+  clock, no external wakeups). URL spoofing: SetSpoofUrl before Init sets the
+  movie's base URL (Flash domain checks; where relative loads resolve). Gate:
+  94/106 navigator-candidate corpus tests (tests/navigator-list.txt) load their
+  files with the trace ruffle expects, reruns identical. The 12 excluded (with
+  reasons on file) either need ruffle's TEST navigator to LOG its fetches into
+  the trace (a harness oracle detail; the file still loads), or fonts/image
+  decode (M4), or are the audio-via-navigator tests (M3's amplitude leg).
+  Also fixed here: the guest std file-IO bug was a STALE musl sysroot - the
+  arg-clobber fix (91b3e30) never recompiled; meson now rebuilds musl on source
+  change (miniBox af5d43a).
 - **M6** savestates. **M7** frontend leg + package + keybinds.
 
 ## Rules

@@ -8,6 +8,7 @@
  *
  * Usage: run-wbx <core.wbx> <file.swf> --frames <n> [--quiet] [--input <moves>]
  *               [--audio-out <raw i16 stereo>] [--audio-peaks <one per frame>]
+ *               [--file <vfsname>=<hostpath>]... [--spoof-url <url>]
  *   --input replays a moves file (tests/input2moves.py): one line per frame of
  *   "A<axis>=<v>" / "B<button>=<0|1>" tokens, applied before that frame.
  */
@@ -33,13 +34,19 @@ int main(int argc, char **argv) {
 	const char *corepath = argv[1], *swfpath = argv[2];
 	long frames = 1;
 	int quiet = 0;
-	const char *movespath = NULL, *audiopath = NULL, *peakspath = NULL;
+	const char *movespath = NULL, *audiopath = NULL, *peakspath = NULL, *spoofurl = NULL;
+	const char *files[64][2]; int nfiles = 0;
 	for (int i = 3; i < argc; i++) {
 		if (!strcmp(argv[i], "--frames") && i + 1 < argc) frames = atol(argv[++i]);
 		else if (!strcmp(argv[i], "--quiet")) quiet = 1;
 		else if (!strcmp(argv[i], "--input") && i + 1 < argc) movespath = argv[++i];
 		else if (!strcmp(argv[i], "--audio-out") && i + 1 < argc) audiopath = argv[++i];
 		else if (!strcmp(argv[i], "--audio-peaks") && i + 1 < argc) peakspath = argv[++i];
+		else if (!strcmp(argv[i], "--spoof-url") && i + 1 < argc) spoofurl = argv[++i];
+		else if (!strcmp(argv[i], "--file") && i + 1 < argc && nfiles < 64) {
+			char *eq = strchr(argv[++i], '=');
+			if (eq) { *eq = 0; files[nfiles][0] = argv[i]; files[nfiles][1] = eq + 1; nfiles++; }
+		}
 	}
 	FILE *moves = movespath ? fopen(movespath, "r") : NULL;
 	if (movespath && !moves) { perror(movespath); return 1; }
@@ -69,6 +76,18 @@ int main(int argc, char **argv) {
 	if (!dst) { fprintf(stderr, "guest refused a %ld byte buffer\n", swflen); return 1; }
 	if (fread(dst, 1, (size_t)swflen, sf) != (size_t)swflen) { fprintf(stderr, "short read\n"); return 1; }
 	fclose(sf);
+
+	/* associated files a movie may load (loadMovie/loadSound): mount each into
+	 * the guest VFS under the name the movie asks for. The navigator reads them
+	 * with std::fs. */
+	for (int k = 0; k < nfiles; k++) {
+		wbx_mount_file_path(h, files[k][0], files[k][1], &r);
+		if (r.error_message[0]) { fprintf(stderr, "mount %s: %s\n", files[k][0], r.error_message); return 1; }
+	}
+	if (spoofurl) {
+		void (*SetSpoofUrl)(const char *, int32_t) = (void (*)(const char *, int32_t))proc(h, "SetSpoofUrl");
+		SetSpoofUrl(spoofurl, (int32_t)strlen(spoofurl));
+	}
 
 	int (*Init)(void) = (int (*)(void))proc(h, "Init");
 	void (*FrameAdvance)(uint64_t) = (void (*)(uint64_t))proc(h, "FrameAdvance");

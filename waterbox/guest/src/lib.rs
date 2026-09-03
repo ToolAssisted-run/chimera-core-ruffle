@@ -34,7 +34,9 @@ use ruffle_core::tag_utils::SwfMovie;
 use ruffle_core::{FloatDuration, Player, PlayerBuilder, PlayerEvent};
 
 mod input_table;
+mod navigator;
 use input_table::{Btn, BUTTONS, BUTTON_COUNT, SHIFT_LEFT, SHIFT_RIGHT};
+use navigator::{run_tasks, GuestNavigator, Tasks};
 
 /// Captures ActionScript trace() into a buffer the host can read back.
 #[derive(Clone)]
@@ -106,12 +108,29 @@ struct Machine {
     /// copy the host reads through GetAudio (it must not move during the read).
     audio_f32: Rc<RefCell<Vec<f32>>>,
     audio_i16: Vec<i16>,
+    /// The navigator's load futures, drained each frame after the movie runs -
+    /// where ruffle's own runner drains its executor.
+    tasks: Tasks,
 }
 
 // One machine per sandbox, driven by one thread (vsched runs guest threads one
 // at a time), so a static is the honest representation.
 static mut MACHINE: Option<Machine> = None;
 static mut LOAD_ERROR: [u8; 256] = [0; 256];
+static mut SPOOF_URL: [u8; 512] = [0; 512];
+
+/// The URL the movie believes it was loaded from (Flash's domain checks, and
+/// where relative loads resolve). Set before Init; empty means file:///.
+#[no_mangle]
+pub extern "C" fn SetSpoofUrl(ptr: *const u8, len: i32) {
+    unsafe {
+        let n = (len as usize).min(SPOOF_URL.len() - 1);
+        let src = core::slice::from_raw_parts(ptr, n);
+        let e = &mut *core::ptr::addr_of_mut!(SPOOF_URL);
+        e[..n].copy_from_slice(src);
+        e[n] = 0;
+    }
+}
 
 fn set_load_error(msg: &str) {
     unsafe {
@@ -164,13 +183,23 @@ pub extern "C" fn Init() -> i32 {
 
     let trace = Rc::new(RefCell::new(Vec::new()));
     let audio_f32 = Rc::new(RefCell::new(Vec::new()));
-    let player = PlayerBuilder::new()
+    let tasks: Tasks = std::rc::Rc::new(RefCell::new(Vec::new()));
+    let mut builder = PlayerBuilder::new()
         .with_movie(movie)
         .with_log(CaptureLog { out: trace.clone() })
         .with_audio(WaterboxAudio { mixer: AudioMixer::new(WaterboxAudio::CHANNELS, WaterboxAudio::RATE), buffer: audio_f32.clone() })
+        .with_navigator(GuestNavigator { tasks: tasks.clone() })
         .with_autoplay(true)
-        .with_viewport_dimensions(vw.max(1), vh.max(1), 1.0)
-        .build();
+        .with_viewport_dimensions(vw.max(1), vh.max(1), 1.0);
+    let spoof = unsafe {
+        let raw = &*core::ptr::addr_of!(SPOOF_URL);
+        let n = raw.iter().position(|&b| b == 0).unwrap_or(raw.len());
+        core::str::from_utf8(&raw[..n]).ok().filter(|s| !s.is_empty()).map(|s| s.to_owned())
+    };
+    if let Some(u) = spoof {
+        builder = builder.with_spoofed_url(Some(u));
+    }
+    let player = builder.build();
 
     player.lock().unwrap().preload(&mut ExecutionLimit::exhausted());
 
@@ -180,7 +209,7 @@ pub extern "C" fn Init() -> i32 {
                 player, frame_time, trace, tty: Vec::new(), frames: 0,
                 buttons: [0; BUTTON_COUNT], prev_buttons: [0; BUTTON_COUNT],
                 mouse: (0, 0), prev_mouse: (0, 0), text_input: true,
-                audio_f32, audio_i16: Vec::new(),
+                audio_f32, audio_i16: Vec::new(), tasks,
             });
     }
     1
@@ -205,6 +234,9 @@ pub extern "C" fn FrameAdvance(_input: u64) {
         p.run_frame();
         p.update_timers(m.frame_time);
         p.audio_mut().tick();
+        drop(p);
+        run_tasks(&m.tasks); // resolve any loadMovie/loadSound the frame kicked off
+        let mut p = m.player.lock().unwrap();
         {
             // f32 -> i16, the conversion every host expects; clamp, never wrap
             let f = m.audio_f32.borrow();

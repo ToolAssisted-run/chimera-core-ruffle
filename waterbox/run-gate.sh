@@ -93,6 +93,32 @@ if [ "$have_sandbox" = 1 ] && [ -f "$ilist" ]; then
   done < "$ilist"
 fi
 
+# ---- navigator (M5): associated files served from the guest VFS -------------
+nok=0; nbad=0; ntotal=0
+nlist="$root/tests/navigator-list.txt"
+if [ "$have_sandbox" = 1 ] && [ -f "$nlist" ]; then
+  while IFS='|' read -r rel nf; do
+    [ -n "$rel" ] || continue
+    case "$rel" in \#*) continue ;; esac
+    ntotal=$((ntotal+1))
+    d="$swfs/$rel"
+    # mount every serveable sibling by basename, the way the harness serves the
+    # test's own directory
+    fargs=""
+    for f in $(cd "$d" && ls | grep -vE '^(test\.swf|output\.txt|test\.toml|input\.json|source\.as|Test\.as|.*\.fla|.*\.flad|regenerate.*\.sh|.*\.md|.*\.rs)$'); do
+      case "$f" in *.swf|*.mp3|*.bin|*.txt|*.xml|*.flv|*.csv|*.dat|*.gif|*.jpg|*.jpeg|*.png) fargs="$fargs --file $f=$d/$f" ;; esac
+    done
+    iarg=""; mv=""
+    if [ -f "$d/input.json" ]; then mv="$(mktemp)"; python3 "$root/tests/input2moves.py" "$d/input.json" > "$mv" 2>/dev/null && iarg="--input $mv"; fi
+    a=$(timeout 60 "$wbx" "$core" "$d/test.swf" --frames "$nf" $iarg $fargs 2>/dev/null)
+    b=$(timeout 60 "$wbx" "$core" "$d/test.swf" --frames "$nf" $iarg $fargs 2>/dev/null)
+    [ -n "$mv" ] && rm -f "$mv"
+    if [ "$a" != "$(cat "$d/output.txt")" ]; then echo "FAIL navigator: $rel"; nbad=$((nbad+1))
+    elif [ "$a" != "$b" ]; then echo "FAIL navigator determinism: $rel"; nbad=$((nbad+1))
+    else nok=$((nok+1)); fi
+  done < "$nlist"
+fi
+
 # ---- audio (M3): the corpus's amplitude assertions, plus native == sandbox ----
 aok=0; abad=0; atotal=0
 alist="$root/tests/audio-list.txt"
@@ -116,10 +142,11 @@ if [ "$have_sandbox" = 1 ] && [ -f "$alist" ]; then
 fi
 
 if [ "$have_sandbox" = 1 ]; then
+  echo "ruffle navigator gate: $nok/$ntotal movies load their associated files (loadMovie/loadSound/loadVariables/URLLoader) with the trace ruffle expects, reruns identical; $nbad failures"
   echo "ruffle audio gate: $aok/$atotal sound movies: ruffle's amplitude assertions hold, native == sandbox byte for byte, reruns identical; $abad failures"
   echo "ruffle input gate: $iok/$itotal input.json streams replayed as levels, trace identical to ruffle; $ibad failures"
   echo "ruffle gate: $ok/$total trace-identical to ruffle, deterministic, and IDENTICAL IN THE SANDBOX; $bad correctness, $nondet determinism, $sbad sandbox failures"
 else
   echo "ruffle gate: $ok/$total trace-identical to ruffle AND deterministic; $bad correctness, $nondet determinism failures (sandbox SKIPPED: build waterbox/build/core.wbx with build-guest.sh)"
 fi
-[ "$bad" -eq 0 ] && [ "$nondet" -eq 0 ] && [ "$sbad" -eq 0 ] && [ "$ibad" -eq 0 ] && [ "$abad" -eq 0 ]
+[ "$bad" -eq 0 ] && [ "$nondet" -eq 0 ] && [ "$sbad" -eq 0 ] && [ "$ibad" -eq 0 ] && [ "$abad" -eq 0 ] && [ "$nbad" -eq 0 ]

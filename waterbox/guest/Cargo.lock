@@ -1212,9 +1212,9 @@ dependencies = [
 
 [[package]]
 name = "indexmap"
-version = "2.14.1"
+version = "2.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "07aa2048142242915a31d35844fb311e0e53fcca590c3a0a40dcf1b841fa09eb"
+checksum = "d466e9454f08e4a911e14806c24e16fba1b4c121d1ea474396f396069cf949d9"
 dependencies = [
  "equivalent",
  "hashbrown 0.17.1",
@@ -1844,7 +1844,12 @@ dependencies = [
 name = "ruffle_guest"
 version = "0.0.0"
 dependencies = [
+ "async-channel",
+ "encoding_rs",
+ "indexmap",
+ "percent-encoding",
  "ruffle_core",
+ "url",
 ]
 
 [[package]]

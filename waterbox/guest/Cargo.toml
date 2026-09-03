@@ -13,6 +13,12 @@ crate-type = ["staticlib"]
 # The pinned ruffle checkout (extern/ruffle-pinned-commit.txt); a path dep so
 # the guest compiles the same source the native reference does.
 ruffle_core = { path = "../../../ruffle-src/core", features = ["audio", "mp3", "aac", "default_font"] }  # the feature set ruffle's own test harness builds with
+# exact versions ruffle uses, so the navigator trait's Url/Encoding types match
+url = "=2.5.8"
+encoding_rs = "=0.8.35"
+percent-encoding = "=2.3.2"
+async-channel = "=2.5.0"
+indexmap = "=2.14.0"
 
 [profile.release]
 panic = "immediate-abort"
