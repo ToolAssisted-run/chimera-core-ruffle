@@ -14,6 +14,9 @@
  */
 #include "minibox.h"
 #include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
 
 /* --rerecord saves and reloads the machine before every single frame. If any
  * of the machine lives outside the sandbox's memory - or the core keeps a
