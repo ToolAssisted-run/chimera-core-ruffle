@@ -1,5 +1,22 @@
 [unstable]
 build-std = ["std"]
+json-target-spec = true
 
 [build]
+# waterbox-guest.json is the stock x86_64-unknown-linux-musl target with one
+# field changed: has-thread-local = false.
+#
+# Rust compiles #[thread_local] to %fs-relative loads, and %fs is the one
+# per-thread base a host OS does not maintain for us. Windows keeps %gs alive
+# because it is the TEB and its own code depends on it, but nothing there uses
+# %fs, so the kernel loses it at moments the sandbox never sees - and a guest
+# that reads its thread locals through %fs dies at an unrelated instruction
+# some seconds later. -Z tls-model=global-dynamic does NOT help: for a static,
+# non-PIC build LLVM proves every symbol local and puts the model straight back.
+#
+# Turning the target's native TLS off instead makes std fall back to its
+# key-based implementation, which goes through musl's pthread_getspecific and
+# so through [gs:0x18] - the sandbox context slot in the TEB - like every C
+# core already does.
+target = "waterbox-guest.json"
 rustflags = ["-C", "code-model=large", "-C", "relocation-model=static", "-C", "target-feature=+crt-static"]

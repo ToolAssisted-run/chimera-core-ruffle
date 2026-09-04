@@ -19,8 +19,17 @@ mb="$minibox/build/meson-linux"
 guest="$here/guest"
 [ -x "$mb/musl-gcc" ] || { echo "miniBox guest kit not built at $mb (musl-gcc missing)" >&2; exit 1; }
 
-( cd "$guest" && cargo +nightly build --release --target x86_64-unknown-linux-musl )
-a="$guest/target/x86_64-unknown-linux-musl/release/libruffle_guest.a"
+# ruffle_core's build script compiles playerglobal with a JVM. It is not on
+# every PATH, so a local JDK is picked up when there is one.
+[ -x "$HOME/.local/jdk/bin/java" ] && PATH="$HOME/.local/jdk/bin:$PATH"
+export PATH
+# The target is waterbox-guest.json, not the stock musl triple: it is the same
+# target with has-thread-local turned off, so that Rust's thread locals go
+# through musl's key-based path ([gs:0x18], the sandbox context in the TEB)
+# rather than through %fs, which no host OS maintains for us. See
+# guest/.cargo/config.toml for why nothing shorter works.
+( cd "$guest" && cargo +nightly build --release )
+a="$guest/target/waterbox-guest/release/libruffle_guest.a"
 
 mkdir -p "$here/build"
 "$mb/musl-gcc" -c -mcmodel=large -fno-pic -fno-pie -fno-stack-protector \
@@ -52,7 +61,10 @@ cxxinc="-I$mb/guest-sysroot/include/c++/13.3.0 -I$mb/guest-sysroot/include/c++/1
   -o "$here/build/gl-map.o" "$here/gl-map.cpp"
 
 exports="-Wl,-u,GetMemoryDomainCount -Wl,-u,GetMemoryDomainName -Wl,-u,GetMemoryDomainPtr -Wl,-u,GetMemoryDomainSize -Wl,-u,GetMemoryDomainWritable -Wl,-u,SetMousePixels -Wl,-u,GetVsyncNumerator -Wl,-u,GetVsyncDenominator -Wl,-u,SetGpuBridge -Wl,-u,GetVideoBgra -Wl,-u,GetVideoWidth -Wl,-u,GetVideoHeight -Wl,-u,Init -Wl,-u,SetSpoofUrl -Wl,-u,GetAudio -Wl,-u,GetAudioSampleCount -Wl,-u,AllocSwf -Wl,-u,SetButton -Wl,-u,SetAxis -Wl,-u,SetTextInput -Wl,-u,FrameAdvance -Wl,-u,GetTty -Wl,-u,GetTtySize -Wl,-u,GetTraceDigest -Wl,-u,GetFrameCount -Wl,-u,GetLoadError -Wl,-u,IsRunning"
-"$mb/musl-gcc" -mcmodel=large -fno-pic -fno-pie -static -no-pie \
+# -fno-stack-protector applies to cxxglue.c, which is compiled right here: the
+# canary lives at %fs:0x28, and this guest has no %fs. Everything else in the
+# link already carries the flag.
+"$mb/musl-gcc" -mcmodel=large -fno-pic -fno-pie -fno-stack-protector -static -no-pie \
   -Wl,--eh-frame-hdr,-O2,--no-relax -T "$minibox/source/guest/linkscript.T" \
   $exports -o "$here/build/core.wbx" \
   "$minibox/source/guest/cxxglue.c" "$mb/source/guest/emulibc.c.o" \
