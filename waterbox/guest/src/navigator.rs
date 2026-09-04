@@ -116,12 +116,39 @@ impl NavigatorBackend for GuestNavigator {
         };
         let path = url_to_vfs_path(&url);
         Box::pin(async move {
-            match std::fs::read(&path) {
+            // The host mounts associated files FLAT, by basename - that is the
+            // whole scheme. A movie rarely asks that way: it asks relative to
+            // itself, and ruffle resolves that against the movie's own URL, so a
+            // spoofed URL turns "levels.xml" into "host/levels.xml", and a movie
+            // kept in a subdirectory asks for "assets/levels.xml". Neither names a
+            // mounted file, though the file is right there. So: try what was
+            // asked for, then what it is called.
+            let mut read = std::fs::read(&path);
+            if read.is_err() {
+                if let Some((_, base)) = path.rsplit_once('/') {
+                    if !base.is_empty() {
+                        read = std::fs::read(base);
+                    }
+                }
+            }
+            match read {
                 Ok(body) => {
                     let r: Box<dyn SuccessResponse> = Box::new(GuestResponse { url: url.to_string(), body });
                     Ok(r)
                 }
-                Err(e) => Err(ErrorResponse { url: url.to_string(), error: Error::FetchError(e.to_string()) }),
+                Err(e) => {
+                    // A movie asking for a file it was not given is the single
+                    // most common way a real game half-works, and it used to fail
+                    // in silence. Say what was asked for AND the name it was
+                    // looked up under: the host mounts associated files flat, by
+                    // basename, so a movie whose URL was spoofed asks for
+                    // "host/levels.xml" while the file sits there as "levels.xml".
+                    eprintln!(
+                        "ruffle: could not load '{}' - looked for '{}' among the files mounted beside the movie ({})",
+                        url, path, e
+                    );
+                    Err(ErrorResponse { url: url.to_string(), error: Error::FetchError(e.to_string()) })
+                }
             }
         })
     }
