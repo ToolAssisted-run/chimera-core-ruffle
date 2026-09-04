@@ -210,7 +210,96 @@ if [ "$have_sandbox" = 1 ] && [ -f "$glist" ]; then
   rm -rf "$gtmp"
 fi
 
+# ---- spoofed URL: the setting, and the two ways it arrives ----
+# A movie's own address is not cosmetic in Flash - a sponsor lock reads it, and
+# relative loads resolve against it - so the setting has to actually reach the
+# player. loaderinfo_loadurl traces its loaderURL, which is precisely the value
+# spoofing changes, so the trace answers the question directly.
+pok=0; pbad=0; ptotal=0
 if [ "$have_sandbox" = 1 ]; then
+  psw="$swfs/avm2/loaderinfo_loadurl/test.swf"
+  if [ ! -f "$psw" ]; then
+    echo "  spoof SKIPPED (no loaderinfo_loadurl in the corpus)"
+  else
+    ptmp=$(mktemp -d); spoofed="https://games.example.invalid/arcade/game.swf"
+    printf '{"spoofUrl":"%s"}' "$spoofed" > "$ptmp/settings.json"
+    printf '{"spoofUrl":"   "}' > "$ptmp/blank.json"
+
+    check() { # name expected-substring unexpected-substring output
+      ptotal=$((ptotal+1))
+      if printf '%s' "$4" | grep -qF "$2" && { [ -z "$3" ] || ! printf '%s' "$4" | grep -qF "$3"; }; then
+        pok=$((pok+1))
+      else
+        pbad=$((pbad+1)); echo "  spoof $1: expected '$2' in the trace, got: $(printf '%s' "$4" | grep -i loaderURL | head -1)"
+      fi
+    }
+
+    out=$(timeout 60 "$wbx" "$core" "$psw" --frames 1 2>/dev/null)
+    check "unset" "file:///game.swf" "" "$out"
+
+    out=$(timeout 60 "$wbx" "$core" "$psw" --frames 1 --spoof-url "$spoofed" 2>/dev/null)
+    check "direct" "$spoofed" "file:///game.swf" "$out"
+
+    # the route the frontend uses: the engine mounts the effective settings
+    out=$(timeout 60 "$wbx" "$core" "$psw" --frames 1 --file "settings=$ptmp/settings.json" 2>/dev/null)
+    check "setting" "$spoofed" "file:///game.swf" "$out"
+
+    # whitespace is not a URL, and an empty setting must not spoof anything
+    out=$(timeout 60 "$wbx" "$core" "$psw" --frames 1 --file "settings=$ptmp/blank.json" 2>/dev/null)
+    check "blank-setting" "file:///game.swf" "" "$out"
+
+    # both given: the direct call is the gate runner's own channel and wins
+    out=$(timeout 60 "$wbx" "$core" "$psw" --frames 1 --spoof-url "$spoofed" --file "settings=$ptmp/blank.json" 2>/dev/null)
+    check "direct-wins" "$spoofed" "file:///game.swf" "$out"
+
+    # ---- the settings that show up in the picture ----
+    # A digest, so "the setting reached the renderer" is answered by the frame
+    # rather than by trusting the plumbing. (run-wbx reports it on stderr.)
+    digest() { # swf [settings-json]
+      if [ -n "${2:-}" ]; then printf '%s' "$2" > "$ptmp/s.json"
+        timeout 60 "$wbx" "$core" "$1" --frames 2 --file "settings=$ptmp/s.json" 2>&1 >/dev/null | grep -oP 'videoDigest=\K\w+'
+      else
+        timeout 60 "$wbx" "$core" "$1" --frames 2 2>&1 >/dev/null | grep -oP 'videoDigest=\K\w+'
+      fi
+    }
+    same() { # name swf settings expected-digest same|differ
+      ptotal=$((ptotal+1)); got=$(digest "$2" "$3")
+      if [ "$5" = same ] && [ "$got" = "$4" ]; then pok=$((pok+1))
+      elif [ "$5" = differ ] && [ -n "$got" ] && [ "$got" != "$4" ]; then pok=$((pok+1))
+      else pbad=$((pbad+1)); echo "  settings $1: wanted the frame to $5 from $4, got $got"; fi
+    }
+
+    qsw="$swfs/text/br_at_start/test.swf"
+    if [ -f "$qsw" ]; then
+      base=$(digest "$qsw")
+      same "quality:default"  "$qsw" '{"quality":"high"}'     "$base" same
+      same "quality:low"      "$qsw" '{"quality":"low"}'      "$base" differ
+      # an unknown name must fall back to the default, not to something else
+      same "quality:unknown"  "$qsw" '{"quality":"nonsense"}' "$base" same
+      # every other setting, at the default waterbox.config declares, must be
+      # invisible: this is what catches a key read under the wrong name or a
+      # guest fallback that disagrees with the declared default
+      same "inert:pageUrl"    "$qsw" '{"pageUrl":""}'                 "$base" same
+      same "inert:version"    "$qsw" '{"playerVersion":0}'            "$base" same
+      same "inert:runtime"    "$qsw" '{"playerRuntime":"flashPlayer"}' "$base" same
+      same "inert:load"       "$qsw" '{"loadBehavior":"streaming"}'   "$base" same
+      same "inert:compat"     "$qsw" '{"compatibilityRules":false}'   "$base" same
+      same "inert:font"       "$qsw" '{"defaultFont":true}'           "$base" same
+    fi
+
+    fsw="$swfs/fonts/device_font_list/test.swf"
+    if [ -f "$fsw" ]; then
+      fbase=$(digest "$fsw")
+      same "font:substituted" "$fsw" '{"defaultFont":true}'  "$fbase" same
+      same "font:missing"     "$fsw" '{"defaultFont":false}' "$fbase" differ
+    fi
+
+    rm -rf "$ptmp"
+  fi
+fi
+
+if [ "$have_sandbox" = 1 ]; then
+  echo "ruffle settings gate: $pok/$ptotal the settings channel reaches the player - the movie reports the address it was told to, quality and font substitution show up in the frame, and every other setting is invisible at its declared default; $pbad failures"
   echo "ruffle state gate: $sok/$stotal movies survive a save and reload before every frame with the same trace, audio and picture; $sbadstate failures"
   echo "ruffle image gate: $gok/$gtotal movies draw the frame ruffle draws (8/channel, 99% of pixels), reruns identical; $gbad failures"
   echo "ruffle navigator gate: $nok/$ntotal movies load their associated files (loadMovie/loadSound/loadVariables/URLLoader) with the trace ruffle expects, reruns identical; $nbad failures"
@@ -220,4 +309,4 @@ if [ "$have_sandbox" = 1 ]; then
 else
   echo "ruffle gate: $ok/$total trace-identical to ruffle AND deterministic; $bad correctness, $nondet determinism failures (sandbox SKIPPED: build waterbox/build/core.wbx with build-guest.sh)"
 fi
-[ "$bad" -eq 0 ] && [ "$nondet" -eq 0 ] && [ "$sbad" -eq 0 ] && [ "$ibad" -eq 0 ] && [ "$abad" -eq 0 ] && [ "$nbad" -eq 0 ] && [ "$gbad" -eq 0 ] && [ "$sbadstate" -eq 0 ]
+[ "$bad" -eq 0 ] && [ "$nondet" -eq 0 ] && [ "$sbad" -eq 0 ] && [ "$ibad" -eq 0 ] && [ "$abad" -eq 0 ] && [ "$nbad" -eq 0 ] && [ "$gbad" -eq 0 ] && [ "$sbadstate" -eq 0 ] && [ "$pbad" -eq 0 ]

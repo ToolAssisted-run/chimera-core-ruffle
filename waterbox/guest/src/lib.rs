@@ -27,6 +27,9 @@ use ruffle_core::backend::audio::{
     SoundStreamInfo, SoundTransform,
 };
 use ruffle_core::backend::log::LogBackend;
+use ruffle_core::compatibility_rules::CompatibilityRules;
+use ruffle_core::{LoadBehavior, PlayerRuntime};
+use ruffle_render::quality::StageQuality;
 use ruffle_core::impl_audio_mixer_backend;
 use ruffle_core::events::{KeyDescriptor, KeyLocation, LogicalKey};
 use ruffle_core::limits::ExecutionLimit;
@@ -130,8 +133,58 @@ static mut MACHINE: Option<Machine> = None;
 static mut LOAD_ERROR: [u8; 256] = [0; 256];
 static mut SPOOF_URL: [u8; 512] = [0; 512];
 
+/// The settings channel: the engine mounts the effective settings as a flat
+/// JSON object under "settings" (always, even when empty, so the ABI is
+/// uniform). Read once at Init; anything unreadable is treated as unset rather
+/// than as a failure, because a movie that would have run is not worth refusing
+/// over a setting.
+struct Settings(serde_json::Value);
+
+impl Settings {
+    fn load() -> Self {
+        Settings(
+            std::fs::read("settings")
+                .ok()
+                .and_then(|raw| serde_json::from_slice(&raw).ok())
+                .unwrap_or(serde_json::Value::Null),
+        )
+    }
+
+    /// A non-blank string, or None. Whitespace is not a value.
+    fn str(&self, name: &str) -> Option<String> {
+        let s = self.0.get(name)?.as_str()?.trim();
+        if s.is_empty() { None } else { Some(s.to_owned()) }
+    }
+
+    /// An enum arrives as its name; matching is case-insensitive so that
+    /// "High8x8" and "high8x8" mean the same, and an unknown name falls back to
+    /// the default rather than failing the load.
+    fn choice<T: Copy>(&self, name: &str, table: &[(&str, T)], fallback: T) -> T {
+        match self.str(name) {
+            Some(v) => table
+                .iter()
+                .find(|(k, _)| k.eq_ignore_ascii_case(&v))
+                .map(|(_, t)| *t)
+                .unwrap_or(fallback),
+            None => fallback,
+        }
+    }
+
+    fn bool(&self, name: &str, fallback: bool) -> bool {
+        self.0.get(name).and_then(|v| v.as_bool()).unwrap_or(fallback)
+    }
+
+    fn int(&self, name: &str, fallback: i64) -> i64 {
+        self.0.get(name).and_then(|v| v.as_i64()).unwrap_or(fallback)
+    }
+}
+
 /// The URL the movie believes it was loaded from (Flash's domain checks, and
 /// where relative loads resolve). Set before Init; empty means file:///.
+///
+/// The frontend has no reason to call this - it declares spoofUrl as a setting
+/// and the engine mounts it - but the gate's own runner has no settings channel,
+/// so this stays as the direct route, and it wins when both are given.
 #[no_mangle]
 pub extern "C" fn SetSpoofUrl(ptr: *const u8, len: i32) {
     unsafe {
@@ -233,14 +286,66 @@ pub extern "C" fn Init() -> i32 {
         .with_navigator(GuestNavigator { tasks: tasks.clone() })
         .with_autoplay(true)
         .with_viewport_dimensions(vw.max(1), vh.max(1), 1.0);
+    let cfg = Settings::load();
+
+    // Where the movie thinks it is. Two separate addresses, because Flash asks
+    // two separate questions: the movie's own URL (a sponsor lock reading
+    // loaderInfo.url, and what relative loads resolve against) and the address
+    // of the page it is embedded in (Security.pageDomain).
     let spoof = unsafe {
         let raw = &*core::ptr::addr_of!(SPOOF_URL);
         let n = raw.iter().position(|&b| b == 0).unwrap_or(raw.len());
         core::str::from_utf8(&raw[..n]).ok().filter(|s| !s.is_empty()).map(|s| s.to_owned())
-    };
+    }.or_else(|| cfg.str("spoofUrl"));
     if let Some(u) = spoof {
         builder = builder.with_spoofed_url(Some(u));
     }
+    if let Some(u) = cfg.str("pageUrl") {
+        builder = builder.with_page_url(Some(u));
+    }
+
+    // What the movie thinks it is running on. 0 means "whatever the SWF asks
+    // for", which is ruffle's own behaviour.
+    let ver = cfg.int("playerVersion", 0);
+    if (6..=32).contains(&ver) {
+        builder = builder.with_player_version(Some(ver as u8));
+    }
+    builder = builder.with_player_runtime(cfg.choice(
+        "playerRuntime",
+        &[("flashPlayer", PlayerRuntime::FlashPlayer), ("air", PlayerRuntime::AIR)],
+        PlayerRuntime::FlashPlayer,
+    ));
+    builder = builder.with_quality(cfg.choice(
+        "quality",
+        &[
+            ("low", StageQuality::Low),
+            ("medium", StageQuality::Medium),
+            ("high", StageQuality::High),
+            ("best", StageQuality::Best),
+            ("high8x8", StageQuality::High8x8),
+            ("high8x8linear", StageQuality::High8x8Linear),
+            ("high16x16", StageQuality::High16x16),
+            ("high16x16linear", StageQuality::High16x16Linear),
+        ],
+        StageQuality::High,
+    ));
+    builder = builder.with_load_behavior(cfg.choice(
+        "loadBehavior",
+        &[
+            ("streaming", LoadBehavior::Streaming),
+            ("delayed", LoadBehavior::Delayed),
+            ("blocking", LoadBehavior::Blocking),
+        ],
+        LoadBehavior::Streaming,
+    ));
+    // Ruffle's per-site fixups. Off is what this core has always done, and what
+    // a preservation run wants; on is what ruffle's own players do.
+    builder = builder.with_compatibility_rules(if cfg.bool("compatibilityRules", false) {
+        CompatibilityRules::builtin_rules()
+    } else {
+        CompatibilityRules::empty()
+    });
+    builder = builder.with_default_font(cfg.bool("defaultFont", true));
     let player = builder.build();
 
     player.lock().unwrap().preload(&mut ExecutionLimit::exhausted());

@@ -23,6 +23,8 @@ encoding_rs = "=0.8.35"
 percent-encoding = "=2.3.2"
 async-channel = "=2.5.0"
 indexmap = "=2.14.0"
+# the settings channel: the engine mounts a flat JSON object as "settings"
+serde_json = "=1.0.151"
 
 [profile.release]
 # NOT "immediate-abort": that strategy applied to this crate while std was
