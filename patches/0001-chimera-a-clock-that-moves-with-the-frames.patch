@@ -1,0 +1,32 @@
+diff --git a/core/src/player.rs b/core/src/player.rs
+index d8779e2b..98d51bf2 100644
+--- a/core/src/player.rs
++++ b/core/src/player.rs
+@@ -2459,6 +2459,27 @@ impl Player {
+ 
+     /// Update all AVM-based timers (such as created via setInterval).
+     /// Returns the approximate amount of time until the next timer tick.
++    /// Moves the clock that `getTimer()` and `Instant::now()`-based logic read,
++    /// by walking this player's start point backwards.
++    ///
++    /// A player normally gets time from the wall clock. A deterministic host has
++    /// none - the sandbox answers clock_gettime with a constant, because a movie
++    /// that replays differently on a faster machine is not a movie - so
++    /// `Instant::now()` never moves and `getTimer()` answers the same number
++    /// forever. Event-driven content does not notice: buttons still click. But
++    /// anything that drives itself from elapsed time simply stops, which is most
++    /// of a game: Zuma reaches its menu, and then no ball ever rolls.
++    ///
++    /// So the elapsed time is made a function of FRAMES rather than of the wall:
++    /// advance by exactly one frame's worth per frame, and the clock is both
++    /// truthful to the movie and identical on every machine and every replay.
++    /// It lives in the player, so a savestate carries it like any other state.
++    pub fn advance_virtual_time(&mut self, delta: std::time::Duration) {
++        if let Some(earlier) = self.start_time.checked_sub(delta) {
++            self.start_time = earlier;
++        }
++    }
++
+     pub fn update_timers(&mut self, dt: FloatDuration) {
+         self.time_til_next_timer =
+             self.mutate_with_update_context(|context| Timers::update_timers(context, dt));

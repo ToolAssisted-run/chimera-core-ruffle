@@ -105,6 +105,10 @@ struct Machine {
     prev_buttons: [u8; BUTTON_COUNT],
     mouse: (i32, i32),
     prev_mouse: (i32, i32),
+    /// The pointer is a person's, arriving through the axis, not a recorded
+    /// stream of exact positions. A person's pointer must be seen to MOVE
+    /// before it clicks; a recorded one must not (see inject_edges).
+    live_pointer: bool,
     /// A printable key press also types its character (TextInput), the way an
     /// OS delivers typing to a real player. Off reproduces ruffle's own test
     /// protocol, which sends the two as separate scripted events.
@@ -355,7 +359,7 @@ pub extern "C" fn Init() -> i32 {
             Some(Machine {
                 player, frame_time, trace, tty: Vec::new(), frames: 0,
                 buttons: [0; BUTTON_COUNT], prev_buttons: [0; BUTTON_COUNT],
-                mouse: (0, 0), prev_mouse: (0, 0), text_input: true,
+                mouse: (0, 0), prev_mouse: (0, 0), live_pointer: false, text_input: true,
                 audio_f32, audio_i16: Vec::new(), tasks,
                 video: Vec::new(), video_w: vw.max(1), video_h: vh.max(1),
                 vsync_num, vsync_den,
@@ -380,6 +384,13 @@ pub extern "C" fn FrameAdvance(_input: u64) {
         // so a movie's frame-k input lands exactly where ruffle's block k does
         // and the corpus is a valid oracle.
         let mut p = m.player.lock().unwrap();
+        // The clock moves one frame's worth, every frame: the sandbox has no
+        // wall clock (it answers clock_gettime with a constant, so a movie
+        // replays the same everywhere), and without this getTimer() answers the
+        // same number forever. Buttons still work that way - they are events -
+        // but everything a game drives from elapsed time stops dead, which is
+        // why Zuma reached its menu and then no ball ever rolled.
+        p.advance_virtual_time(m.frame_time.to_std());
         p.run_frame();
         p.update_timers(m.frame_time);
         p.audio_mut().tick();
@@ -392,7 +403,7 @@ pub extern "C" fn FrameAdvance(_input: u64) {
             m.audio_i16.clear();
             m.audio_i16.extend(f.iter().map(|v| (v.clamp(-1.0, 1.0) * 32767.0) as i16));
         }
-        inject_edges(&mut p, &mut m.buttons, &mut m.prev_buttons, m.mouse, &mut m.prev_mouse, m.text_input);
+        inject_edges(&mut p, &mut m.buttons, &mut m.prev_buttons, m.mouse, &mut m.prev_mouse, m.live_pointer, m.text_input);
         p.render();
         // Read the frame back out of the offscreen target. ruffle's own image
         // tests capture exactly here, through the same downcast.
@@ -478,6 +489,7 @@ fn inject_edges(
     prev: &mut [u8; BUTTON_COUNT],
     mouse: (i32, i32),
     prev_mouse: &mut (i32, i32),
+    live_pointer: bool,
     text_input: bool,
 ) {
     let (x, y) = (mouse.0 as f64, mouse.1 as f64);
@@ -487,7 +499,18 @@ fn inject_edges(
     // events the scripted stream never had. A move on its own is a MouseMove.
     let mouse_edge = (0..3).any(|i| buttons[i] != prev[i]);
     if mouse != *prev_mouse {
-        if !mouse_edge {
+        // A person's pointer gets the move BEFORE the press, always - that is
+        // what a browser does, and a movie believes it. Flash tracks what the
+        // pointer is over, and a bare MouseDown somewhere it was never seen to
+        // travel is tested against a stale target: the click lands on whatever
+        // was under the pointer last, or on nothing. It goes wrong exactly when
+        // someone moves and clicks in one motion, which is what makes it look
+        // like the odd click is being dropped.
+        //
+        // A RECORDED pointer must not get one. ruffle's own protocol sends a
+        // bare MouseDown carrying its position, and a synthetic move ahead of it
+        // fires rollover events the recording never had.
+        if !mouse_edge || live_pointer {
             p.handle_event(PlayerEvent::MouseMove { x, y });
         }
         *prev_mouse = mouse;
@@ -501,6 +524,11 @@ fn inject_edges(
         match &BUTTONS[i] {
             Btn::Mouse(b) => {
                 let button = *b;
+                // Say it. A click that does nothing is either not arriving, or
+                // arriving somewhere the movie has nothing under - and those
+                // need opposite fixes. One line settles which.
+                eprintln!("ruffle: mouse {} {:?} at {},{}",
+                    if down { "down" } else { "up" }, button, mouse.0, mouse.1);
                 if down {
                     // index: Some(0) is what ruffle's own harness sends - click
                     // counting from wall-clock time is exactly what a TAS must not have
@@ -559,6 +587,7 @@ pub extern "C" fn SetAxis(index: i32, value: i32) {
     unsafe {
         if let Some(m) = &mut *core::ptr::addr_of_mut!(MACHINE) {
             let v = value.clamp(0, MOUSE_AXIS_MAX) as i64;
+            m.live_pointer = true;
             match index {
                 0 => m.mouse.0 = ((v * (m.video_w as i64 - 1)) / MOUSE_AXIS_MAX as i64) as i32,
                 1 => m.mouse.1 = ((v * (m.video_h as i64 - 1)) / MOUSE_AXIS_MAX as i64) as i32,
@@ -576,6 +605,7 @@ pub extern "C" fn SetMousePixels(x: i32, y: i32) {
     unsafe {
         if let Some(m) = &mut *core::ptr::addr_of_mut!(MACHINE) {
             m.mouse = (x, y);
+            m.live_pointer = false;
         }
     }
 }
