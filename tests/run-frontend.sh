@@ -62,6 +62,30 @@ else
 	report "keybinds" FAIL "$(cat "$work/keys.txt")"
 fi
 
+# --- the frontend's own loader must accept the package ---
+dlls="$chimera_root/build/dll"
+libs="$chimera_root/build/meson-linux"
+if ! command -v mcs >/dev/null || [ ! -f "$dlls/Chimera.Client.Common.dll" ]; then
+	report "frontend:loads" SKIP "mono/mcs or the frontend's assemblies not built"
+elif [ ! -f "$package" ]; then
+	report "frontend:loads" SKIP "no package"
+else
+	if mcs -out:"$work/probe.exe" -r:"$dlls/Chimera.Client.Common.dll" \
+		-r:"$dlls/Chimera.Emulation.Common.dll" -r:"$dlls/Chimera.Common.dll" \
+		"$here/discovery-probe.cs" > "$work/probe.build.log" 2>&1; then
+		out=$( cd "$dlls" && MONO_PATH=. LD_LIBRARY_PATH="$libs:$dlls" \
+			timeout 180 mono "$work/probe.exe" "$(dirname "$package")" 2>&1 )
+		echo "$out" > "$work/probe.log"
+		if echo "$out" | grep -q "^RUFFLE OK"; then
+			report "frontend:loads" PASS "discovered and loaded by the frontend's own loader"
+		else
+			report "frontend:loads" FAIL "$(echo "$out" | grep -E "RUFFLE (NOT|FAILED)" | head -1)"
+		fi
+	else
+		report "frontend:loads" SKIP "could not build the probe (see tests/work/probe.build.log)"
+	fi
+fi
+
 # --- the engine renders the movie ruffle draws ---
 if [ ! -x "$crun" ]; then
 	report "engine:picture" SKIP "chimera-run not built"
