@@ -1,0 +1,32 @@
+# Corpus tests whose input CANNOT be a level stream at the movie's own rate: a
+# click is a press and a release, and both happen inside one of the movie's
+# frames. With the fps setting the machine steps several times per movie frame,
+# each step carrying its own levels, and these become ordinary input.
+#
+# rel|movie frames|sub-frames per movie frame. The gate runs the movie at
+# (its own rate x sub-frames) fps and replays movie frames x sub-frames frames,
+# and the trace must equal ruffle's own output.txt exactly - the same bar the
+# 1x input gate holds to.
+#
+# NOT here, and why:
+#   avm1/key_isToggled - Caps Lock. Key.isToggled asks the OS what a lock key
+#     is doing, which is a question about a keyboard rather than about frames;
+#     it fails at every rate, and sub-frames neither help nor hurt.
+#   avm2/stage_scale_factor - needs a viewport scale factor of 2. This core is
+#     deliberately stage-at-scale-1 (a pointer coordinate IS a stage pixel), so
+#     the movie reads 1 and says so.
+#   avm2/mouse_children, avm2/textbox_click - one block of several hundred
+#     edges, which would be a several-hundred-times rate. Expressible, but the
+#     gate is not the place to run a movie at 15000 fps.
+#   the edittext_* family - their streams carry TextInput and SetClipboardText
+#     events, which are not input levels at all (typing arrives with the key).
+avm1/click_block|1|10
+avm2/click_block|100|10
+avm2/click_invisible|1|6
+avm2/edittext_mousedown|1|6
+avm2/mouse_empty_parent|1|8
+avm2/mouse_pick_button_mode|1|4
+avm2/mouse_pick_masking|1|16
+avm2/mouse_pick_text|1|10
+avm2/mouse_sibling|1|16
+avm2/stage3d_texture|5|2

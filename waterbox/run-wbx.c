@@ -181,6 +181,8 @@ int main(int argc, char **argv) {
 	const uint8_t *(*GetVideoBgra)(void) = (const uint8_t *(*)(void))proc(h, "GetVideoBgra");
 	int32_t (*GetVideoWidth)(void) = (int32_t (*)(void))proc(h, "GetVideoWidth");
 	int32_t (*GetVideoHeight)(void) = (int32_t (*)(void))proc(h, "GetVideoHeight");
+	int32_t (*GetVsyncNumerator)(void) = (int32_t (*)(void))proc(h, "GetVsyncNumerator");
+	int32_t (*GetVsyncDenominator)(void) = (int32_t (*)(void))proc(h, "GetVsyncDenominator");
 	FILE *audiof = audiopath ? fopen(audiopath, "wb") : NULL;
 	FILE *peaksf = peakspath ? fopen(peakspath, "w") : NULL;
 	uint64_t ah = 1469598103934665603ull; uint64_t audio_bytes = 0;
@@ -280,6 +282,9 @@ int main(int argc, char **argv) {
 	        (unsigned long long)audio_bytes, (unsigned long long)ah);
 	fprintf(stderr, "ruffle: video=%dx%d videoDigest=%016llx litPixels=%llu\n",
 	        vw, vh, (unsigned long long)vh_hash, (unsigned long long)lit);
+	/* the rate the machine runs at: the movie's own, or whatever the fps
+	 * setting raised it to - the gate reads this back */
+	fprintf(stderr, "ruffle: vsync=%d/%d\n", GetVsyncNumerator(), GetVsyncDenominator());
 	if (last_px && vw > 0 && vh > 0) {
 		unsigned long long sb=0,sg=0,sr=0,sa=0; unsigned char mb=0,mg=0,mr=0,ma=0;
 		size_t n2 = (size_t)vw*(size_t)vh;

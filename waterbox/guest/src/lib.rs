@@ -65,6 +65,13 @@ impl LogBackend for CaptureLog {
 struct WaterboxAudio {
     mixer: AudioMixer,
     buffer: Rc<RefCell<Vec<f32>>>,
+    /// The rate a frame of audio is mixed FOR, when it is not the movie's.
+    /// Sound is mixed once per HOST frame, so at a raised frame rate the
+    /// buffer has to be the host's frame worth of samples or every second of
+    /// movie would mix several seconds of sound. None leaves the movie's own
+    /// rate alone, which is what the player sets and what every default run
+    /// has always used.
+    forced_rate: Option<f64>,
 }
 impl WaterboxAudio {
     const CHANNELS: u8 = 2;
@@ -75,6 +82,7 @@ impl AudioBackend for WaterboxAudio {
     fn play(&mut self) {}
     fn pause(&mut self) {}
     fn set_frame_rate(&mut self, frame_rate: f64) {
+        let frame_rate = self.forced_rate.unwrap_or(frame_rate);
         // Whole stereo frames. Ruffle's own harness rounds the INTERLEAVED
         // sample count, which can be odd (24 fps: 88200/24 = 3675, a lone left
         // sample); a host can only take whole frames, and the mixer should not
@@ -93,7 +101,22 @@ impl AudioBackend for WaterboxAudio {
 
 struct Machine {
     player: Arc<Mutex<Player>>,
+    /// One HOST frame's worth of time - the frame the frontend counts, the one
+    /// a movie's input log has a line for. Equal to the movie's own frame at
+    /// the default rate, and a fraction of it above that.
     frame_time: FloatDuration,
+    /// The movie's own frame rate, as the SWF stores it: rate = rate_256/256.
+    /// Movie frames are due against this and nothing else, so raising the host
+    /// rate gives more input, not a faster movie.
+    rate_256: u64,
+    /// The host frame rate as a ratio (num/den): the movie's own rate by
+    /// default, the fps setting when it is set.
+    host_num: u64,
+    host_den: u64,
+    /// Movie frames run so far. A movie frame is due on the first host frame
+    /// that reaches it, and the host frames after it carry input and timers
+    /// into the movie frame that is already running.
+    movie_frames: u64,
     trace: Rc<RefCell<Vec<u8>>>,
     /// The trace flattened for the host: GetTty hands out a pointer into this,
     /// so it must outlive the call and not move while the host reads it.
@@ -253,19 +276,37 @@ pub extern "C" fn Init() -> i32 {
             return 0;
         }
     };
+    let cfg = Settings::load();
     let frame_rate = movie.frame_rate().to_f64();
-    let frame_time = FloatDuration::from_millis(1000.0 / frame_rate);
+    // The SWF stores its rate as 8.8 fixed point, so this is exact.
+    let rate_256 = (frame_rate * 256.0).round().max(1.0) as u64;
+
+    // How often the machine is stepped. A Flash movie has its own frame rate
+    // and that is what its timeline runs at; this is how often the HOST gets a
+    // frame, which is how often a person (or a movie file) can change what the
+    // input says. Unset, the two are the same and this is exactly what the core
+    // has always done. Raised, the movie still runs at its own rate and the
+    // extra frames carry input, timers and a picture.
+    let fps = cfg.int("fps", 0);
+    let (host_num, host_den) = if fps > 0 { (fps as u64, 1u64) } else { (rate_256, 256u64) };
+    // host period = den/num seconds. At the default this is 1000.0/frame_rate
+    // to the last bit: both are the correctly rounded value of the same exact
+    // ratio, since a fixed-8 rate is exact in a double.
+    let frame_time = FloatDuration::from_millis(1000.0 * host_den as f64 / host_num as f64);
     // The viewport IS the stage, at scale 1, so a pointer coordinate the host
     // sends is a stage pixel. Any other size scales the stage to fit and every
     // click lands somewhere else: the per-object hit tests silently miss while
     // the root-level handlers still fire. (Same rule as ruffle's own runner.)
     let (vw, vh) = (movie.width().to_pixels() as u32, movie.height().to_pixels() as u32);
 
-    // a rate like 23.976 has to survive as a ratio; a whole number stays whole
-    let (vsync_num, vsync_den) = if (frame_rate - frame_rate.round()).abs() < 1e-6 {
-        (frame_rate.round() as i32, 1)
+    // What the frontend runs at: the host rate, which is the movie's own unless
+    // the fps setting raised it. A rate like 23.976 has to survive as a ratio;
+    // a whole number stays whole.
+    let host_rate = host_num as f64 / host_den as f64;
+    let (vsync_num, vsync_den) = if (host_rate - host_rate.round()).abs() < 1e-6 {
+        (host_rate.round() as i32, 1)
     } else {
-        ((frame_rate * 1000.0).round() as i32, 1000)
+        ((host_rate * 1000.0).round() as i32, 1000)
     };
 
     let trace = Rc::new(RefCell::new(Vec::new()));
@@ -286,11 +327,16 @@ pub extern "C" fn Init() -> i32 {
         .with_movie(movie)
         .with_renderer(render_backend)
         .with_log(CaptureLog { out: trace.clone() })
-        .with_audio(WaterboxAudio { mixer: AudioMixer::new(WaterboxAudio::CHANNELS, WaterboxAudio::RATE), buffer: audio_f32.clone() })
+        .with_audio(WaterboxAudio {
+            mixer: AudioMixer::new(WaterboxAudio::CHANNELS, WaterboxAudio::RATE),
+            buffer: audio_f32.clone(),
+            // only when the rate was raised: at the default the player's own
+            // call is already the movie's rate, and nothing changes
+            forced_rate: if fps > 0 { Some(host_rate) } else { None },
+        })
         .with_navigator(GuestNavigator { tasks: tasks.clone() })
         .with_autoplay(true)
         .with_viewport_dimensions(vw.max(1), vh.max(1), 1.0);
-    let cfg = Settings::load();
 
     // Where the movie thinks it is. Two separate addresses, because Flash asks
     // two separate questions: the movie's own URL (a sponsor lock reading
@@ -357,7 +403,8 @@ pub extern "C" fn Init() -> i32 {
     unsafe {
         *core::ptr::addr_of_mut!(MACHINE) =
             Some(Machine {
-                player, frame_time, trace, tty: Vec::new(), frames: 0,
+                player, frame_time, rate_256, host_num, host_den, movie_frames: 0,
+                trace, tty: Vec::new(), frames: 0,
                 buttons: [0; BUTTON_COUNT], prev_buttons: [0; BUTTON_COUNT],
                 mouse: (0, 0), prev_mouse: (0, 0), live_pointer: false, text_input: true,
                 audio_f32, audio_i16: Vec::new(), tasks,
@@ -391,7 +438,22 @@ pub extern "C" fn FrameAdvance(_input: u64) {
         // but everything a game drives from elapsed time stops dead, which is
         // why Zuma reached its menu and then no ball ever rolled.
         p.advance_virtual_time(m.frame_time.to_std());
-        p.run_frame();
+        // How many movie frames should have run by the end of this host frame:
+        // ceil(host frames so far * movie rate / host rate), in integers so it
+        // cannot drift over a long run and cannot differ between two machines.
+        // At the default rate this is exactly one per host frame, which is what
+        // it has always been; above it, the movie frame lands on the FIRST host
+        // frame that reaches it and the host frames after it belong to the
+        // movie frame already running.
+        let due = {
+            let n = (m.frames + 1) * m.rate_256 * m.host_den;
+            let d = 256 * m.host_num;
+            (n + d - 1) / d
+        };
+        while m.movie_frames < due {
+            p.run_frame();
+            m.movie_frames += 1;
+        }
         p.update_timers(m.frame_time);
         p.audio_mut().tick();
         drop(p);

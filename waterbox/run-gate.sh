@@ -27,6 +27,12 @@
 #                  SetAxis/SetButton, and the trace must again equal ruffle's
 #                  output.txt. tests/input-list.txt holds the ones the level
 #                  model can express (no press-and-release inside one frame).
+#   sub-frame    - the same, for the ones it CANNOT express at 1x: with the fps
+#                  setting the machine steps several times per movie frame, and
+#                  a click that begins and ends inside one of the movie's
+#                  frames becomes an ordinary level stream. Same bar - ruffle's
+#                  own output.txt, byte for byte - and the same movie must run
+#                  the same movie frames it always did.
 #
 # The oracle list holds only tests the null-backend player can fully serve
 # (trace + frame stepping); tests needing input, a navigator or fonts arrive
@@ -101,6 +107,54 @@ if [ "$have_sandbox" = 1 ] && [ -f "$ilist" ]; then
     if [ "$got" != "$(cat "$exp")" ]; then echo "FAIL input: $rel"; ibad=$((ibad+1)); continue; fi
     iok=$((iok+1))
   done < "$ilist"
+fi
+
+# ---- sub-frame input: what a raised frame rate buys ------------------------
+# The fps setting steps the machine faster than the movie without running the
+# movie faster: the extra frames carry input, timers and a picture. Two claims,
+# both checked here - the movie is unchanged (same frames, same trace), and
+# input that could not be expressed at 1x now is.
+fok=0; fbad=0; ftotal=0
+flist="$root/tests/subframe-input-list.txt"
+if [ "$have_sandbox" = 1 ] && [ -f "$flist" ]; then
+  ftmp=$(mktemp -d)
+  # first: a raised rate must not touch the movie. The same movie, run for the
+  # same MOVIE time at twice the rate, must produce the same trace and report
+  # the doubled rate to the frontend.
+  usw="$swfs/avm1/conflicting_instance_names/test.swf"
+  if [ -f "$usw" ]; then
+    ftotal=$((ftotal+1))
+    base=$(timeout 60 "$wbx" "$core" "$usw" --frames 6 2>&1 >/dev/null | grep -oP 'traceDigest=\K\w+')
+    printf '{"fps":48}' > "$ftmp/x2.json"
+    out=$(timeout 60 "$wbx" "$core" "$usw" --frames 12 --file "settings=$ftmp/x2.json" 2>&1 >/dev/null)
+    got=$(printf '%s' "$out" | grep -oP 'traceDigest=\K\w+')
+    vs=$(printf '%s' "$out" | grep -oP 'vsync=\K[0-9]+/[0-9]+')
+    if [ "$got" = "$base" ] && [ "$vs" = "48/1" ]; then
+      fok=$((fok+1))
+    else
+      fbad=$((fbad+1)); echo "  subframe unchanged-movie: 12 frames at 48fps gave $got/$vs, 6 at 24 gave $base/24-1"
+    fi
+  fi
+  while IFS='|' read -r rel nf sub; do
+    [ -n "$rel" ] || continue
+    case "$rel" in \#*) continue ;; esac
+    ftotal=$((ftotal+1))
+    sw="$swfs/$rel/test.swf"; exp="$swfs/$rel/output.txt"
+    # the point of the list: these are NOT expressible at the movie's own rate
+    if python3 "$root/tests/input2moves.py" "$swfs/$rel/input.json" >/dev/null 2>&1; then
+      echo "FAIL subframe: $rel is expressible at 1x - it belongs in input-list.txt"; fbad=$((fbad+1)); continue
+    fi
+    if ! python3 "$root/tests/input2moves.py" "$swfs/$rel/input.json" --split "$sub" > "$ftmp/moves" 2>/dev/null; then
+      echo "FAIL subframe convert: $rel at $sub sub-frames"; fbad=$((fbad+1)); continue
+    fi
+    vs=$(timeout 60 "$wbx" "$core" "$sw" --frames 1 2>&1 >/dev/null | grep -oP 'vsync=\K[0-9]+/[0-9]+')
+    case "$vs" in */1) ;; *) echo "FAIL subframe: $rel runs at $vs, not a whole rate"; fbad=$((fbad+1)); continue ;; esac
+    printf '{"fps":%d}' $(( ${vs%/*} * sub )) > "$ftmp/s.json"
+    got=$(timeout 120 "$wbx" "$core" "$sw" --frames $((nf * sub)) --input "$ftmp/moves" --file "settings=$ftmp/s.json" 2>/dev/null)
+    if [ "$got" != "$(cat "$exp")" ]; then echo "FAIL subframe: $rel"; fbad=$((fbad+1)); continue; fi
+    fok=$((fok+1))
+  done < "$flist"
+  rm -rf "$ftmp"
 fi
 
 # ---- navigator (M5): associated files served from the guest VFS -------------
@@ -285,6 +339,7 @@ if [ "$have_sandbox" = 1 ]; then
       same "inert:load"       "$qsw" '{"loadBehavior":"streaming"}'   "$base" same
       same "inert:compat"     "$qsw" '{"compatibilityRules":false}'   "$base" same
       same "inert:font"       "$qsw" '{"defaultFont":true}'           "$base" same
+      same "inert:fps"        "$qsw" '{"fps":0}'                      "$base" same
     fi
 
     fsw="$swfs/fonts/device_font_list/test.swf"
@@ -305,8 +360,9 @@ if [ "$have_sandbox" = 1 ]; then
   echo "ruffle navigator gate: $nok/$ntotal movies load their associated files (loadMovie/loadSound/loadVariables/URLLoader) with the trace ruffle expects, reruns identical; $nbad failures"
   echo "ruffle audio gate: $aok/$atotal sound movies: ruffle's amplitude assertions hold, native == sandbox byte for byte, reruns identical; $abad failures"
   echo "ruffle input gate: $iok/$itotal input.json streams replayed as levels, trace identical to ruffle; $ibad failures"
+  echo "ruffle sub-frame gate: $fok/$ftotal a raised frame rate leaves the movie alone and makes a click inside one movie frame expressible, trace identical to ruffle; $fbad failures"
   echo "ruffle gate: $ok/$total trace-identical to ruffle, deterministic, and IDENTICAL IN THE SANDBOX; $bad correctness, $nondet determinism, $sbad sandbox failures"
 else
   echo "ruffle gate: $ok/$total trace-identical to ruffle AND deterministic; $bad correctness, $nondet determinism failures (sandbox SKIPPED: build waterbox/build/core.wbx with build-guest.sh)"
 fi
-[ "$bad" -eq 0 ] && [ "$nondet" -eq 0 ] && [ "$sbad" -eq 0 ] && [ "$ibad" -eq 0 ] && [ "$abad" -eq 0 ] && [ "$nbad" -eq 0 ] && [ "$gbad" -eq 0 ] && [ "$sbadstate" -eq 0 ] && [ "$pbad" -eq 0 ]
+[ "$bad" -eq 0 ] && [ "$nondet" -eq 0 ] && [ "$sbad" -eq 0 ] && [ "$ibad" -eq 0 ] && [ "$fbad" -eq 0 ] && [ "$abad" -eq 0 ] && [ "$nbad" -eq 0 ] && [ "$gbad" -eq 0 ] && [ "$sbadstate" -eq 0 ] && [ "$pbad" -eq 0 ]
