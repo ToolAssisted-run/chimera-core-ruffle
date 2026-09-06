@@ -43,7 +43,13 @@ mkdir -p "$here/build"
 # guest binary and the host half lives in whatever runs it - both sides have to
 # mean the same thing by 'opcode 137'. waterbox/gl-entry-points.txt is just the
 # subset this core's renderer names.
-cxxinc="-I$mb/guest-sysroot/include/c++/13.3.0 -I$mb/guest-sysroot/include/c++/13.3.0/x86_64-linux-musl"
+# libstdc++'s guest headers (cstdint, ...) live in the C++ guest kit
+# (build/meson-cpp/guest-sysroot), not the C kit ($mb = meson-linux). Glob the
+# gcc version rather than pinning it.
+cppsys="$minibox/build/meson-cpp/guest-sysroot"
+cxxver="$(ls -d "$cppsys"/include/c++/* | head -1)"
+[ -d "$cxxver" ] || { echo "libstdc++ guest headers missing under $cppsys/include/c++" >&2; exit 1; }
+cxxinc="-I$cxxver -I$cxxver/x86_64-linux-musl"
 "$mb/musl-gcc" -c -x c++ -std=gnu++17 -mcmodel=large -fno-pic -fno-pie \
   -fno-stack-protector -fcf-protection=none -fno-exceptions -fno-rtti \
   $cxxinc -I"$here/extern/glad/include" -I"$minibox/source/gl" -I"$here" -I"$here/generated" \
