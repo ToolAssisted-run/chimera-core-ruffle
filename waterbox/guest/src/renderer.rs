@@ -34,6 +34,18 @@ extern "C" {
     fn chimera_gl_install(bridge: u64) -> bool;
     /// the shared table, with buffer mapping displaced by gl-map.cpp
     fn chimera_gl_lookup_guest(name: *const c_char) -> *const c_void;
+    /// Which host GL context the bridged calls are landing on (GL_OP_CONTEXT_ID).
+    /// Every object wgpu holds is a name that context handed out; when this
+    /// number changes under a loaded savestate, those names are another
+    /// context's and the backend must be rebuilt. Zero means "cannot tell".
+    fn chimera_gl_context_id() -> u64;
+}
+
+/// The id of the host GL context these calls reach, or 0 when it cannot be told
+/// (no bridge, or a host too old to answer). A change between two frames means a
+/// savestate was loaded into a fresh process and the backend's objects are gone.
+pub fn context_id() -> u64 {
+    unsafe { chimera_gl_context_id() }
 }
 
 /// The host's callback address, handed over by SetGpuBridge before Init.

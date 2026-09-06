@@ -7470,6 +7470,14 @@ bool chimera_gl_install(chimera_gl_bridge_fn bridge)
 	return true;
 }
 
+/* Which context the calls land on. Zero means "cannot tell": no bridge, or a
+ * host that predates the question - and a renderer must treat that as "assume
+ * nothing changed" rather than as a context of its own. */
+uint64_t chimera_gl_context_id(void)
+{
+	return g_bridge ? g_bridge(GL_OP_CONTEXT_ID, 0, 0, 0, 0, 0) : 0;
+}
+
 struct ChimeraGlEntry { const char *name; void *fn; };
 static const struct ChimeraGlEntry g_entries[] = {
 	{ "glActiveTexture", (void *)w_glActiveTexture },

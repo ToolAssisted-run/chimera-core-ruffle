@@ -1,0 +1,581 @@
+diff --git a/core/src/bitmap/bitmap_data.rs b/core/src/bitmap/bitmap_data.rs
+index a4e152bd8..cad89bb95 100644
+--- a/core/src/bitmap/bitmap_data.rs
++++ b/core/src/bitmap/bitmap_data.rs
+@@ -385,6 +385,15 @@ pub struct BitmapRawData<'gc> {
+     #[collect(require_static)]
+     bitmap_handle: Option<BitmapHandle>,
+ 
++    /// The render epoch `bitmap_handle` was registered under. A mismatch means
++    /// the backend was rebuilt (a savestate loaded in a fresh GL context), so
++    /// the handle names another backend's texture and is re-registered from
++    /// `pixels`. GPU-only pixels from a `BitmapData.draw()` never synced back
++    /// cannot cross such a load - the one place this core's picture is not
++    /// guaranteed to replay - and fall back to whatever the CPU side last held.
++    #[collect(require_static)]
++    handle_epoch: u64,
++
+     /// The AVM2 side of this `BitmapData`.
+     ///
+     /// AVM1 cannot retrieve `BitmapData` back from the display object tree, so
+@@ -481,6 +490,7 @@ mod wrapper {
+                     transparency: false,
+                     disposed: true,
+                     bitmap_handle: None,
++                    handle_epoch: 0,
+                     avm2_object: None,
+                     display_objects: vec![],
+                     dirty_state: DirtyState::Clean,
+@@ -504,6 +514,7 @@ mod wrapper {
+                 transparency: data.transparency,
+                 disposed: data.disposed,
+                 bitmap_handle: None,
++                handle_epoch: 0,
+                 avm2_object: None,
+                 display_objects: vec![],
+                 // We have no GPU texture, so there's no need to mark as dirty
+@@ -740,6 +751,7 @@ impl<'gc> BitmapRawData<'gc> {
+             transparency,
+             disposed: false,
+             bitmap_handle: None,
++            handle_epoch: 0,
+             avm2_object: None,
+             display_objects: vec![],
+             dirty_state: DirtyState::Clean,
+@@ -760,6 +772,7 @@ impl<'gc> BitmapRawData<'gc> {
+             height,
+             transparency,
+             bitmap_handle: None,
++            handle_epoch: 0,
+             avm2_object: None,
+             disposed: false,
+             dirty_state: DirtyState::Clean,
+@@ -787,6 +800,14 @@ impl<'gc> BitmapRawData<'gc> {
+         &mut self,
+         renderer: &mut dyn RenderBackend,
+     ) -> Result<BitmapHandle, ruffle_render::error::Error> {
++        // A handle from before a backend rebuild names a dangling texture. Drop
++        // it and re-register below from the CPU pixels; a pending GPU->CPU sync
++        // is meaningless now (its GPU side is gone), so treat the data as clean.
++        let epoch = ruffle_render::render_epoch();
++        if self.handle_epoch != epoch {
++            self.bitmap_handle = None;
++            self.dirty_state = DirtyState::Clean;
++        }
+         if let Some(ref handle) = self.bitmap_handle {
+             return Ok(handle.clone());
+         }
+@@ -801,6 +822,7 @@ impl<'gc> BitmapRawData<'gc> {
+         if let Ok(ref handle) = bitmap_handle {
+             self.dirty_state = DirtyState::Clean;
+             self.bitmap_handle = Some(handle.clone());
++            self.handle_epoch = ruffle_render::render_epoch();
+         }
+         bitmap_handle
+     }
+diff --git a/core/src/character.rs b/core/src/character.rs
+index f1843308c..f32dc9890 100644
+--- a/core/src/character.rs
++++ b/core/src/character.rs
+@@ -1,4 +1,4 @@
+-use std::cell::OnceCell;
++use std::cell::RefCell;
+ 
+ use crate::backend::audio::SoundHandle;
+ use crate::binary_data::BinaryData;
+@@ -38,7 +38,7 @@ pub struct BitmapCharacter<'gc> {
+     compressed: CompressedBitmap,
+     /// A lazily constructed GPU handle, used when performing fills with this bitmap
+     #[collect(require_static)]
+-    handle: OnceCell<BitmapHandle>,
++    handle: RefCell<Option<(u64, BitmapHandle)>>,
+     /// The bitmap class set by `SymbolClass` - this is used when we instantaite
+     /// a `Bitmap` displayobject.
+     avm2_class: Lock<BitmapClass<'gc>>,
+@@ -48,7 +48,7 @@ impl<'gc> BitmapCharacter<'gc> {
+     pub fn new(compressed: CompressedBitmap) -> Self {
+         Self {
+             compressed,
+-            handle: OnceCell::default(),
++            handle: RefCell::new(None),
+             avm2_class: Lock::new(BitmapClass::NoSubclass),
+         }
+     }
+@@ -69,14 +69,19 @@ impl<'gc> BitmapCharacter<'gc> {
+         &self,
+         backend: &mut dyn RenderBackend,
+     ) -> Result<BitmapHandle, RenderError> {
+-        // FIXME - use `OnceCell::get_or_try_init` when stabilized.
+-        if let Some(handle) = self.handle.get() {
+-            return Ok(handle.clone());
++        // The handle a rebuilt backend leaves behind names another backend's
++        // texture; stamp it with the render epoch and re-register when stale,
++        // decoding again from the compressed bitmap this character keeps.
++        let epoch = ruffle_render::render_epoch();
++        if let Some((ep, handle)) = &*self.handle.borrow() {
++            if *ep == epoch {
++                return Ok(handle.clone());
++            }
+         }
+         let decoded = self.compressed.decode()?;
+         let new_handle = backend.register_bitmap(decoded)?;
+         // FIXME - do we ever want to release this handle, to avoid taking up GPU memory?
+-        self.handle.set(new_handle.clone()).unwrap();
++        *self.handle.borrow_mut() = Some((epoch, new_handle.clone()));
+         Ok(new_handle)
+     }
+ }
+diff --git a/core/src/display_object/graphic.rs b/core/src/display_object/graphic.rs
+index 8b139136b..7e2faf898 100644
+--- a/core/src/display_object/graphic.rs
++++ b/core/src/display_object/graphic.rs
+@@ -144,7 +144,7 @@ impl<'gc> Graphic<'gc> {
+ 
+         {
+             let mut cache = shared.scaled_handle.borrow_mut();
+-            if let Some(handle) = cache.find_near_and_touch(current_scale) {
++            if let Some(handle) = cache.find_near_and_touch(current_scale, ruffle_render::render_epoch()) {
+                 // Found a cached handle at a similar scale; reuse it.
+                 return handle;
+             }
+diff --git a/core/src/display_object/morph_shape.rs b/core/src/display_object/morph_shape.rs
+index 7d81315aa..79d2c490e 100644
+--- a/core/src/display_object/morph_shape.rs
++++ b/core/src/display_object/morph_shape.rs
+@@ -187,6 +187,9 @@ impl<'gc> TDisplayObject<'gc> for MorphShape<'gc> {
+ /// A precalculated intermediate frame for a morph shape.
+ struct Frame {
+     shape_handle: Option<ShapeHandle>,
++    /// The render epoch `shape_handle` was tessellated under; a mismatch means
++    /// a rebuilt backend and a re-tessellation from `shape`.
++    shape_epoch: u64,
+     shape: swf::Shape,
+     bounds: Rectangle<Twips>,
+ }
+@@ -228,7 +231,8 @@ impl MorphShapeShared {
+     /// Lazily initializes and tessellates the shape if it does not yet exist.
+     fn get_shape<'gc>(&self, context: &mut RenderContext<'_, 'gc>, ratio: u16) -> ShapeHandle {
+         let mut frame = self.get_frame(ratio);
+-        if let Some(handle) = frame.shape_handle.clone() {
++        let epoch = ruffle_render::render_epoch();
++        if let (Some(handle), true) = (frame.shape_handle.clone(), frame.shape_epoch == epoch) {
+             handle
+         } else {
+             let library = context
+@@ -239,6 +243,7 @@ impl MorphShapeShared {
+                 .renderer
+                 .register_shape((&frame.shape).into(), &MovieLibrarySource { library });
+             frame.shape_handle = Some(handle.clone());
++            frame.shape_epoch = epoch;
+             handle
+         }
+     }
+@@ -370,6 +375,7 @@ impl MorphShapeShared {
+ 
+         Frame {
+             shape_handle: None,
++            shape_epoch: 0,
+             shape,
+             bounds,
+         }
+diff --git a/core/src/drawing.rs b/core/src/drawing.rs
+index f3dc5bd0f..0aac75d19 100644
+--- a/core/src/drawing.rs
++++ b/core/src/drawing.rs
+@@ -5,12 +5,12 @@ use ruffle_render::commands::CommandHandler;
+ use ruffle_render::shape_utils::{
+     DistilledShape, DrawCommand, DrawPath, FillRule, cubic_curve_bounds, quadratic_curve_bounds,
+ };
+-use std::cell::OnceCell;
++use std::cell::RefCell;
+ use swf::{FillStyle, LineStyle, Point, Rectangle, Twips};
+ 
+ #[derive(Clone, Debug)]
+ pub struct Drawing {
+-    render_handle: OnceCell<ShapeHandle>,
++    render_handle: RefCell<Option<(u64, ShapeHandle)>>,
+     shape_bounds: Rectangle<Twips>,
+     edge_bounds: Rectangle<Twips>,
+     paths: Vec<DrawingPath>,
+@@ -34,7 +34,7 @@ impl Default for Drawing {
+ impl Drawing {
+     pub fn new() -> Self {
+         Self {
+-            render_handle: OnceCell::new(),
++            render_handle: RefCell::new(None),
+             shape_bounds: Default::default(),
+             edge_bounds: Default::default(),
+             paths: Vec::new(),
+@@ -51,7 +51,7 @@ impl Drawing {
+ 
+     pub fn from_swf_shape(shape: &swf::Shape) -> Self {
+         let mut this = Self {
+-            render_handle: OnceCell::new(),
++            render_handle: RefCell::new(None),
+             shape_bounds: shape.shape_bounds,
+             edge_bounds: shape.edge_bounds,
+             paths: Vec::new(),
+@@ -106,7 +106,7 @@ impl Drawing {
+ 
+     fn mark_dirty(&mut self) {
+         self.is_empty = false;
+-        self.render_handle.take();
++        self.render_handle.borrow_mut().take();
+     }
+ 
+     /// Set fill style and reset fill rule to default.
+@@ -162,7 +162,7 @@ impl Drawing {
+         self.is_empty = true;
+ 
+         // An empty drawing doesn't need to hold onto a `ShapeHandle`.
+-        self.render_handle.take();
++        self.render_handle.borrow_mut().take();
+     }
+ 
+     pub fn set_line_style(&mut self, style: Option<LineStyle>) {
+@@ -245,7 +245,16 @@ impl Drawing {
+             return None;
+         }
+ 
+-        let handle = self.render_handle.get_or_init(|| {
++        // A handle made under an older epoch is a rebuilt-away backend's; when
++        // it no longer matches, re-tessellate from the paths this drawing keeps.
++        let epoch = ruffle_render::render_epoch();
++        if let Some((ep, handle)) = &*self.render_handle.borrow() {
++            if *ep == epoch {
++                return Some(handle.clone());
++            }
++        }
++
++        let handle = {
+             let mut paths = Vec::with_capacity(self.paths.len());
+ 
+             for path in &self.paths {
+@@ -312,9 +321,10 @@ impl Drawing {
+                 id: 0,
+             };
+             renderer.register_shape(shape, self)
+-        });
++        };
+ 
+-        Some(handle.clone())
++        *self.render_handle.borrow_mut() = Some((epoch, handle.clone()));
++        Some(handle)
+     }
+ 
+     pub fn render(&self, context: &mut RenderContext) {
+diff --git a/core/src/font/glyph.rs b/core/src/font/glyph.rs
+index e1512a467..991478481 100644
+--- a/core/src/font/glyph.rs
++++ b/core/src/font/glyph.rs
+@@ -5,10 +5,9 @@ use crate::prelude::*;
+ use ruffle_render::backend::null::NullBitmapSource;
+ use ruffle_render::backend::{RenderBackend, ShapeHandle};
+ use ruffle_render::bitmap::{Bitmap, BitmapInfo};
+-use ruffle_render::error::Error;
+ use ruffle_render::transform::Transform;
+ 
+-use std::cell::{Cell, OnceCell, Ref, RefCell};
++use std::cell::{Ref, RefCell};
+ use std::rc::Rc;
+ 
+ #[derive(Debug, Clone)]
+@@ -18,23 +17,32 @@ enum SwfGlyphOrShape {
+         shape: swf::Shape,
+         // Handle to registered shape, loaded lazily on first render of this glyph.
+         handle: Option<ShapeHandle>,
++        // The render epoch `handle` was registered under. A rebuilt backend
++        // bumps the epoch; the glyph then re-registers from `shape`, which it
++        // keeps, rather than draw with a handle the old backend owned.
++        handle_epoch: u64,
+     },
+     Poisoned,
+ }
+ 
+ impl SwfGlyphOrShape {
+-    fn shape(&mut self) -> (&mut swf::Shape, &mut Option<ShapeHandle>) {
++    fn shape(&mut self) -> (&mut swf::Shape, &mut Option<ShapeHandle>, &mut u64) {
+         if let Self::Glyph(_) = self
+             && let Self::Glyph(glyph) = core::mem::replace(self, Self::Poisoned)
+         {
+             *self = Self::Shape {
+                 shape: ruffle_render::shape_utils::swf_glyph_to_shape(glyph),
+                 handle: None,
++                handle_epoch: 0,
+             };
+         }
+ 
+         match self {
+-            SwfGlyphOrShape::Shape { shape, handle } => (shape, handle),
++            SwfGlyphOrShape::Shape {
++                shape,
++                handle,
++                handle_epoch,
++            } => (shape, handle, handle_epoch),
+             _ => unreachable!(),
+         }
+     }
+@@ -83,7 +91,7 @@ impl GlyphShape {
+         match self {
+             GlyphShape::Swf(glyph) => {
+                 let mut glyph = glyph.borrow_mut();
+-                let (shape, _) = glyph.shape();
++                let (shape, _, _) = glyph.shape();
+                 shape.shape_bounds.contains(point)
+                     && ruffle_render::shape_utils::shape_hit_test(shape, point, local_matrix)
+             }
+@@ -104,7 +112,14 @@ impl GlyphShape {
+         match self {
+             GlyphShape::Swf(glyph) => {
+                 let mut glyph = glyph.borrow_mut();
+-                let (shape, handle) = glyph.shape();
++                let epoch = ruffle_render::render_epoch();
++                let (shape, handle, handle_epoch) = glyph.shape();
++                // A handle from before a backend rebuild names a dangling mesh;
++                // drop it so it re-registers from the glyph's retained shape.
++                if *handle_epoch != epoch {
++                    *handle = None;
++                    *handle_epoch = epoch;
++                }
+                 handle.get_or_insert_with(|| {
+                     renderer.register_shape((&*shape).into(), &NullBitmapSource)
+                 });
+@@ -115,14 +130,6 @@ impl GlyphShape {
+                 .map(GlyphRenderData::from_shape),
+             GlyphShape::Bitmap(bitmap) => bitmap
+                 .get_bitmap_info_or_register(renderer)
+-                .as_ref()
+-                .inspect_err(|err| {
+-                    tracing::error!(
+-                        "Failed to register glyph as a bitmap: {err}, glyphs will be missing"
+-                    )
+-                })
+-                .ok()
+-                .cloned()
+                 .map(|info| GlyphRenderData::from_bitmap(info, bitmap.tx, bitmap.ty)),
+             GlyphShape::AtlasGlyph(atlas_glyph) => atlas_glyph
+                 .atlas_handle(renderer)
+@@ -135,8 +142,10 @@ impl GlyphShape {
+ 
+ /// A Bitmap that can be registered to a RenderBackend.
+ struct GlyphBitmap<'a> {
+-    bitmap: Cell<Option<Bitmap<'a>>>,
+-    handle: OnceCell<Result<BitmapInfo, Error>>,
++    // Kept, not consumed, so the glyph can be re-registered onto a rebuilt
++    // backend rather than lost the way a `.take()` would leave it.
++    bitmap: Bitmap<'a>,
++    handle: RefCell<Option<(u64, BitmapInfo)>>,
+ 
+     /// Translation in x to be applied before rendering the glyph.
+     tx: Twips,
+@@ -156,8 +165,8 @@ impl<'a> std::fmt::Debug for GlyphBitmap<'a> {
+ impl<'a> GlyphBitmap<'a> {
+     pub fn new(bitmap: Bitmap<'a>, tx: Twips, ty: Twips) -> Self {
+         Self {
+-            bitmap: Cell::new(Some(bitmap)),
+-            handle: OnceCell::new(),
++            bitmap,
++            handle: RefCell::new(None),
+             tx,
+             ty,
+         }
+@@ -166,21 +175,31 @@ impl<'a> GlyphBitmap<'a> {
+     pub fn get_bitmap_info_or_register(
+         &self,
+         renderer: &mut dyn RenderBackend,
+-    ) -> &Result<BitmapInfo, Error> {
+-        self.handle.get_or_init(|| {
+-            let bitmap = self
+-                .bitmap
+-                .take()
+-                .expect("Bitmap should be available before registering");
+-            let width = bitmap.width();
+-            let height = bitmap.height();
+-            let handle = renderer.register_bitmap(bitmap)?;
+-            Ok(BitmapInfo {
+-                handle,
+-                width,
+-                height,
+-            })
+-        })
++    ) -> Option<BitmapInfo> {
++        let epoch = ruffle_render::render_epoch();
++        if let Some((ep, info)) = &*self.handle.borrow() {
++            if *ep == epoch {
++                return Some(info.clone());
++            }
++        }
++        let bitmap = self.bitmap.clone();
++        let width = bitmap.width();
++        let height = bitmap.height();
++        match renderer.register_bitmap(bitmap) {
++            Ok(handle) => {
++                let info = BitmapInfo {
++                    handle,
++                    width,
++                    height,
++                };
++                *self.handle.borrow_mut() = Some((epoch, info.clone()));
++                Some(info)
++            }
++            Err(e) => {
++                tracing::error!("Failed to register glyph as a bitmap: {e}, glyphs will be missing");
++                None
++            }
++        }
+     }
+ }
+ 
+diff --git a/core/src/player.rs b/core/src/player.rs
+index 71ae94a26..b0f5c6228 100644
+--- a/core/src/player.rs
++++ b/core/src/player.rs
+@@ -2175,6 +2175,18 @@ impl Player {
+         &mut *self.renderer
+     }
+ 
++    /// Replace the whole render backend.
++    ///
++    /// A frontend whose GL context has changed under it (a savestate loaded in
++    /// a fresh process) cannot recover the objects the old backend held, so it
++    /// builds a new backend and swaps it in here. The GPU-handle caches spread
++    /// through the object graph still point at the old backend; bumping
++    /// [`ruffle_render::bump_render_epoch`] alongside this call is what makes
++    /// them re-register on the new one.
++    pub fn set_renderer(&mut self, renderer: Box<dyn RenderBackend>) {
++        self.renderer = renderer;
++    }
++
+     pub fn storage(&self) -> &dyn StorageBackend {
+         &*self.storage
+     }
+diff --git a/core/src/tessellation_cache.rs b/core/src/tessellation_cache.rs
+index cacd85384..7b2d740ab 100644
+--- a/core/src/tessellation_cache.rs
++++ b/core/src/tessellation_cache.rs
+@@ -14,6 +14,10 @@ const RETESSELLATION_CACHE_SIZE: usize = 4;
+ pub(crate) struct TessellationCache {
+     entries: [Option<(f32, ShapeHandle)>; RETESSELLATION_CACHE_SIZE],
+     len: usize,
++    /// The render epoch these entries were tessellated under. When it no longer
++    /// matches, they name a rebuilt-away backend's meshes; the cache empties
++    /// itself and the caller re-tessellates from the shape it still holds.
++    epoch: u64,
+ }
+ 
+ /// A cache for tessellated shapes at different scales, using a simple LRU eviction policy.
+@@ -29,6 +33,7 @@ impl TessellationCache {
+         Self {
+             entries: std::array::from_fn(|_| None),
+             len: 0,
++            epoch: 0,
+         }
+     }
+ 
+@@ -36,7 +41,20 @@ impl TessellationCache {
+     ///
+     /// If the closest scale is NOT within the retessellation threshold,
+     /// then `None` is returned, indicating that the shape should be retessellated at the target scale.
+-    pub(crate) fn find_near_and_touch(&mut self, target_scale: f32) -> Option<ShapeHandle> {
++    pub(crate) fn find_near_and_touch(
++        &mut self,
++        target_scale: f32,
++        epoch: u64,
++    ) -> Option<ShapeHandle> {
++        // A rebuilt backend leaves every cached handle dangling; drop them all
++        // and report a miss so the caller re-tessellates onto the new backend.
++        if self.epoch != epoch {
++            self.entries = std::array::from_fn(|_| None);
++            self.len = 0;
++            self.epoch = epoch;
++            return None;
++        }
++
+         let mut best_index = None;
+         let mut best_deviation = f32::INFINITY;
+ 
+diff --git a/render/src/bitmap/atlas.rs b/render/src/bitmap/atlas.rs
+index 5fa4ed30e..220d0dd11 100644
+--- a/render/src/bitmap/atlas.rs
++++ b/render/src/bitmap/atlas.rs
+@@ -13,6 +13,12 @@ struct BitmapAtlasData {
+     /// Bounding box of CPU-side changes made since `handle` was last synced to
+     /// the renderer. `None` means there's nothing pending.
+     dirty: Option<PixelRegion>,
++
++    /// The render epoch `handle` was registered under. When it no longer
++    /// matches, the backend has been rebuilt and the handle names another
++    /// backend's texture; `handle()` drops it and re-registers from `bitmap`,
++    /// whose pixels this atlas keeps on the CPU.
++    epoch: u64,
+ }
+ 
+ /// Bitmap atlas is a bitmap with allocable regions. Instead of having many
+@@ -38,6 +44,7 @@ impl BitmapAtlas {
+             allocator: AtlasAllocator::new(to_size2(width, height)),
+             handle: OnceCell::new(),
+             dirty: None,
++            epoch: 0,
+         })))
+     }
+ 
+@@ -69,6 +76,15 @@ impl BitmapAtlas {
+     pub fn handle(&self, renderer: &mut dyn RenderBackend) -> Option<BitmapHandle> {
+         let mut data = self.0.borrow_mut();
+ 
++        // A rebuilt backend leaves the old texture dangling; forget it so the
++        // block below re-registers this page from its retained CPU pixels.
++        let epoch = crate::render_epoch();
++        if data.epoch != epoch {
++            data.handle = OnceCell::new();
++            data.dirty = None;
++            data.epoch = epoch;
++        }
++
+         let handle = if let Some(handle) = data.handle.get() {
+             handle
+         } else {
+diff --git a/render/src/lib.rs b/render/src/lib.rs
+index c3d53d2d3..f313a2fdc 100644
+--- a/render/src/lib.rs
++++ b/render/src/lib.rs
+@@ -25,3 +25,39 @@ pub mod quality;
+ pub mod tessellator;
+ 
+ pub use pixel_bender;
++
++// The render epoch: a counter every GPU-handle cache stamps its entries with.
++//
++// A `RenderBackend`'s GL objects are names a particular context handed out, and
++// a whole-machine savestate carries those names into a session where the
++// context that owned them is gone. When a frontend rebuilds the backend after
++// such a load, every cached `BitmapHandle`/`ShapeHandle` in the object graph
++// still points at the old backend's now-dangling resources. There is no central
++// registry to walk, so instead the frontend BUMPS this epoch, and each cache
++// compares the epoch a handle was made under with the current one: a mismatch
++// means "another backend's object", and the cache re-registers from the source
++// data it still holds (a shape's edges, a bitmap's pixels) rather than drawing
++// nothing.
++//
++// It lives in guest memory, so a savestate carries it like the caches it
++// stamps: a state loaded into the SAME context restores an epoch that still
++// matches, and nothing re-registers. The frontend bumps it only when it has
++// actually rebuilt the backend, which is what keeps this inert on the common
++// path and deterministic on the replayed one.
++use std::sync::atomic::{AtomicU64, Ordering};
++
++// Starts at 1 so that a cache field left at its `0` default always looks stale
++// on first use and registers, without any "never registered" special case.
++static RENDER_EPOCH: AtomicU64 = AtomicU64::new(1);
++
++/// The current render epoch. A cache holding a handle made under a different
++/// epoch must treat it as another backend's and re-register.
++pub fn render_epoch() -> u64 {
++    RENDER_EPOCH.load(Ordering::Relaxed)
++}
++
++/// Advance the render epoch, invalidating every stamped cache. Call this right
++/// after swapping in a freshly built backend, so the next render re-registers.
++pub fn bump_render_epoch() -> u64 {
++    RENDER_EPOCH.fetch_add(1, Ordering::Relaxed) + 1
++}

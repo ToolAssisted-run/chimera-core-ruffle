@@ -152,6 +152,14 @@ struct Machine {
     /// The movie's declared frame rate, as a ratio the engine can clock from.
     vsync_num: i32,
     vsync_den: i32,
+    /// The host GL context the renderer's objects were built against. wgpu owns
+    /// those objects opaquely as names a particular context handed out, and a
+    /// whole-machine savestate carries the names into a session where that
+    /// context is gone (a fresh process gets a new one). This id, restored with
+    /// the rest of guest memory, is what lets FrameAdvance notice: a mismatch
+    /// with the live context means rebuild the backend before drawing. Zero
+    /// means the bridge cannot tell (no GPU), so nothing ever moves.
+    gl_context: u64,
 }
 
 // One machine per sandbox, driven by one thread (vsched runs guest threads one
@@ -410,6 +418,7 @@ pub extern "C" fn Init() -> i32 {
                 audio_f32, audio_i16: Vec::new(), tasks,
                 video: Vec::new(), video_w: vw.max(1), video_h: vh.max(1),
                 vsync_num, vsync_den,
+                gl_context: 0,
             });
     }
     1
@@ -464,6 +473,41 @@ pub extern "C" fn FrameAdvance(_input: u64) {
             let f = m.audio_f32.borrow();
             m.audio_i16.clear();
             m.audio_i16.extend(f.iter().map(|v| (v.clamp(-1.0, 1.0) * 32767.0) as i16));
+        }
+        // The renderer's objects belong to a host GL context, and this frame
+        // may be the first after a savestate was loaded into a fresh process:
+        // the names wgpu holds are then another context's, every call on them is
+        // refused without a word, and the picture comes back blank. Ask which
+        // context the calls land on now; if it is a different one than the
+        // objects were built against, build a fresh backend on the new context
+        // and swap it in, then bump the render epoch so ruffle_core's own
+        // GPU-handle caches re-register from the display list and library rather
+        // than draw with the dangling handles they still hold. When the context
+        // is stable - every ordinary frame, and a state reloaded in the same
+        // process - live equals the saved id and this does nothing, so the
+        // machine stays exactly what it was. Zero is "cannot tell" (no bridge),
+        // and never triggers a rebuild.
+        let live = renderer::context_id();
+        if live != 0 && m.gl_context != 0 && live != m.gl_context {
+            match renderer::build(m.video_w, m.video_h) {
+                Ok(rb) => {
+                    p.set_renderer(Box::new(rb));
+                    p.set_viewport_dimensions(ruffle_render::backend::ViewportDimensions {
+                        width: m.video_w,
+                        height: m.video_h,
+                        scale_factor: 1.0,
+                    });
+                    ruffle_render::bump_render_epoch();
+                    eprintln!(
+                        "ruffle: host GL context changed ({} -> {}); rebuilt the renderer",
+                        m.gl_context, live
+                    );
+                }
+                Err(e) => eprintln!("ruffle: could not rebuild the renderer after a context change: {e}"),
+            }
+        }
+        if live != 0 {
+            m.gl_context = live;
         }
         inject_edges(&mut p, &mut m.buttons, &mut m.prev_buttons, m.mouse, &mut m.prev_mouse, m.live_pointer, m.text_input);
         p.render();
