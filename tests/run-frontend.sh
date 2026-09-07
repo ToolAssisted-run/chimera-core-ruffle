@@ -37,10 +37,10 @@ report() {
 work="$here/work"; rm -rf "$work"; mkdir -p "$work"
 package="$chimera_root/build/Cores/ruffle.chimeraCore"
 crun="$chimera_root/build/meson-linux/chimera-run"
-# RUFFLE_SRC, or the sibling checkout the guest's path dependencies already
-# assume ("../../../ruffle-src" from waterbox/guest). Never $HOME alone: a
-# runner's home is not a developer's.
-ruffle_src="${RUFFLE_SRC:-$root/../ruffle-src}"
+# The upstream submodule, which is where the guest's path dependencies point
+# too. RUFFLE_SRC still overrides, for a developer testing against another
+# checkout.
+ruffle_src="${RUFFLE_SRC:-$root/extern/ruffle}"
 swfs="$ruffle_src/tests/tests/swfs"
 
 # --- the package must exist and carry what the engine reads ---

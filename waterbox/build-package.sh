@@ -27,7 +27,7 @@ fi
 [ -n "$chimera_root" ] && [ -d "$chimera_root" ] || {
 	echo "chimera checkout not found; pass -r <path>" >&2; exit 1; }
 chimera_root="$(cd "$chimera_root" && pwd)"
-[ -n "$mb" ] || mb="${MINIBOX_DIR:-$HOME/miniBox}"
+[ -n "$mb" ] || mb="$chimera_root/extern/tools/chimera-common-minibox"
 
 # the guest (Rust + the generated GL bridge); build-guest.sh knows the recipe
 MINIBOX_DIR="$mb" sh "$here/build-guest.sh"

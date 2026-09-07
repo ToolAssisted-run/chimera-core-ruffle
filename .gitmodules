@@ -1,0 +1,3 @@
+[submodule "extern/ruffle"]
+	path = extern/ruffle
+	url = https://github.com/ruffle-rs/ruffle

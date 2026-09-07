@@ -9,7 +9,9 @@ name: chimera waterbox core
 # provisioned.
 #
 # It is a Rust core: the guest is built with a nightly toolchain against a
-# custom target, and ruffle_core needs a JDK to build playerglobal.
+# custom target, and ruffle_core needs a JDK to build playerglobal. Upstream is
+# the extern/ruffle submodule, patched into its working tree at build time -
+# so `submodules: true` on the checkout is all the source it needs.
 
 on:
   pull_request:
@@ -52,23 +54,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends meson ninja-build build-essential cmake pkg-config python3 default-jdk
-
-      - name: The pinned ruffle source, as the sibling checkout the guest expects
-        # waterbox/guest's path dependencies are "../../../ruffle-src", i.e. a
-        # SIBLING of this repository - so it is cloned beside the workspace
-        # rather than into it. The commit comes from the file that records it;
-        # naming it here as well would be a second pin to keep in step.
-        run: |
-          pin=$(cat extern/ruffle-pinned-commit.txt)
-          url=$(cat extern/ruffle-upstream.txt)
-          dir="$GITHUB_WORKSPACE/../ruffle-src"
-          # fetch the pinned commit itself, shallow: exact, and no history to
-          # download for a repository this size
-          git init -q "$dir"
-          git -C "$dir" remote add origin "$url"
-          git -C "$dir" fetch -q --depth 1 origin "$pin"
-          git -C "$dir" checkout -q --detach FETCH_HEAD
-          echo "ruffle-src at $pin"
 
       - name: Rust (stable for the reference, nightly for the guest target)
         run: |
@@ -151,23 +136,6 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0'
-
-      - name: The pinned ruffle source, as the sibling checkout the guest expects
-        # waterbox/guest's path dependencies are "../../../ruffle-src", i.e. a
-        # SIBLING of this repository - so it is cloned beside the workspace
-        # rather than into it. The commit comes from the file that records it;
-        # naming it here as well would be a second pin to keep in step.
-        run: |
-          pin=$(cat extern/ruffle-pinned-commit.txt)
-          url=$(cat extern/ruffle-upstream.txt)
-          dir="$GITHUB_WORKSPACE/../ruffle-src"
-          # fetch the pinned commit itself, shallow: exact, and no history to
-          # download for a repository this size
-          git init -q "$dir"
-          git -C "$dir" remote add origin "$url"
-          git -C "$dir" fetch -q --depth 1 origin "$pin"
-          git -C "$dir" checkout -q --detach FETCH_HEAD
-          echo "ruffle-src at $pin"
 
       - name: Rust (stable for the reference, nightly for the guest target)
         run: |

@@ -11,12 +11,12 @@ crate-type = ["staticlib"]
 
 [dependencies]
 # ruffle's own wgpu renderer, on a software GL we build ourselves (renderer.rs)
-ruffle_render_wgpu = { path = "../../../ruffle-src/render/wgpu" }
-ruffle_render = { path = "../../../ruffle-src/render" }
+ruffle_render_wgpu = { path = "../../extern/ruffle/render/wgpu" }
+ruffle_render = { path = "../../extern/ruffle/render" }
 wgpu = { version = "=30.0.1", default-features = false, features = ["gles"] }
 # The pinned ruffle checkout (extern/ruffle-pinned-commit.txt); a path dep so
 # the guest compiles the same source the native reference does.
-ruffle_core = { path = "../../../ruffle-src/core", features = ["audio", "mp3", "aac", "default_font"] }  # the feature set ruffle's own test harness builds with
+ruffle_core = { path = "../../extern/ruffle/core", features = ["audio", "mp3", "aac", "default_font"] }  # the feature set ruffle's own test harness builds with
 # exact versions ruffle uses, so the navigator trait's Url/Encoding types match
 url = "=2.5.8"
 encoding_rs = "=0.8.35"

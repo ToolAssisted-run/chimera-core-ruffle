@@ -9,7 +9,7 @@ publish = false
 # log - so its output can be checked against ruffle's committed output.txt.
 # Path dep on the pinned ruffle checkout; not a member of ruffle's workspace.
 [dependencies]
-ruffle_core = { path = "../../../ruffle-src/core", features = ["audio", "mp3", "aac", "default_font"] }  # the feature set ruffle's own test harness builds with
+ruffle_core = { path = "../../extern/ruffle/core", features = ["audio", "mp3", "aac", "default_font"] }  # the feature set ruffle's own test harness builds with
 
 [[bin]]
 name = "run-native"

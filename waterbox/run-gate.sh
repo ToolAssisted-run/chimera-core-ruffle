@@ -42,7 +42,7 @@
 set -u
 here="$(cd "$(dirname "$0")" && pwd)"
 root="$(cd "$here/.." && pwd)"
-ruffle="${RUFFLE_SRC:-$root/../ruffle-src}"
+ruffle="${RUFFLE_SRC:-$root/extern/ruffle}"
 bin="$root/waterbox/run-native/target/release/run-native"
 wbx="$root/waterbox/build/run-wbx"
 core="$root/waterbox/build/core.wbx"
@@ -56,7 +56,7 @@ done
 swfs="$ruffle/tests/tests/swfs"
 list="$root/tests/oracle-list.txt"
 [ -x "$bin" ] || { echo "run-native not built: $bin (cargo build --release in waterbox/run-native)" >&2; exit 1; }
-[ -d "$swfs" ] || { echo "ruffle corpus not found: $swfs (set RUFFLE_SRC)" >&2; exit 1; }
+[ -d "$swfs" ] || { echo "ruffle corpus not found: $swfs (git submodule update --init extern/ruffle)" >&2; exit 1; }
 [ -f "$list" ] || { echo "oracle list missing: $list" >&2; exit 1; }
 
 ok=0; bad=0; nondet=0; total=0; sbad=0; sskip=0

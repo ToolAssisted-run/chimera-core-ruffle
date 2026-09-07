@@ -27,7 +27,7 @@ approximates. That is the pitch.
    picture must land in guest memory: wgpu on the GL backend over the guest
    Mesa softpipe + GPU bridge, or a software path. **M0 needs no renderer.**
 
-## Key in-tree facts (from ~/ruffle-src)
+## Key in-tree facts (from extern/ruffle)
 
 - `core` is backend-agnostic: Renderer/Audio/Navigator/Ui/Log are traits the
   frontend supplies. `render/src/backend/null.rs` is a NullRenderer; core ships

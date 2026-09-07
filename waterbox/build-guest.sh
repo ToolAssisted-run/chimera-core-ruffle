@@ -14,7 +14,7 @@
 # later pulls a crate that needs it.
 set -eu
 here="$(cd "$(dirname "$0")" && pwd)"
-minibox="${MINIBOX_DIR:-$HOME/miniBox}"
+minibox="${MINIBOX_DIR:-$HOME/chimera/extern/tools/chimera-common-minibox}"
 mb="$minibox/build/meson-linux"
 guest="$here/guest"
 [ -x "$mb/musl-gcc" ] || { echo "miniBox guest kit not built at $mb (musl-gcc missing)" >&2; exit 1; }
@@ -28,6 +28,7 @@ export PATH
 # through musl's key-based path ([gs:0x18], the sandbox context in the TEB)
 # rather than through %fs, which no host OS maintains for us. See
 # guest/.cargo/config.toml for why nothing shorter works.
+sh "$here/apply-patches.sh"
 ( cd "$guest" && cargo +nightly build --release )
 a="$guest/target/waterbox-guest/release/libruffle_guest.a"
 
