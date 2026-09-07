@@ -66,6 +66,8 @@ pub fn run_tasks(tasks: &Tasks) {
 struct GuestResponse {
     url: String,
     body: Vec<u8>,
+    /// Whether the body has already been handed over as a chunk. See next_chunk.
+    chunk_gotten: bool,
 }
 impl SuccessResponse for GuestResponse {
     fn url(&self) -> Cow<'_, str> { Cow::Borrowed(&self.url) }
@@ -76,10 +78,86 @@ impl SuccessResponse for GuestResponse {
     fn text_encoding(&self) -> Option<&'static Encoding> { None }
     fn status(&self) -> u16 { 0 }
     fn redirected(&self) -> bool { false }
+    /// The body, once, then nothing - exactly as ruffle's own test navigator does
+    /// it. This is a STREAM, and returning None straight away says "the response
+    /// is empty" rather than "there is nothing more". Every loader that streams -
+    /// loadMovie, loadVariables, MovieClipLoader, AVM2's Loader - reads it this
+    /// way, so getting it wrong loses the body while `fetch` still reports success
+    /// and nothing anywhere logs a failure.
     fn next_chunk(&mut self) -> OwnedFuture<Option<Vec<u8>>, Error> {
-        Box::pin(async move { Ok(None) })
+        if self.chunk_gotten {
+            return Box::pin(async move { Ok(None) });
+        }
+        self.chunk_gotten = true;
+        let body = self.body.clone();
+        Box::pin(async move { Ok(Some(body)) })
     }
     fn expected_length(&self) -> Result<Option<u64>, Error> { Ok(Some(self.body.len() as u64)) }
+}
+
+/// Reads a whole file out of the guest VFS, through musl directly.
+///
+/// NOT `std::fs`, which cannot be trusted on this target. Measured in the guest,
+/// against a mounted 68-byte file, with miniBox's syscall trace alongside:
+///
+///   musl open() + read()          -> fd 3, 68 bytes          (correct)
+///   std::fs::read, at Init        -> 68 bytes                (correct)
+///   std::fs::read, inside a frame -> 0 bytes, no error        (WRONG)
+///   std::fs::File::open, at Init  -> File whose raw fd is 0   (WRONG)
+///
+/// The syscall trace shows `open` returning 3 and std then issuing `fstat`,
+/// `read` and `close` against a constant garbage fd. So the kernel side is
+/// right - miniBox hands back the correct descriptor, and musl's own wrappers
+/// carry it - and it is Rust's std, built for this custom guest target, that
+/// loses it. Which entry point fails depends on the call site and is stable per
+/// site, which is the signature of a miscompile rather than a runtime fault.
+///
+/// It failed in the worst possible way: the fetch SUCCEEDED with an empty body,
+/// so the loader completed, nothing logged an error, and the movie simply never
+/// became loaded. That is what half of ruffle's navigator suite had been failing
+/// on.
+///
+/// Going straight to musl sidesteps all of it. The functions are the ones the
+/// guest kit already provides and the ones the probe above proved correct.
+fn read_whole(path: &str) -> std::io::Result<Vec<u8>> {
+    use std::io::{Error, ErrorKind};
+
+    extern "C" {
+        fn open(path: *const u8, flags: i32, ...) -> i32;
+        fn read(fd: i32, buf: *mut u8, n: usize) -> isize;
+        fn close(fd: i32) -> i32;
+        fn __errno_location() -> *mut i32;
+    }
+
+    let mut c_path = Vec::with_capacity(path.len() + 1);
+    c_path.extend_from_slice(path.as_bytes());
+    c_path.push(0);
+
+    let fd = unsafe { open(c_path.as_ptr(), 0 /* O_RDONLY */) };
+    if fd < 0 {
+        let err = unsafe { *__errno_location() };
+        // ENOENT is the one the caller acts on: it tries the basename next
+        return Err(if err == 2 {
+            Error::new(ErrorKind::NotFound, "No such file or directory")
+        } else {
+            Error::from_raw_os_error(err)
+        });
+    }
+
+    let mut bytes = Vec::new();
+    let mut chunk = [0u8; 64 * 1024];
+    loop {
+        let n = unsafe { read(fd, chunk.as_mut_ptr(), chunk.len()) };
+        if n < 0 {
+            let err = unsafe { *__errno_location() };
+            unsafe { close(fd) };
+            return Err(Error::from_raw_os_error(err));
+        }
+        if n == 0 { break; }
+        bytes.extend_from_slice(&chunk[..n as usize]);
+    }
+    unsafe { close(fd) };
+    Ok(bytes)
 }
 
 /// file:///foo/bar.swf -> "foo/bar.swf"; a spoofed http://host/foo -> "host/foo".
@@ -123,17 +201,17 @@ impl NavigatorBackend for GuestNavigator {
             // kept in a subdirectory asks for "assets/levels.xml". Neither names a
             // mounted file, though the file is right there. So: try what was
             // asked for, then what it is called.
-            let mut read = std::fs::read(&path);
+            let mut read = read_whole(&path);
             if read.is_err() {
                 if let Some((_, base)) = path.rsplit_once('/') {
                     if !base.is_empty() {
-                        read = std::fs::read(base);
+                        read = read_whole(base);
                     }
                 }
             }
             match read {
                 Ok(body) => {
-                    let r: Box<dyn SuccessResponse> = Box::new(GuestResponse { url: url.to_string(), body });
+                    let r: Box<dyn SuccessResponse> = Box::new(GuestResponse { url: url.to_string(), body, chunk_gotten: false });
                     Ok(r)
                 }
                 Err(e) => {

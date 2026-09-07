@@ -460,6 +460,16 @@ pub extern "C" fn FrameAdvance(_input: u64) {
             (n + d - 1) / d
         };
         while m.movie_frames < due {
+            // BEFORE the frame, every frame - not once at startup. preload is what
+            // processes a movie whose bytes have just arrived, so a child SWF that
+            // loadMovie fetched is parsed here and nowhere else. Preloading only at
+            // startup means the fetch completes, the data is delivered, and the
+            // child then sits there: "Loading movie" traces and "Child movie
+            // loaded!" never does, with nothing anywhere reporting a failure.
+            // ExecutionLimit::exhausted is upstream's own choice here: no budget,
+            // so it finishes rather than spreading the work over later frames,
+            // which is what keeps this deterministic.
+            p.preload(&mut ExecutionLimit::exhausted());
             p.run_frame();
             m.movie_frames += 1;
         }

@@ -6,3 +6,7 @@ tests/roms-local/
 waterbox/build/
 waterbox/guest/target/
 tests/work/
+
+# python bytecode caches: a build artefact of the input-table generator
+__pycache__/
+*.pyc
