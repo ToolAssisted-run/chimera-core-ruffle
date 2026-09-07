@@ -12,7 +12,7 @@ set -u
 here="$(cd "$(dirname "$0")" && pwd)"
 root="$(cd "$here/.." && pwd)"
 chimera_root=""
-minibox="${MINIBOX_DIR:-$HOME/miniBox}"
+minibox="${MINIBOX_DIR:-$HOME/chimera/extern/tools/chimera-common-minibox}"
 while [ $# -gt 0 ]; do
 	case "$1" in
 		--chimera-root) chimera_root="$2"; shift ;;
@@ -37,7 +37,11 @@ report() {
 work="$here/work"; rm -rf "$work"; mkdir -p "$work"
 package="$chimera_root/build/Cores/ruffle.chimeraCore"
 crun="$chimera_root/build/meson-linux/chimera-run"
-swfs="$HOME/ruffle-src/tests/tests/swfs"
+# RUFFLE_SRC, or the sibling checkout the guest's path dependencies already
+# assume ("../../../ruffle-src" from waterbox/guest). Never $HOME alone: a
+# runner's home is not a developer's.
+ruffle_src="${RUFFLE_SRC:-$root/../ruffle-src}"
+swfs="$ruffle_src/tests/tests/swfs"
 
 # --- the package must exist and carry what the engine reads ---
 if [ ! -f "$package" ]; then

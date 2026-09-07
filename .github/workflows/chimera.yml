@@ -1,0 +1,264 @@
+name: chimera waterbox core
+
+# The core as Chimera ships it: a sandboxed core.wbx package.
+#
+# Ruffle brings its own content: the gate runs against upstream Ruffle's OWN
+# test suite (extern/ruffle/tests/tests/swfs), which is vendored in the
+# submodule and free to distribute. So the whole gate runs here - the trace
+# oracle, the pictures, the savestates, input and audio - with nothing
+# provisioned.
+#
+# It is a Rust core: the guest is built with a nightly toolchain against a
+# custom target, and ruffle_core needs a JDK to build playerglobal.
+
+on:
+  pull_request:
+    branches: [ "main" ]
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+  schedule:
+    # 04:00 UTC. A nightly is published only when main moved since the last one;
+    # the reusable workflow checks, so an unchanged core costs one idle run.
+    - cron: '0 4 * * *'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CHIMERA_REF: main
+
+jobs:
+
+  core-gate:
+    name: "core gate (upstream suite: trace, image, state, input, audio)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: true
+
+      - name: Check out Chimera (for the miniBox waterbox host and toolchain)
+        uses: actions/checkout@v6
+        with:
+          repository: ToolAssisted-run/chimera
+          ref: ${{ env.CHIMERA_REF }}
+          path: chimera-checkout
+          submodules: false
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends meson ninja-build build-essential cmake pkg-config python3 default-jdk
+
+      - name: The pinned ruffle source, as the sibling checkout the guest expects
+        # waterbox/guest's path dependencies are "../../../ruffle-src", i.e. a
+        # SIBLING of this repository - so it is cloned beside the workspace
+        # rather than into it. The commit comes from the file that records it;
+        # naming it here as well would be a second pin to keep in step.
+        run: |
+          pin=$(cat extern/ruffle-pinned-commit.txt)
+          url=$(cat extern/ruffle-upstream.txt)
+          dir="$GITHUB_WORKSPACE/../ruffle-src"
+          # fetch the pinned commit itself, shallow: exact, and no history to
+          # download for a repository this size
+          git init -q "$dir"
+          git -C "$dir" remote add origin "$url"
+          git -C "$dir" fetch -q --depth 1 origin "$pin"
+          git -C "$dir" checkout -q --detach FETCH_HEAD
+          echo "ruffle-src at $pin"
+
+      - name: Rust (stable for the reference, nightly for the guest target)
+        run: |
+          rustup toolchain install nightly --profile minimal -c rust-src
+          rustup default stable
+          rustc --version && cargo +nightly --version
+
+      - name: Check out miniBox
+        working-directory: chimera-checkout
+        run: git submodule update --init extern/tools/chimera-common-minibox
+
+      - name: Cache the guest toolchain
+        uses: actions/cache@v4
+        with:
+          path: |
+            chimera-checkout/extern/tools/chimera-common-minibox/build/meson-linux
+            chimera-checkout/extern/tools/chimera-common-minibox/build/meson-cpp
+          key: guest-cpp-${{ runner.os }}-${{ hashFiles('chimera-checkout/extern/tools/chimera-common-minibox/.git') }}-${{ hashFiles('chimera-checkout/extern/tools/chimera-common-minibox/meson.build') }}
+
+      - name: Build miniBox (host + C++ guest toolchain)
+        run: |
+          mb="$PWD/chimera-checkout/extern/tools/chimera-common-minibox"
+          [ -f "$mb/build/meson-linux/build.ninja" ] || meson setup "$mb/build/meson-linux" "$mb"
+          meson compile -C "$mb/build/meson-linux"
+          [ -f "$mb/build/meson-cpp/build.ninja" ] || meson setup "$mb/build/meson-cpp" "$mb" -Dguest_cpp=true
+          meson compile -C "$mb/build/meson-cpp"
+
+      - name: Build the native reference
+        run: ./waterbox/build-native.sh
+
+      - name: Build the waterbox core
+        run: MINIBOX_DIR="$PWD/chimera-checkout/extern/tools/chimera-common-minibox" ./waterbox/build-guest.sh
+
+      - name: Core gate
+        run: ./waterbox/run-gate.sh
+
+      - name: Upload core.wbx
+        uses: actions/upload-artifact@v7
+        with:
+          name: core-wbx
+          path: |
+            waterbox/build/core.wbx
+            waterbox/waterbox.config
+          retention-days: 90
+
+      - name: Upload the gate work dir on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: core-gate-work
+          path: waterbox/tests/work/
+
+  frontend-gate:
+    # The other half: the package inside the real frontend. Every check runs: upstream's
+    # own swfs are vendored and free.
+    # The package is BUILT here either way, which is what publishes the artifact
+    # and proves the packaging is deterministic.
+    name: frontend gate (Chimera)
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: true
+
+      - name: Check out Chimera
+        uses: actions/checkout@v6
+        with:
+          repository: ToolAssisted-run/chimera
+          ref: ${{ env.CHIMERA_REF }}
+          path: chimera-checkout
+          submodules: recursive
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends meson ninja-build build-essential cmake pkg-config python3 default-jdk mono-complete xvfb libgl1-mesa-dev libx11-dev libxext-dev libasound2-dev
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0'
+
+      - name: The pinned ruffle source, as the sibling checkout the guest expects
+        # waterbox/guest's path dependencies are "../../../ruffle-src", i.e. a
+        # SIBLING of this repository - so it is cloned beside the workspace
+        # rather than into it. The commit comes from the file that records it;
+        # naming it here as well would be a second pin to keep in step.
+        run: |
+          pin=$(cat extern/ruffle-pinned-commit.txt)
+          url=$(cat extern/ruffle-upstream.txt)
+          dir="$GITHUB_WORKSPACE/../ruffle-src"
+          # fetch the pinned commit itself, shallow: exact, and no history to
+          # download for a repository this size
+          git init -q "$dir"
+          git -C "$dir" remote add origin "$url"
+          git -C "$dir" fetch -q --depth 1 origin "$pin"
+          git -C "$dir" checkout -q --detach FETCH_HEAD
+          echo "ruffle-src at $pin"
+
+      - name: Rust (stable for the reference, nightly for the guest target)
+        run: |
+          rustup toolchain install nightly --profile minimal -c rust-src
+          rustup default stable
+
+      - name: Build Chimera native dependencies
+        working-directory: chimera-checkout
+        run: |
+          meson setup build/meson-linux --prefix "$PWD/build" --libdir dll
+          meson compile -C build/meson-linux
+          meson install -C build/meson-linux
+
+      - name: Build the Chimera solution
+        working-directory: chimera-checkout
+        run: dotnet build source/gui/Chimera.sln -c Release /nodeReuse:false -p:UseSharedCompilation=false
+
+      - name: Cache the guest toolchain
+        uses: actions/cache@v4
+        with:
+          path: |
+            chimera-checkout/extern/tools/chimera-common-minibox/build/meson-linux
+            chimera-checkout/extern/tools/chimera-common-minibox/build/meson-cpp
+          key: guest-cpp-${{ runner.os }}-${{ hashFiles('chimera-checkout/extern/tools/chimera-common-minibox/.git') }}-${{ hashFiles('chimera-checkout/extern/tools/chimera-common-minibox/meson.build') }}
+
+      - name: Build miniBox (host + C++ guest toolchain)
+        run: |
+          mb="$PWD/chimera-checkout/extern/tools/chimera-common-minibox"
+          [ -f "$mb/build/meson-linux/build.ninja" ] || meson setup "$mb/build/meson-linux" "$mb"
+          meson compile -C "$mb/build/meson-linux"
+          [ -f "$mb/build/meson-cpp/build.ninja" ] || meson setup "$mb/build/meson-cpp" "$mb" -Dguest_cpp=true
+          meson compile -C "$mb/build/meson-cpp"
+
+      - name: Build the native reference
+        run: ./waterbox/build-native.sh
+
+      - name: Build and install the waterbox core package
+        # The commit is the core's authoritative version: this build is the one
+        # that publishes the artifact, so what it stamps is what a movie can
+        # cite. A package built by hand stamps "+local" instead.
+        env:
+          CORE_VERSION: ${{ github.sha }}
+        run: ./waterbox/build-package.sh -m "$PWD/chimera-checkout/extern/tools/chimera-common-minibox" -r "$PWD/chimera-checkout"
+
+      - name: Frontend gate
+        run: ./tests/run-frontend.sh --chimera-root "$GITHUB_WORKSPACE/chimera-checkout"
+
+      - name: The package through the real frontend
+        # The content-free half of the frontend gate, and the whole of it for a
+        # core whose emulation needs a dump: Chimera's own contract tests, run
+        # against THIS package. It must be readable, built for an ABI this
+        # frontend runs, become a working factory, bind only buttons its
+        # controller declares, and stamp a version.
+        working-directory: chimera-checkout
+        env:
+          CHIMERA_CORES_DIR: ${{ github.workspace }}/chimera-checkout/build/Cores
+        run: |
+          dotnet test source/gui/Chimera.Tests.Client.Common/Chimera.Tests.Client.Common.csproj \
+            -c Release --nologo \
+            --filter "FullyQualifiedName~InstalledCorePackagesTests|FullyQualifiedName~MnemonicUniquenessTests"
+
+      - name: Publish the core package
+        uses: actions/upload-artifact@v7
+        with:
+          name: ruffle-${{ github.sha }}
+          path: chimera-checkout/build/Cores/ruffle.chimeraCore
+          if-no-files-found: error
+
+      - name: Upload the gate work dir on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: frontend-gate-work
+          path: tests/work/
+
+  publish:
+    # What the gates passed, published as this core's own release: a rolling
+    # `dev` on every green push to main, an immutable `nightly-YYYY-MM-DD` from
+    # the scheduled run. Chimera ships no cores; its Core Manager downloads
+    # them from here.
+    #
+    # The logic is Chimera's tools/publish-core.sh, called through one reusable
+    # workflow, so all fifteen cores publish the same way and there is one place
+    # to change it.
+    name: publish
+    needs: [ core-gate, frontend-gate ]
+    if: github.event_name != 'pull_request'
+    permissions:
+      contents: write
+    uses: ToolAssisted-run/chimera/.github/workflows/publish-core.yml@main
+    with:
+      core-id: ruffle
+      artifact: ruffle-${{ github.sha }}
+      package: ruffle.chimeraCore

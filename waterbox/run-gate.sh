@@ -42,7 +42,7 @@
 set -u
 here="$(cd "$(dirname "$0")" && pwd)"
 root="$(cd "$here/.." && pwd)"
-ruffle="${RUFFLE_SRC:-$HOME/ruffle-src}"
+ruffle="${RUFFLE_SRC:-$root/../ruffle-src}"
 bin="$root/waterbox/run-native/target/release/run-native"
 wbx="$root/waterbox/build/run-wbx"
 core="$root/waterbox/build/core.wbx"
