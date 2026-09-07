@@ -14,7 +14,7 @@
 # later pulls a crate that needs it.
 set -eu
 here="$(cd "$(dirname "$0")" && pwd)"
-minibox="${MINIBOX_DIR:-$HOME/chimera/extern/tools/chimera-common-minibox}"
+minibox="${MINIBOX_DIR:-$HOME/chimera/extern/chimera-common-minibox}"
 mb="$minibox/build/meson-linux"
 guest="$here/guest"
 [ -x "$mb/musl-gcc" ] || { echo "miniBox guest kit not built at $mb (musl-gcc missing)" >&2; exit 1; }

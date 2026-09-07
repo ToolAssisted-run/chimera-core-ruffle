@@ -12,7 +12,7 @@ set -u
 here="$(cd "$(dirname "$0")" && pwd)"
 root="$(cd "$here/.." && pwd)"
 chimera_root=""
-minibox="${MINIBOX_DIR:-$HOME/chimera/extern/tools/chimera-common-minibox}"
+minibox="${MINIBOX_DIR:-$HOME/chimera/extern/chimera-common-minibox}"
 while [ $# -gt 0 ]; do
 	case "$1" in
 		--chimera-root) chimera_root="$2"; shift ;;
