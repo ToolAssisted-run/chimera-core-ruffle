@@ -119,7 +119,7 @@ impl SuccessResponse for GuestResponse {
 ///
 /// Going straight to musl sidesteps all of it. The functions are the ones the
 /// guest kit already provides and the ones the probe above proved correct.
-fn read_whole(path: &str) -> std::io::Result<Vec<u8>> {
+pub fn read_whole(path: &str) -> std::io::Result<Vec<u8>> {
     use std::io::{Error, ErrorKind};
 
     extern "C" {

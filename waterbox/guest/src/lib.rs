@@ -40,7 +40,7 @@ mod input_table;
 mod navigator;
 mod renderer;
 use input_table::{Btn, BUTTONS, BUTTON_COUNT, SHIFT_LEFT, SHIFT_RIGHT};
-use navigator::{run_tasks, GuestNavigator, Tasks};
+use navigator::{read_whole, run_tasks, GuestNavigator, Tasks};
 use renderer::GuestRenderer;
 
 /// Captures ActionScript trace() into a buffer the host can read back.
@@ -178,7 +178,10 @@ struct Settings(serde_json::Value);
 impl Settings {
     fn load() -> Self {
         Settings(
-            std::fs::read("settings")
+            // read_whole, never std::fs: an empty read here loses every setting
+            // in silence, which is what made the spoofed URL, the quality knob
+            // and font substitution all appear to do nothing.
+            read_whole("settings")
                 .ok()
                 .and_then(|raw| serde_json::from_slice(&raw).ok())
                 .unwrap_or(serde_json::Value::Null),
@@ -269,7 +272,10 @@ pub extern "C" fn Init() -> i32 {
     let data: &[u8] = if !handed.is_empty() {
         handed
     } else {
-        match std::fs::read("game") {
+        // read_whole, never std::fs. This is the ENGINE's route into the core -
+        // the frontend mounts the movie as "game" - so an empty read here is a
+        // project that opens to nothing.
+        match read_whole("game") {
             Ok(bytes) if !bytes.is_empty() => { mounted = bytes; &mounted }
             _ => {
                 set_load_error("no SWF: nothing was handed over and no movie is mounted as 'game'");
