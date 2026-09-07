@@ -51,9 +51,14 @@ jobs:
           submodules: false
 
       - name: Install build dependencies
+        # The gate draws: run-wbx is the host end of the GPU bridge, so it
+        # compiles against EGL and needs a driver to answer at run time. The
+        # runner has no GPU, so that driver is Mesa's software rasteriser
+        # (libgl1-mesa-dri) reached through the surfaceless platform
+        # (libegl-mesa0). Without libegl-dev the build stops at EGL/egl.h.
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends meson ninja-build build-essential cmake pkg-config python3 default-jdk
+          sudo apt-get install -y --no-install-recommends meson ninja-build build-essential cmake pkg-config python3 default-jdk libegl-dev libegl-mesa0 libgl1-mesa-dri
 
       - name: Rust (stable for the reference, nightly for the guest target)
         run: |
