@@ -19,6 +19,12 @@ on:
   push:
     branches: [ "main" ]
   workflow_dispatch:
+    inputs:
+      kind:
+        description: 'dev (rolling) or nightly (dated). Blank means dev.'
+        required: false
+        default: ''
+        type: string
   schedule:
     # 04:00 UTC. A nightly is published only when main moved since the last one;
     # the reusable workflow checks, so an unchanged core costs one idle run.
@@ -235,3 +241,4 @@ jobs:
       core-id: ruffle
       artifact: ruffle-${{ github.sha }}
       package: ruffle.chimeraCore
+      kind: ${{ github.event.inputs.kind }}
