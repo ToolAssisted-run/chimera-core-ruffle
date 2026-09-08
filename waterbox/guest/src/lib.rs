@@ -513,6 +513,18 @@ pub extern "C" fn FrameAdvance(_input: u64) {
                         height: m.video_h,
                         scale_factor: 1.0,
                     });
+                    // The stage's quality lives in the PLAYER and is pushed down
+                    // to the renderer only when it is set (Stage::set_quality
+                    // ends in renderer.set_quality). A backend built just now
+                    // starts at its own default instead, and for wgpu that
+                    // decides the MSAA sample count - so the picture comes back
+                    // with different edges, which is not a crash and not a
+                    // desync and is easy to miss. Measured on a movie at the
+                    // default 'high': 11.6% of pixels differed after a reopen,
+                    // and 0% at 'low', where there is no anti-aliasing to lose.
+                    // Reading it back and setting it again is what re-pushes it.
+                    let quality = p.quality();
+                    p.set_quality(quality);
                     ruffle_render::bump_render_epoch();
                     eprintln!(
                         "ruffle: host GL context changed ({} -> {}); rebuilt the renderer",
