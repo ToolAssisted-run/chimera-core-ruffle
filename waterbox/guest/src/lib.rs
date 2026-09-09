@@ -43,6 +43,48 @@ use input_table::{Btn, BUTTONS, BUTTON_COUNT, SHIFT_LEFT, SHIFT_RIGHT};
 use navigator::{read_whole, run_tasks, GuestNavigator, Tasks};
 use renderer::GuestRenderer;
 
+
+/// Ruffle says a great deal about what it could not do - an unimplemented
+/// method, a SharedObject it refused to open, an asset it would not decode -
+/// and it says all of it through `tracing`. A guest with no subscriber
+/// installed drops every word, which is why a game that half-works in this core
+/// has been so hard to explain: the player is telling you, and nothing is
+/// listening. This is the smallest subscriber that keeps those words, pointed
+/// at the same stderr the rest of this core's diagnostics already use.
+struct WarnToStderr;
+
+struct MsgVisitor(String);
+impl tracing::field::Visit for MsgVisitor {
+    fn record_debug(&mut self, field: &tracing::field::Field, value: &dyn core::fmt::Debug) {
+        if field.name() == "message" {
+            self.0 = format!("{:?}", value);
+        } else {
+            if !self.0.is_empty() {
+                self.0.push(' ');
+            }
+            self.0.push_str(&format!("{}={:?}", field.name(), value));
+        }
+    }
+}
+
+impl tracing::Subscriber for WarnToStderr {
+    fn enabled(&self, meta: &tracing::Metadata<'_>) -> bool {
+        *meta.level() <= tracing::Level::WARN
+    }
+    fn new_span(&self, _: &tracing::span::Attributes<'_>) -> tracing::span::Id {
+        tracing::span::Id::from_u64(1)
+    }
+    fn record(&self, _: &tracing::span::Id, _: &tracing::span::Record<'_>) {}
+    fn record_follows_from(&self, _: &tracing::span::Id, _: &tracing::span::Id) {}
+    fn event(&self, event: &tracing::Event<'_>) {
+        let mut v = MsgVisitor(String::new());
+        event.record(&mut v);
+        eprintln!("ruffle {}: {}", event.metadata().level(), v.0);
+    }
+    fn enter(&self, _: &tracing::span::Id) {}
+    fn exit(&self, _: &tracing::span::Id) {}
+}
+
 /// Captures ActionScript trace() into a buffer the host can read back.
 #[derive(Clone)]
 struct CaptureLog {
@@ -54,7 +96,10 @@ impl LogBackend for CaptureLog {
         b.extend_from_slice(message.as_bytes());
         b.push(b'\n');
     }
-    fn avm_warning(&self, _message: &str) {}
+    /* the movie's own warnings go where ruffle's do: nothing else was keeping
+     * them, and a movie complaining about itself is exactly what somebody
+     * looking at a half-working game needs to read */
+    fn avm_warning(&self, message: &str) { eprintln!("ruffle avm: {}", message); }
 }
 
 /// Ruffle's software mixer, driven a frame at a time - the same shape as the
@@ -323,6 +368,7 @@ pub extern "C" fn Init() -> i32 {
         ((host_rate * 1000.0).round() as i32, 1000)
     };
 
+    let _ = tracing::subscriber::set_global_default(WarnToStderr);
     let trace = Rc::new(RefCell::new(Vec::new()));
     let audio_f32 = Rc::new(RefCell::new(Vec::new()));
     let tasks: Tasks = std::rc::Rc::new(RefCell::new(Vec::new()));

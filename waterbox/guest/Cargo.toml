@@ -25,6 +25,9 @@ async-channel = "=2.5.0"
 indexmap = "=2.14.0"
 # the settings channel: the engine mounts a flat JSON object as "settings"
 serde_json = "=1.0.151"
+# ruffle says everything it could not do through `tracing`; without a
+# subscriber the guest drops every word of it (see WarnToStderr in lib.rs)
+tracing = "=0.1.44"
 
 [profile.release]
 # NOT "immediate-abort": that strategy applied to this crate while std was
