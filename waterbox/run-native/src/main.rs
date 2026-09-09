@@ -118,6 +118,7 @@ fn main() {
     let mut hover: u32 = 0;
     let mut hold: u32 = 2;
     let mut virtual_time = false;
+    let mut preload_every = false;
     let mut i = 2;
     while i < args.len() {
         match args[i].as_str() {
@@ -152,6 +153,7 @@ fn main() {
             // has none; this makes the reference do the same, so that difference
             // can be tested rather than assumed
             "--virtual-time" => { virtual_time = true; i += 1; }
+            "--preload-every" => { preload_every = true; i += 1; }
             other => { eprintln!("unknown arg: {other}"); std::process::exit(2); }
         }
     }
@@ -184,6 +186,7 @@ fn main() {
     for frame_i in 0..frames {
         let mut p = player.lock().unwrap();
         if virtual_time { p.advance_virtual_time(frame_time.to_std()); }
+        if preload_every { p.preload(&mut ExecutionLimit::exhausted()); }
         // exactly ruffle's runner for a frame-counted test (not tick(): see the guest)
         p.run_frame();
         p.update_timers(frame_time);
