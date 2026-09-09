@@ -8,6 +8,7 @@
 // oracle - no console, no rendering, no copyrighted content.
 //
 // Usage: run-native <file.swf> --frames <n> [--fps <f>] [--spoof-url <url>]
+//                    [--click <frame>:<x>:<y>[,...]] [--hover <n>] [--hold <n>]
 //                    [--width <px>] [--height <px>] [--audio-out <raw i16 stereo>]
 //                    [--audio-peaks <one max-amplitude per frame>]
 // Prints the trace to stdout and, on stderr, one summary line:
@@ -42,7 +43,7 @@ impl AudioBackend for NativeAudio {
 }
 use ruffle_core::tag_utils::SwfMovie;
 use ruffle_core::limits::ExecutionLimit;
-use ruffle_core::{FloatDuration, PlayerBuilder};
+use ruffle_core::{FloatDuration, PlayerBuilder, PlayerEvent};
 
 #[derive(Clone)]
 struct CaptureLog {
@@ -113,6 +114,10 @@ fn main() {
     let mut height: u32 = 0;
     let mut audio_out: Option<String> = None;
     let mut audio_peaks: Option<String> = None;
+    let mut clicks: Vec<(u32, f64, f64)> = Vec::new();
+    let mut hover: u32 = 0;
+    let mut hold: u32 = 2;
+    let mut virtual_time = false;
     let mut i = 2;
     while i < args.len() {
         match args[i].as_str() {
@@ -123,6 +128,30 @@ fn main() {
             "--height" => { height = args[i + 1].parse().unwrap(); i += 2; }
             "--audio-out" => { audio_out = Some(args[i + 1].clone()); i += 2; }
             "--audio-peaks" => { audio_peaks = Some(args[i + 1].clone()); i += 2; }
+            // A scripted pointer, so the native reference can answer the one
+            // question the image and audio oracles cannot: whether a movie that
+            // ignores a click ignores it HERE too. Same shape as the guest's:
+            // the pointer arrives, then presses, then releases, and the events
+            // land in the same place in the frame.
+            "--click" => {
+                for part in args[i + 1].split(',') {
+                    let f: Vec<&str> = part.split(':').collect();
+                    if f.len() == 3 {
+                        clicks.push((
+                            f[0].parse::<u32>().unwrap(),
+                            f[1].parse::<f64>().unwrap(),
+                            f[2].parse::<f64>().unwrap(),
+                        ));
+                    }
+                }
+                i += 2;
+            }
+            "--hover" => { hover = args[i + 1].parse().unwrap(); i += 2; }
+            "--hold" => { hold = args[i + 1].parse().unwrap(); i += 2; }
+            // the guest advances a virtual clock every frame because the sandbox
+            // has none; this makes the reference do the same, so that difference
+            // can be tested rather than assumed
+            "--virtual-time" => { virtual_time = true; i += 1; }
             other => { eprintln!("unknown arg: {other}"); std::process::exit(2); }
         }
     }
@@ -152,12 +181,26 @@ fn main() {
     let mut last_frame = 0u16;
     let mut audio_all: Vec<u8> = Vec::new();
     let mut peaks: Vec<f32> = Vec::new();
-    for _ in 0..frames {
+    for frame_i in 0..frames {
         let mut p = player.lock().unwrap();
+        if virtual_time { p.advance_virtual_time(frame_time.to_std()); }
         // exactly ruffle's runner for a frame-counted test (not tick(): see the guest)
         p.run_frame();
         p.update_timers(frame_time);
         p.audio_mut().tick();
+        // input goes exactly where the guest puts it: after the frame, before
+        // the render, so the two sides are comparable frame for frame
+        for &(cf, x, y) in &clicks {
+            if frame_i == cf {
+                p.handle_event(PlayerEvent::MouseMove { x, y });
+            }
+            if frame_i == cf + hover {
+                p.handle_event(PlayerEvent::MouseDown { x, y, button: ruffle_core::events::MouseButton::Left, index: Some(0) });
+            }
+            if frame_i == cf + hover + hold {
+                p.handle_event(PlayerEvent::MouseUp { x, y, button: ruffle_core::events::MouseButton::Left });
+            }
+        }
         p.render(); // ruffle's runner renders every frame; it has display-list side effects
         last_frame = p.current_frame().unwrap_or(last_frame);
         // the same f32 -> i16 the guest does; peaks from the i16 so both sides agree
