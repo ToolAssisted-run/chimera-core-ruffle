@@ -119,6 +119,7 @@ fn main() {
     let mut hold: u32 = 2;
     let mut virtual_time = false;
     let mut preload_every = false;
+    let mut frozen_date = false;
     let mut i = 2;
     while i < args.len() {
         match args[i].as_str() {
@@ -154,6 +155,11 @@ fn main() {
             // can be tested rather than assumed
             "--virtual-time" => { virtual_time = true; i += 1; }
             "--preload-every" => { preload_every = true; i += 1; }
+            // The sandbox answers clock_gettime with a constant, so ruffle's
+            // default locale backend - which is Utc::now() - is FROZEN there
+            // while the reference gets a real advancing clock. This makes the
+            // reference frozen too, so that difference can be tested.
+            "--frozen-date" => { frozen_date = true; i += 1; }
             other => { eprintln!("unknown arg: {other}"); std::process::exit(2); }
         }
     }
@@ -176,6 +182,11 @@ fn main() {
         .with_viewport_dimensions(width, height, 1.0);
     if let Some(url) = spoof_url {
         builder = builder.with_spoofed_url(Some(url));
+    }
+    if frozen_date {
+        use ruffle_core::backend::locale::DeterministicLocaleBackend;
+        let fixed = chrono::DateTime::parse_from_rfc3339("2001-01-01T00:00:00+00:00").unwrap();
+        builder = builder.with_locale(DeterministicLocaleBackend::new(fixed));
     }
     let player = builder.build();
 

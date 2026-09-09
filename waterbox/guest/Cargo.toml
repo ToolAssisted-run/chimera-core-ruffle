@@ -28,6 +28,9 @@ serde_json = "=1.0.151"
 # ruffle says everything it could not do through `tracing`; without a
 # subscriber the guest drops every word of it (see WarnToStderr in lib.rs)
 tracing = "=0.1.44"
+# the same version ruffle pins: Date is built here, not read from a clock
+# the sandbox does not have (see WaterboxLocale in lib.rs)
+chrono = { version = "=0.4.44", default-features = false }
 
 [profile.release]
 # NOT "immediate-abort": that strategy applied to this crate while std was

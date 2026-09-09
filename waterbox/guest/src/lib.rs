@@ -18,7 +18,7 @@
 // way every chimera core hands text back to the frontend.
 #![no_main]
 
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 
@@ -26,6 +26,7 @@ use ruffle_core::backend::audio::{
     swf, AudioBackend, AudioMixer, DecodeError, RegisterError, SoundHandle, SoundInstanceHandle,
     SoundStreamInfo, SoundTransform,
 };
+use ruffle_core::backend::locale::LocaleBackend;
 use ruffle_core::backend::log::LogBackend;
 use ruffle_core::compatibility_rules::CompatibilityRules;
 use ruffle_core::{LoadBehavior, PlayerRuntime};
@@ -83,6 +84,43 @@ impl tracing::Subscriber for WarnToStderr {
     }
     fn enter(&self, _: &tracing::span::Id) {}
     fn exit(&self, _: &tracing::span::Id) {}
+}
+
+
+/// The machine's wall clock, as a movie reads it through `Date`.
+///
+/// The sandbox answers clock_gettime with a constant, so ruffle's default
+/// locale backend - which is `Utc::now()` - is FROZEN in here. getTimer() was
+/// given a moving clock long ago (advance_virtual_time, below); `Date` was not,
+/// so a movie asking `new Date().getTime()` got the same millisecond forever.
+///
+/// That does not look like a clock bug from the outside. New Star Soccer draws
+/// its language menu, follows the pointer with its own cursor, and ignores
+/// every click - because its Monkey X runtime measures a tap in elapsed
+/// milliseconds, and none ever elapse. Proved by freezing the NATIVE
+/// reference's date (run-native --frozen-date): the same click that works there
+/// stops working, which is exactly what the sandbox does.
+///
+/// So `Date` follows the same virtual clock `getTimer()` does. Deterministic,
+/// because a movie has to replay identically on every machine - the epoch is
+/// fixed and the step is one host frame - and MOVING, which is what frozen was
+/// not. A movie that prints the date prints the same date everywhere.
+struct WaterboxLocale {
+    millis: Rc<Cell<i64>>,
+}
+
+impl LocaleBackend for WaterboxLocale {
+    fn get_current_date_time(&self) -> chrono::DateTime<chrono::Utc> {
+        // 2001-01-01T00:00:00Z, and not "now" for any value of now
+        chrono::DateTime::from_timestamp(978_307_200, 0)
+            .unwrap()
+            .checked_add_signed(chrono::TimeDelta::milliseconds(self.millis.get()))
+            .unwrap()
+    }
+
+    fn get_timezone(&self) -> chrono::FixedOffset {
+        chrono::FixedOffset::east_opt(0).unwrap()
+    }
 }
 
 /// Captures ActionScript trace() into a buffer the host can read back.
@@ -150,6 +188,9 @@ struct Machine {
     /// a movie's input log has a line for. Equal to the movie's own frame at
     /// the default rate, and a fraction of it above that.
     frame_time: FloatDuration,
+    /// What `Date` reads: milliseconds since this machine's fixed epoch, moved
+    /// one host frame at a time (see WaterboxLocale).
+    clock_millis: Rc<Cell<i64>>,
     /// The movie's own frame rate, as the SWF stores it: rate = rate_256/256.
     /// Movie frames are due against this and nothing else, so raising the host
     /// rate gives more input, not a faster movie.
@@ -370,6 +411,7 @@ pub extern "C" fn Init() -> i32 {
 
     let _ = tracing::subscriber::set_global_default(WarnToStderr);
     let trace = Rc::new(RefCell::new(Vec::new()));
+    let clock_millis = Rc::new(Cell::new(0i64));
     let audio_f32 = Rc::new(RefCell::new(Vec::new()));
     let tasks: Tasks = std::rc::Rc::new(RefCell::new(Vec::new()));
     // A real GL renderer, in the sandbox, on software: see renderer.rs. It is
@@ -387,6 +429,7 @@ pub extern "C" fn Init() -> i32 {
         .with_movie(movie)
         .with_renderer(render_backend)
         .with_log(CaptureLog { out: trace.clone() })
+        .with_locale(WaterboxLocale { millis: clock_millis.clone() })
         .with_audio(WaterboxAudio {
             mixer: AudioMixer::new(WaterboxAudio::CHANNELS, WaterboxAudio::RATE),
             buffer: audio_f32.clone(),
@@ -463,7 +506,7 @@ pub extern "C" fn Init() -> i32 {
     unsafe {
         *core::ptr::addr_of_mut!(MACHINE) =
             Some(Machine {
-                player, frame_time, rate_256, host_num, host_den, movie_frames: 0,
+                player, frame_time, clock_millis, rate_256, host_num, host_den, movie_frames: 0,
                 trace, tty: Vec::new(), frames: 0,
                 buttons: [0; BUTTON_COUNT], prev_buttons: [0; BUTTON_COUNT],
                 mouse: (0, 0), prev_mouse: (0, 0), live_pointer: false, text_input: true,
@@ -499,6 +542,9 @@ pub extern "C" fn FrameAdvance(_input: u64) {
         // but everything a game drives from elapsed time stops dead, which is
         // why Zuma reached its menu and then no ball ever rolled.
         p.advance_virtual_time(m.frame_time.to_std());
+        // the same step for the same reason, so `Date` and getTimer() agree
+        m.clock_millis
+            .set(m.clock_millis.get() + m.frame_time.as_millis().round() as i64);
         // How many movie frames should have run by the end of this host frame:
         // ceil(host frames so far * movie rate / host rate), in integers so it
         // cannot drift over a long run and cannot differ between two machines.
