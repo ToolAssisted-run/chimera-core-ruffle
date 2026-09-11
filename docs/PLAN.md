@@ -338,3 +338,26 @@ That middle row is the lesson, not a detail. The first attempt measured
 digests every pixel of every frame, and with the readback skipped it was
 digesting a stale pointer into an empty vector. A flag that says "nobody is
 going to look at this frame" has to mean it in the runner too.
+
+### One cache the render epoch does not reach (found 2026-09-11, not fixed)
+
+The renderer-rebuild path bumps `ruffle_render::render_epoch` and says, in a
+comment, that this makes "ruffle_core's own GPU-handle caches re-register from
+the display list and library rather than draw with the dangling handles they
+still hold". That is true of every cache that stamps the epoch - `BitmapData`,
+`Character`, `Drawing`, glyphs, morph shapes, the graphic shape cache - and it
+is NOT true of `BitmapCache`, the one behind `cacheAsBitmap` and filters. Its
+struct (core/src/display_object.rs) has no epoch field at all: it decides
+staleness from the matrix and the source size, so a handle made by a previous
+backend survives the bump and is drawn with.
+
+What it would take: the same four lines `bitmap_data.rs` already has - a
+`handle_epoch` set in `BitmapCache::update`, and `is_dirty` returning true when
+it does not match `render_epoch()`. Not done here because nothing in the gate
+can see it: the state leg saves and reloads in the SAME process, where the
+context never changes, and the image leg never rebuilds a backend. A test has to
+come first, and it has to be a second process.
+
+Who it bites: a project reopened from disk, on a movie that uses cacheAsBitmap
+or a filter. Not a desync - the machine is unaffected - but a wrong picture,
+which the frontend will happily record.
