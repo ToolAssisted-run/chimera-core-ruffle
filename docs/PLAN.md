@@ -333,6 +333,14 @@ llvmpipe:
 So the readback and its conversion are 1.82 s of 300 frames - about 6 ms a
 frame - and the runner's own picture digest is the other half a second.
 
+**That 6 ms is llvmpipe's, and it does not transfer.** Measured afterwards on a
+GTX 1060 through `chimera-run --gpu` (frames differenced to remove startup):
+18.59 ms a frame drawing, 17.05 ms a frame not - so **1.5 ms**, not 6. On a
+software rasteriser the readback is a copy out of system memory that the CPU
+just wrote; on a real GPU it is a transfer that the driver has already had to
+wait for anyway. Worth having, and a quarter of what the first measurement
+suggested. Never quote a GPU number taken on llvmpipe.
+
 That middle row is the lesson, not a detail. The first attempt measured
 `--no-render` as 25% SLOWER, repeatably. The cause was the harness: the runner
 digests every pixel of every frame, and with the readback skipped it was
@@ -361,3 +369,62 @@ come first, and it has to be a second process.
 Who it bites: a project reopened from disk, on a movie that uses cacheAsBitmap
 or a filter. Not a desync - the machine is unaffected - but a wrong picture,
 which the frontend will happily record.
+
+## Where a New Star Soccer frame actually goes (GTX 1060, 2026-09-11)
+
+The user's own report - Flash is slow in Chimera and not in vanilla Ruffle -
+finally measured on the machine it was reported from, with `CHIMERA_GL_PROFILE`
+(chimera's engine): every crossing timed and counted by opcode.
+
+`chimera-run --gpu --render-every-frame`, frames differenced to remove startup
+and the 7MB SWF parse:
+
+| | ms a frame |
+| --- | --- |
+| the whole machine frame | 18.59 |
+| ... of which inside the GL driver | 13.50 |
+| the same frame, not drawing | 17.05 |
+
+So **73% of the frame is inside the driver**, and this is what it is made of:
+
+| call | a frame | ms | share of the driver |
+| --- | --- | --- | --- |
+| `glGetSynciv` | 56 | 7.22 | 53% |
+| `glGenBuffers` | 140 | 1.65 | 12% |
+| `glClientWaitSync` | 1 | 0.96 | 7% |
+| `glGenTextures` | 101 | 0.93 | 7% |
+| `glReadPixels` | 1 | 0.81 | 6% |
+| `glGetBufferSubData` | 1 | 0.42 | 3% |
+| **all 40,000 others** | 39,898 | **~1.5** | 11% |
+
+Read that last row twice. **Forty thousand GL calls cost a millisecond and a
+half between them.** `glDisable` alone is 10,610 calls for 0.30 ms. The call
+COUNT was never the problem, which is the same conclusion the 4 ns crossing
+measurement reached from the other end, now confirmed against the driver itself.
+
+What IS the problem is two things that are the same thing:
+
+- **8.2 ms a frame waiting on GPU fences.** 56 `glGetSynciv` calls averaging
+  129 microseconds each is not a status poll, it is a block. The pipeline is
+  being drained every frame rather than allowed to run ahead.
+- **140 buffers and 101 textures CREATED every frame**, 2.6 ms. A renderer that
+  allocates fresh resources each frame has to wait for the GPU to finish with
+  the last ones, which is where the fences come from.
+
+That is the signature of wgpu's OpenGL backend, which this core is on because
+the bridge speaks GL and nothing else. Vanilla Ruffle on Windows runs the same
+wgpu on DX12 or Vulkan, where the same frame recycles its buffers and does not
+stall - which is the honest answer to "why is it slower here".
+
+Two ways out, both real work and neither started: stop the per-frame resource
+churn (upstream-shaped, in wgpu-hal's GL backend or in how ruffle drives it), or
+teach the bridge a second backend so the guest is not forced onto GL. Written
+down rather than guessed at.
+
+**The tools are kept**, because the next person will ask the same question:
+`CHIMERA_GL_TIME=1` adds the driver total to the per-frame line, and
+`CHIMERA_GL_PROFILE=1` dumps calls and milliseconds per opcode every 300 frames
+and again at exit. Opcodes are the master list's order (miniBox
+`source/gl/gl-entry-points.txt`, first entry is 100). `chimera-run
+--render-every-frame` is the other half of the A/B: without it the runner draws
+only the frames a screenshot asks for, which makes it a measurement of a seek.
