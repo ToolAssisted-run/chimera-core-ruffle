@@ -187,6 +187,57 @@ extern "C" void chimera_gl_get_buffer_pointerv(GLenum target, GLenum pname, void
 }
 
 
+/* Which OpenGL the wrappers below ask.
+ *
+ * The bridge's generated table by default - the machine's own GPU, on the far
+ * side of the one callback a guest gets. A project that asked for the software
+ * renderer instead puts the guest Mesa here (waterbox/gl-osmesa.cpp), and
+ * everything below is then asking code that never leaves the sandbox. The
+ * questions, and the answers this file refuses to pass on, are the same either
+ * way, which is why there is one copy of them and not two.
+ */
+static void *(*g_real_loader)(const char *) = chimera_gl_lookup;
+
+extern "C" void chimera_gl_set_real_loader(void *(*resolve)(const char *))
+{
+	if (resolve != nullptr)
+		g_real_loader = resolve;
+}
+
+/* Whether this OpenGL's shading language can carry `layout(binding = N)`.
+ *
+ * This decides a question that is not about the extension it is asked through.
+ * naga writes explicit bindings into the GLSL it generates only from desktop
+ * GLSL 4.20 (or GLES 3.10) up; below that the bindings have to be assigned
+ * after the link, with glUniformBlockBinding and glUniform1i. wgpu knows how to
+ * do that - and decides WHETHER to from whether the driver has compute shaders,
+ * which is a different question with a different answer on exactly the drivers
+ * that matter here. Mesa's softpipe is GL 3.3 (GLSL 3.30) AND offers
+ * GL_ARB_compute_shader, so wgpu leaves the bindings to a shader that could not
+ * write them: every uniform block lands on binding 0, ruffle's second block
+ * reads as zeros, every vertex collapses to the origin and the frame comes back
+ * black with no GL error anywhere. Any GL 3.3 host GPU does the same across the
+ * bridge.
+ *
+ * So the answer is the version, asked once. A context is never swapped under a
+ * live loader - a new one means a new backend - so once is enough.
+ */
+static bool glsl_carries_explicit_bindings()
+{
+	static int answer = -1;
+	if (answer >= 0)
+		return answer != 0;
+	auto get_string = (const GLubyte *(*)(GLenum))g_real_loader("glGetString");
+	const GLubyte *v = get_string ? get_string(GL_SHADING_LANGUAGE_VERSION) : nullptr;
+	/* "4.50" or "3.30", possibly with a vendor suffix. Unreadable means
+	 * "assume not": the post-link path is correct on every version, only
+	 * slightly more work, while guessing the other way draws nothing. */
+	int major = 0, minor = 0;
+	answer = (v && std::sscanf((const char *)v, "%d.%d", &major, &minor) == 2
+		&& (major * 100 + minor) >= 420) ? 1 : 0;
+	return answer != 0;
+}
+
 /* Extensions this core must not believe in, whoever is hosting it.
  *
  * buffer_storage makes a buffer IMMUTABLE and is the gateway to persistent
@@ -195,27 +246,119 @@ extern "C" void chimera_gl_get_buffer_pointerv(GLenum target, GLenum pname, void
  * extension as licence to allocate with glBufferStorage and then still write
  * through glBufferSubData, which an immutable buffer rejects: every upload
  * fails with GL_INVALID_OPERATION and the frame comes out empty with nothing
- * anywhere saying why.
+ * anywhere saying why. That second half is true of the guest Mesa too, which
+ * offers the extension and is not across any seam, so this one is withheld
+ * there as well.
+ *
+ * compute_shader is withheld only where the shading language cannot carry
+ * explicit bindings, and only because wgpu reads it as the answer to that
+ * question (see above). This core never runs a compute shader: ruffle's
+ * renderer has none, and wgpu's only use for one is validating indirect draws,
+ * which renderer.rs already turns off.
  *
  * The filtering belongs HERE rather than in a host, because every host would
- * otherwise have to know this core's business. Across this seam the driver
- * genuinely cannot offer the extension, so the core is told a truth about
+ * otherwise have to know this core's business. The core is told a truth about
  * itself: renamed rather than blanked, because an empty string makes the
  * generated wrapper answer NULL and the caller runs strlen on it.
  */
 static bool withheld(const char *ext)
 {
-	return std::strcmp(ext, "GL_ARB_buffer_storage") == 0
-	    || std::strcmp(ext, "GL_EXT_buffer_storage") == 0;
+	if (std::strcmp(ext, "GL_ARB_buffer_storage") == 0
+	    || std::strcmp(ext, "GL_EXT_buffer_storage") == 0)
+		return true;
+	if (std::strcmp(ext, "GL_ARB_compute_shader") == 0)
+		return !glsl_carries_explicit_bindings();
+	return false;
 }
 
 extern "C" const GLubyte *chimera_gl_get_stringi(GLenum name, GLuint index)
 {
-	auto real = (const GLubyte *(*)(GLenum, GLuint))chimera_gl_lookup("glGetStringi");
+	auto real = (const GLubyte *(*)(GLenum, GLuint))g_real_loader("glGetStringi");
 	const GLubyte *s = real ? real(name, index) : nullptr;
 	if (s && name == GL_EXTENSIONS && withheld((const char *)s))
 		return (const GLubyte *)"GL_CHIMERA_withheld";
 	return s;
+}
+
+
+/* Multisampling, asked for in a quantity the driver may not have.
+ *
+ * wgpu's GL backend reports 2x and 4x multisampling as available on every
+ * driver whose GL_MAX_SAMPLES is below 8 - it reads a low answer as an iOS
+ * Safari quirk and overrides it. ruffle then asks its surface for the sample
+ * count its quality setting names (4 at the default 'high'), and on a driver
+ * that has none - Mesa's softpipe has exactly one sample - allocating the
+ * renderbuffer fails with GL_INVALID_OPERATION, the framebuffer is incomplete
+ * from then on, and every clear and every draw is refused. The frame comes back
+ * black; the only trace is one GL error nobody is reading.
+ *
+ * So the count is clamped here, where the driver's real answer is available.
+ * Multisampling in GL is a property of the framebuffer's attachments and not of
+ * the pipeline, so clamping every attachment leaves a consistent, complete,
+ * single-sampled framebuffer: the resolve blit becomes a copy and the picture
+ * comes out without anti-aliasing rather than not at all. That is the honest
+ * trade for a rasteriser that cannot multisample, and it is written down in the
+ * renderer setting's description.
+ */
+static GLsizei clamped_samples(GLsizei samples)
+{
+	static GLint max = -1;
+	if (max < 0) {
+		auto get_integerv = (void (*)(GLenum, GLint *))g_real_loader("glGetIntegerv");
+		max = 0;
+		if (get_integerv)
+			get_integerv(GL_MAX_SAMPLES, &max);
+		if (max < 1)
+			max = 1;
+	}
+	return samples > max ? (GLsizei)max : samples;
+}
+
+extern "C" void chimera_gl_renderbuffer_storage_multisample(GLenum target,
+	GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height)
+{
+	auto real = (void (*)(GLenum, GLsizei, GLenum, GLsizei, GLsizei))
+		g_real_loader("glRenderbufferStorageMultisample");
+	if (real)
+		real(target, clamped_samples(samples), internalformat, width, height);
+}
+
+extern "C" void chimera_gl_tex_storage_2d_multisample(GLenum target, GLsizei samples,
+	GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations)
+{
+	auto real = (void (*)(GLenum, GLsizei, GLenum, GLsizei, GLsizei, GLboolean))
+		g_real_loader("glTexStorage2DMultisample");
+	if (real)
+		real(target, clamped_samples(samples), internalformat, width, height,
+			fixedsamplelocations);
+}
+
+extern "C" void chimera_gl_tex_image_2d_multisample(GLenum target, GLsizei samples,
+	GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations)
+{
+	auto real = (void (*)(GLenum, GLsizei, GLenum, GLsizei, GLsizei, GLboolean))
+		g_real_loader("glTexImage2DMultisample");
+	if (real)
+		real(target, clamped_samples(samples), internalformat, width, height,
+			fixedsamplelocations);
+}
+
+/* What both loaders answer for themselves, whichever OpenGL is underneath:
+ * the extension string this core must not believe, and the three entry points
+ * that allocate multisampled storage. */
+extern "C" void *chimera_gl_shared_override(const char *name)
+{
+	if (name == nullptr)
+		return nullptr;
+	if (std::strcmp(name, "glGetStringi") == 0)
+		return (void *)chimera_gl_get_stringi;
+	if (std::strcmp(name, "glRenderbufferStorageMultisample") == 0)
+		return (void *)chimera_gl_renderbuffer_storage_multisample;
+	if (std::strcmp(name, "glTexStorage2DMultisample") == 0)
+		return (void *)chimera_gl_tex_storage_2d_multisample;
+	if (std::strcmp(name, "glTexImage2DMultisample") == 0)
+		return (void *)chimera_gl_tex_image_2d_multisample;
+	return nullptr;
 }
 
 /* The loader the renderer is actually handed.
@@ -232,6 +375,6 @@ extern "C" void *chimera_gl_lookup_guest(const char *name)
 	if (std::strcmp(name, "glUnmapBuffer") == 0)            return (void *)chimera_gl_unmap_buffer;
 	if (std::strcmp(name, "glFlushMappedBufferRange") == 0) return (void *)chimera_gl_flush_mapped_buffer_range;
 	if (std::strcmp(name, "glGetBufferPointerv") == 0)      return (void *)chimera_gl_get_buffer_pointerv;
-	if (std::strcmp(name, "glGetStringi") == 0)             return (void *)chimera_gl_get_stringi;
+	if (void *shared = chimera_gl_shared_override(name))    return shared;
 	return chimera_gl_lookup(name);
 }

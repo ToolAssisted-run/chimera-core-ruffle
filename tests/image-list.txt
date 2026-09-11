@@ -196,10 +196,20 @@ visual/simple_shapes/scroll_rect_mask|1
 visual/simple_shapes/winding_rule|1
 visual/text/String_path_variable_button|1
 # Every test above renders a frame that matches ruffle's own output.expected.png
-# to within 8 per channel on at least 99% of pixels. ruffle's harness carries
-# per-test tolerances of its own (up to 128, with outliers allowed) for the same
-# reason: two renderers never agree to the last bit, and ours is not the one the
-# expected pictures were made with.
+# to within 8 per channel on at least 99% of pixels through the hardware
+# renderer, and on at least 97% through the software one. ruffle's harness
+# carries per-test tolerances of its own (up to 128, with outliers allowed) for
+# the same reason: two renderers never agree to the last bit, and ours is not
+# the one the expected pictures were made with.
+#
+# The two budgets differ by one fact. Mesa's softpipe cannot multisample at all,
+# so the software renderer draws every edge hard while the expected pictures
+# were made with 4x anti-aliasing. Across this corpus the widest that gets is
+# 2.4% of a frame (avm1/define_font_glyph_table_order); the five movies past 1%
+# are that one, from_shumway/acid/acid-color-2 (1.0%),
+# from_shumway/acid/acid-text-2 (1.4%), visual/blend_modes/overlay_onto_stage
+# (2.1%) and visual/edittext/edittext_selection_font_size (1.5%) - all text and
+# gradient edges.
 #
 # Left out of the list, with reasons:
 #   Stage3D and PixelBender (avm2/stage3d_*, avm2/pixelbender_*,

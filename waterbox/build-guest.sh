@@ -67,6 +67,46 @@ cxxinc="-I$cxxver -I$cxxver/x86_64-linux-musl"
   $cxxinc -I"$here/extern/glad/include" -I"$minibox/source/gl" -I"$here" -I"$here/generated" \
   -o "$here/build/gl-map.o" "$here/gl-map.cpp"
 
+# The OpenGL that never leaves the sandbox: Mesa's softpipe behind OSMesa, built
+# by waterbox/setup-mesa.sh into build/mesa. It is the core's DEFAULT renderer,
+# so a package built without it can only draw through the bridge - the build
+# still succeeds, loudly, because a machine that cannot build Mesa should still
+# get a core.
+#   MESA_GUEST_DIR=<path>   a guest Mesa built elsewhere
+#   MESA_GUEST_DIR=         (empty) deliberately build the bridge-only core
+root="$(cd "$here/.." && pwd)"
+if [ "${MESA_GUEST_DIR+set}" = set ]; then
+	mesa_guest_dir="$MESA_GUEST_DIR"
+else
+	mesa_guest_dir="$root/build/mesa"
+fi
+mesa_def=""
+mesa_link=""
+if [ -n "$mesa_guest_dir" ] && [ -d "$mesa_guest_dir/build-guest2" ]; then
+	mesa_target="$(find "$mesa_guest_dir/build-guest2/src/gallium/targets/osmesa" -name 'target.c.o' | head -1)"
+	mesa_archives="$(find "$mesa_guest_dir/build-guest2" -name '*.a' | tr '\n' ' ')"
+	[ -n "$mesa_target" ] || { echo "guest Mesa at $mesa_guest_dir has no osmesa target.c.o; rerun waterbox/setup-mesa.sh" >&2; exit 1; }
+	mesa_def="-DCHIMERA_GUEST_MESA"
+	# The archives refer to each other both ways, so they are linked in a
+	# group; the osmesa target's own object comes separately because the shared
+	# library it belongs to cannot be linked for a guest (-fno-pic, large model)
+	# and osmesa_create_screen lives in it. Mesa declares the pthread
+	# mutexattr/key/once entry points WEAK as a build workaround - statically
+	# linked those resolve to address zero, and Mesa calls null the first time it
+	# makes a recursive mutex - so each is forced into the link.
+	mesa_link="$mesa_target -Wl,--start-group $mesa_archives -Wl,--end-group \
+	  -Wl,-u,pthread_mutexattr_init -Wl,-u,pthread_mutexattr_settype \
+	  -Wl,-u,pthread_mutexattr_destroy -Wl,-u,pthread_once \
+	  -Wl,-u,pthread_key_create -Wl,-u,pthread_cond_wait \
+	  -Wl,-u,pthread_cond_broadcast -L$cppsys/lib -lstdc++"
+else
+	echo "NOTE: no guest Mesa under ${mesa_guest_dir:-<disabled>} - this core will only draw through the GPU bridge." >&2
+fi
+"$mb/musl-gcc" -c -x c++ -std=gnu++17 -mcmodel=large -fno-pic -fno-pie \
+  -fno-stack-protector -fcf-protection=none -fno-exceptions -fno-rtti \
+  $mesa_def $cxxinc -I"$here/extern/glad/include" -I"$minibox/source/gl" -I"$here" -I"$here/generated" \
+  -o "$here/build/gl-osmesa.o" "$here/gl-osmesa.cpp"
+
 exports="-Wl,-u,GetMemoryDomainCount -Wl,-u,GetMemoryDomainName -Wl,-u,GetMemoryDomainPtr -Wl,-u,GetMemoryDomainSize -Wl,-u,GetMemoryDomainWritable -Wl,-u,SetMousePixels -Wl,-u,GetVsyncNumerator -Wl,-u,GetVsyncDenominator -Wl,-u,SetGpuBridge -Wl,-u,GetVideoBgra -Wl,-u,GetVideoWidth -Wl,-u,GetVideoHeight -Wl,-u,Init -Wl,-u,SetSpoofUrl -Wl,-u,GetAudio -Wl,-u,GetAudioSampleCount -Wl,-u,AllocSwf -Wl,-u,SetButton -Wl,-u,SetAxis -Wl,-u,SetTextInput -Wl,-u,FrameAdvance -Wl,-u,GetTty -Wl,-u,GetTtySize -Wl,-u,GetTraceDigest -Wl,-u,GetFrameCount -Wl,-u,GetLoadError -Wl,-u,IsRunning -Wl,-u,BenchGlCrossings -Wl,-u,SetRenderingEnabled"
 # -fno-stack-protector applies to cxxglue.c, which is compiled right here: the
 # canary lives at %fs:0x28, and this guest has no %fs. Everything else in the
@@ -76,7 +116,8 @@ exports="-Wl,-u,GetMemoryDomainCount -Wl,-u,GetMemoryDomainName -Wl,-u,GetMemory
   $exports -o "$here/build/core.wbx" \
   "$minibox/source/guest/cxxglue.c" "$mb/source/guest/emulibc.c.o" \
   "$a" "$here/build/unwind-stubs.o" "$here/build/libgcc-builtins.o" \
-  "$here/build/gl-bridge-guest.o" "$here/build/gl-map.o" "$here/build/glad.o" -lm
+  "$here/build/gl-bridge-guest.o" "$here/build/gl-map.o" "$here/build/gl-osmesa.o" \
+  "$here/build/glad.o" $mesa_link -lm
 echo "built: $here/build/core.wbx"
 
 # the frontend-free runner, against the same miniBox host the gates use

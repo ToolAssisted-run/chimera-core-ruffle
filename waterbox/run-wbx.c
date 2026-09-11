@@ -70,7 +70,7 @@ static uintptr_t proc(mb_host *h, const char *n) {
 }
 
 int main(int argc, char **argv) {
-	if (argc < 3) { fprintf(stderr, "usage: run-wbx <core.wbx> <file.swf> --frames <n> [--quiet]\n"); return 2; }
+	if (argc < 3) { fprintf(stderr, "usage: run-wbx <core.wbx> <file.swf> --frames <n> [--quiet] [--no-gpu]\n"); return 2; }
 	const char *corepath = argv[1], *swfpath = argv[2];
 	long frames = 1;
 	int quiet = 0;
@@ -80,6 +80,7 @@ int main(int argc, char **argv) {
 	long benchCrossings = 0;
 	int noRender = 0;
 	int from_vfs = 0;
+	int noGpu = 0;
 	const char *files[64][2]; int nfiles = 0;
 	for (int i = 3; i < argc; i++) {
 		if (!strcmp(argv[i], "--frames") && i + 1 < argc) frames = atol(argv[++i]);
@@ -97,6 +98,10 @@ int main(int argc, char **argv) {
 		/* skip AllocSwf and let Init find the movie in the guest's filesystem,
 		 * which is how the engine loads a game (waterbox.config: romFile) */
 		else if (!strcmp(argv[i], "--from-vfs")) from_vfs = 1;
+		/* offer no bridge at all, which is what a Chimera without one looks
+		 * like. The software renderer has to draw anyway; the hardware one has
+		 * to refuse. Both are things the gate should be able to ask for. */
+		else if (!strcmp(argv[i], "--no-gpu")) noGpu = 1;
 		else if (!strcmp(argv[i], "--file") && i + 1 < argc && nfiles < 64) {
 			char *eq = strchr(argv[++i], '=');
 			if (eq) { *eq = 0; files[nfiles][0] = argv[i]; files[nfiles][1] = eq + 1; nfiles++; }
@@ -153,11 +158,17 @@ int main(int argc, char **argv) {
 	/* The GPU bridge: bring up a real GL context on this side and hand the
 	 * guest the one callback it is allowed to call. This must happen before
 	 * Init, which builds the renderer through it. */
-	{
+	if (!noGpu) {
 		char glerr[256] = {0};
 		if (chimera_gl_host_init(glerr, sizeof glerr) != 0) {
-			fprintf(stderr, "gpu bridge: no GL context (%s)\n", glerr);
-			return 1;
+			/* Not fatal any more. The core's default renderer is the Mesa
+			 * inside the sandbox, which needs nothing from this side, and a
+			 * machine with no GL - or one whose EGL has run out of something -
+			 * should still be able to run the picture legs. A core that was
+			 * told to draw on the GPU fails its own Init instead, with a
+			 * message that names the setting. */
+			fprintf(stderr, "gpu bridge: no GL context (%s); the core must draw in software\n", glerr);
+			goto no_bridge;
 		}
 		void (*SetGpuBridge)(uint64_t) = (void (*)(uint64_t))proc(h, "SetGpuBridge");
 		mb_return cb;
@@ -170,6 +181,8 @@ int main(int argc, char **argv) {
 		if (!quiet)
 			fprintf(stderr, "gpu bridge: %s\n", chimera_gl_host_description());
 	}
+no_bridge:
+	;
 
 	int (*Init)(void) = (int (*)(void))proc(h, "Init");
 	void (*FrameAdvance)(uint64_t) = (void (*)(uint64_t))proc(h, "FrameAdvance");

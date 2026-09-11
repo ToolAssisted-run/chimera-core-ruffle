@@ -13,10 +13,11 @@
 #                  is the milestone: Flash running inside the sandbox, where
 #                  the determinism is enforced rather than hoped for.
 #   image        - (M4) the PICTURE. Each movie in tests/image-list.txt is
-#                  rendered through the core's GL renderer and compared with
-#                  ruffle's own output.expected.png, and rendered twice to show
-#                  the frame does not wander. This is the leg that proves the
-#                  core draws Flash rather than merely running it.
+#                  rendered through BOTH of the core's renderers - the software
+#                  one with no GPU bridge on offer at all - and compared with
+#                  ruffle's own output.expected.png, and rendered twice each to
+#                  show the frame does not wander. This is the leg that proves
+#                  the core draws Flash rather than merely running it.
 #   state        - (M6) savestates. Each movie in tests/state-list.txt is run
 #                  twice: normally, and with the whole machine saved and
 #                  reloaded before EVERY frame. Both runs must agree on the
@@ -230,38 +231,65 @@ if [ "$have_sandbox" = 1 ] && [ -f "$slist" ]; then
 fi
 
 # ---- image: does the core draw what ruffle draws? ----
-gok=0; gbad=0; gtotal=0
+#
+# Twice, because the core has two renderers and they do not draw the same
+# pixels. The DEFAULT one is Mesa's softpipe inside the sandbox, and it is asked
+# with --no-gpu, so this leg also says plainly that it needs no bridge: if a
+# host GL ever crept back into the software path, this is where it would show.
+# The other is the same wgpu renderer on the machine's GPU, across the bridge.
+#
+# Each gets its own budget, and the difference between them is one fact:
+# softpipe cannot multisample at all (GL_MAX_SAMPLES is 1), so the software
+# renderer draws every edge hard while ruffle's own expected pictures were made
+# with 4x anti-aliasing. Measured across this corpus the widest that difference
+# ever gets is 2.4% of a frame (avm1/define_font_glyph_table_order, a 50x50
+# image), so the software pass allows 3% of pixels to differ where the hardware
+# pass allows 1%. The per-channel tolerance stays at 8 in both: a pixel that is
+# simply the WRONG COLOUR still fails, in either renderer.
 glist="$root/tests/image-list.txt"
-if [ "$have_sandbox" = 1 ] && [ -f "$glist" ]; then
-  gtmp=$(mktemp -d)
+run_image_leg() {
+  # $1 renderer setting, $2 percent of pixels allowed to differ, $3 extra args
+  rend="$1"; pct="$2"; extra="$3"
+  ok=0; bad=0; total=0
+  tmp=$(mktemp -d)
+  cfg="$tmp/settings.json"
+  printf '{"renderer":"%s"}' "$rend" > "$cfg"
   while IFS='|' read -r rel nf; do
     case "$rel" in ''|\#*) continue ;; esac
-    gtotal=$((gtotal+1))
+    total=$((total+1))
     d="$swfs/$rel"
     exp="$d/output.expected.png"
-    [ -f "$exp" ] || { gbad=$((gbad+1)); echo "  image MISSING EXPECTED $rel"; continue; }
+    [ -f "$exp" ] || { bad=$((bad+1)); echo "  image[$rend] MISSING EXPECTED $rel"; continue; }
     fargs=""
     for f in $(cd "$d" && ls | grep -vE '^(test\.swf|output.*|test\.toml|input\.json|source\.as|Test\.as|.*\.fla|.*\.flad|regenerate.*\.sh|.*\.md|.*\.rs)$'); do
       case "$f" in *.swf|*.mp3|*.bin|*.txt|*.xml|*.flv|*.csv|*.dat|*.gif|*.jpg|*.jpeg|*.png) fargs="$fargs --file $f=$d/$f" ;; esac
     done
     iarg=""; mv=""
     if [ -f "$d/input.json" ]; then mv=$(mktemp); python3 "$root/tests/input2moves.py" "$d/input.json" > "$mv" 2>/dev/null && iarg="--input $mv"; fi
-    p1="$gtmp/a.ppm"; p2="$gtmp/b.ppm"
-    d1=$(timeout 120 "$wbx" "$core" "$d/test.swf" --frames "$nf" --quiet $iarg $fargs --video-out "$p1" 2>&1 | grep -oE 'videoDigest=[0-9a-f]+')
-    d2=$(timeout 120 "$wbx" "$core" "$d/test.swf" --frames "$nf" --quiet $iarg $fargs --video-out "$p2" 2>&1 | grep -oE 'videoDigest=[0-9a-f]+')
+    p1="$tmp/a.ppm"; p2="$tmp/b.ppm"
+    rm -f "$p1" "$p2"   # or a run that draws nothing is compared against the last movie's frame
+    d1=$(timeout 300 "$wbx" "$core" "$d/test.swf" --frames "$nf" --quiet $iarg $fargs $extra --file settings="$cfg" --video-out "$p1" 2>&1 | grep -oE 'videoDigest=[0-9a-f]+')
+    d2=$(timeout 300 "$wbx" "$core" "$d/test.swf" --frames "$nf" --quiet $iarg $fargs $extra --file settings="$cfg" --video-out "$p2" 2>&1 | grep -oE 'videoDigest=[0-9a-f]+')
     [ -n "$mv" ] && rm -f "$mv"
-    if [ ! -s "$p1" ]; then gbad=$((gbad+1)); echo "  image NO FRAME $rel"; continue; fi
-    if [ "$d1" != "$d2" ]; then gbad=$((gbad+1)); echo "  image NONDETERMINISTIC $rel ($d1 vs $d2)"; continue; fi
-    # the stated budget: 8 per channel, at most 1% of pixels (see image-list.txt)
+    if [ ! -s "$p1" ]; then bad=$((bad+1)); echo "  image[$rend] NO FRAME $rel"; continue; fi
+    if [ "$d1" != "$d2" ]; then bad=$((bad+1)); echo "  image[$rend] NONDETERMINISTIC $rel ($d1 vs $d2)"; continue; fi
     px=$(head -2 "$p1" | tail -1 | awk '{print $1*$2}')
-    if python3 "$root/tests/image-compare.py" "$exp" "$p1" 8 $((px/100)) >/dev/null 2>&1; then
-      gok=$((gok+1))
+    if python3 "$root/tests/image-compare.py" "$exp" "$p1" 8 $((px*pct/100)) >/dev/null 2>&1; then
+      ok=$((ok+1))
     else
-      gbad=$((gbad+1))
-      echo "  image MISMATCH $rel: $(python3 "$root/tests/image-compare.py" "$exp" "$p1" 8 $((px/100)) 2>&1)"
+      bad=$((bad+1))
+      echo "  image[$rend] MISMATCH $rel: $(python3 "$root/tests/image-compare.py" "$exp" "$p1" 8 $((px*pct/100)) 2>&1)"
     fi
   done < "$glist"
-  rm -rf "$gtmp"
+  rm -rf "$tmp"
+  gok=$((gok+ok)); gbad=$((gbad+bad)); gtotal=$((gtotal+total))
+  echo "  image[$rend]: $ok/$total within 8 per channel on $((100-pct))% of pixels"
+}
+
+gok=0; gbad=0; gtotal=0
+if [ "$have_sandbox" = 1 ] && [ -f "$glist" ]; then
+  run_image_leg software 3 --no-gpu
+  run_image_leg opengl-hw 1 ""
 fi
 
 # ---- spoofed URL: the setting, and the two ways it arrives ----
@@ -326,10 +354,21 @@ if [ "$have_sandbox" = 1 ]; then
     qsw="$swfs/text/br_at_start/test.swf"
     if [ -f "$qsw" ]; then
       base=$(digest "$qsw")
-      same "quality:default"  "$qsw" '{"quality":"high"}'     "$base" same
-      same "quality:low"      "$qsw" '{"quality":"low"}'      "$base" differ
+      # Quality is anti-aliasing, so it can only be SEEN on a renderer that
+      # multisamples. The default software renderer cannot (softpipe's
+      # GL_MAX_SAMPLES is 1): there 'low' and 'high' both mean one sample and
+      # draw the same frame, and asking them to differ would be asking softpipe
+      # for something it does not have. So the question "does the setting reach
+      # the renderer" is asked of opengl-hw, against a base of its own, and the
+      # software renderer is held to the truth about itself instead.
+      hwq=$(digest "$qsw" '{"renderer":"opengl-hw"}')
+      same "quality:default"  "$qsw" '{"renderer":"opengl-hw","quality":"high"}'     "$hwq" same
+      same "quality:low"      "$qsw" '{"renderer":"opengl-hw","quality":"low"}'      "$hwq" differ
       # an unknown name must fall back to the default, not to something else
-      same "quality:unknown"  "$qsw" '{"quality":"nonsense"}' "$base" same
+      same "quality:unknown"  "$qsw" '{"renderer":"opengl-hw","quality":"nonsense"}' "$hwq" same
+      # and on software, no anti-aliasing to lose: if this ever differs, softpipe
+      # has learned to multisample and the 3% image budget should come back down
+      same "quality:low-sw"   "$qsw" '{"quality":"low"}'      "$base" same
       # every other setting, at the default waterbox.config declares, must be
       # invisible: this is what catches a key read under the wrong name or a
       # guest fallback that disagrees with the declared default
@@ -340,6 +379,7 @@ if [ "$have_sandbox" = 1 ]; then
       same "inert:compat"     "$qsw" '{"compatibilityRules":false}'   "$base" same
       same "inert:font"       "$qsw" '{"defaultFont":true}'           "$base" same
       same "inert:fps"        "$qsw" '{"fps":0}'                      "$base" same
+      same "inert:renderer"   "$qsw" '{"renderer":"software"}'        "$base" same
     fi
 
     fsw="$swfs/fonts/device_font_list/test.swf"
@@ -356,7 +396,7 @@ fi
 if [ "$have_sandbox" = 1 ]; then
   echo "ruffle settings gate: $pok/$ptotal the settings channel reaches the player - the movie reports the address it was told to, quality and font substitution show up in the frame, and every other setting is invisible at its declared default; $pbad failures"
   echo "ruffle state gate: $sok/$stotal movies survive a save and reload before every frame with the same trace, audio and picture; $sbadstate failures"
-  echo "ruffle image gate: $gok/$gtotal movies draw the frame ruffle draws (8/channel, 99% of pixels), reruns identical; $gbad failures"
+  echo "ruffle image gate: $gok/$gtotal movies draw the frame ruffle draws (both renderers, each to its own stated budget), reruns identical; $gbad failures"
   echo "ruffle navigator gate: $nok/$ntotal movies load their associated files (loadMovie/loadSound/loadVariables/URLLoader) with the trace ruffle expects, reruns identical; $nbad failures"
   echo "ruffle audio gate: $aok/$atotal sound movies: ruffle's amplitude assertions hold, native == sandbox byte for byte, reruns identical; $abad failures"
   echo "ruffle input gate: $iok/$itotal input.json streams replayed as levels, trace identical to ruffle; $ibad failures"

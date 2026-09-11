@@ -417,10 +417,21 @@ pub extern "C" fn Init() -> i32 {
     let clock_millis = Rc::new(Cell::new(0i64));
     let audio_f32 = Rc::new(RefCell::new(Vec::new()));
     let tasks: Tasks = std::rc::Rc::new(RefCell::new(Vec::new()));
-    // A real GL renderer, in the sandbox, on software: see renderer.rs. It is
-    // required, not optional - a core that quietly ran without a picture would
-    // still pass a trace gate and be useless for a TAS.
-    let render_backend = match renderer::build(vw, vh) {
+    // Which OpenGL the picture is drawn on. 'software' is Mesa's softpipe,
+    // compiled into this binary, and it is the default because it is the only
+    // one that is inside the savestate and the same on every machine.
+    // 'opengl-hw' is the machine's GPU across the bridge: several times faster,
+    // and a picture that belongs to a driver rather than to the movie. Both run
+    // ruffle's one wgpu renderer; see renderer.rs.
+    let which = cfg.choice(
+        "renderer",
+        &[("software", renderer::Which::Software), ("opengl-hw", renderer::Which::Hardware)],
+        renderer::Which::Software,
+    );
+    // A real GL renderer: see renderer.rs. It is required, not optional - a
+    // core that quietly ran without a picture would still pass a trace gate and
+    // be useless for a TAS.
+    let render_backend = match renderer::build(vw, vh, which) {
         Ok(r) => r,
         Err(e) => {
             set_load_error(&format!("no renderer: {e}"));
@@ -601,7 +612,7 @@ pub extern "C" fn FrameAdvance(_input: u64) {
         // and never triggers a rebuild.
         let live = renderer::context_id();
         if live != 0 && m.gl_context != 0 && live != m.gl_context {
-            match renderer::build(m.video_w, m.video_h) {
+            match renderer::build(m.video_w, m.video_h, renderer::Which::Hardware) {
                 Ok(rb) => {
                     p.set_renderer(Box::new(rb));
                     p.set_viewport_dimensions(ruffle_render::backend::ViewportDimensions {

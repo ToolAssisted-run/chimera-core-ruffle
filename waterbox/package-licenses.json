@@ -2,7 +2,7 @@
   "package": "ruffle",
   "effectiveTerms": "MIT or Apache-2.0",
   "commercialUse": "permitted",
-  "note": "Ruffle is dual-licensed MIT or Apache-2.0, and so is this integration. Mesa's glad loader headers are MIT. Nothing here restricts commercial use.",
+  "note": "Ruffle is dual-licensed MIT or Apache-2.0, and so is this integration. Mesa - whose softpipe rasteriser is compiled into the core as its default OpenGL - is MIT, as are its glad loader headers. Nothing here restricts commercial use.",
   "components": [
     {
       "name": "chimera-core-ruffle (integration)",
@@ -17,6 +17,13 @@
       "url": "https://github.com/ruffle-rs/ruffle",
       "commit": "{file:extern/ruffle-pinned-commit.txt}",
       "sourceUrl": "https://github.com/ruffle-rs/ruffle/archive/{commit}.tar.gz"
+    },
+    {
+      "name": "Mesa (softpipe + OSMesa, the software renderer's OpenGL)",
+      "license": "MIT",
+      "url": "https://gitlab.freedesktop.org/mesa/mesa",
+      "version": "24.0.9",
+      "sourceUrl": "https://archive.mesa3d.org/mesa-24.0.9.tar.xz"
     },
     {
       "name": "glad (OpenGL loader used by the GPU bridge)",

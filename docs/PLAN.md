@@ -196,6 +196,10 @@ on softpipe in isolation, so no minimal trigger was found.
 llvmpipe does work, but it is llvmpipe because it JITs through LLVM, and that
 means carrying LLVM in the guest.
 
+**Overturned 2026-09-11** - see "The software renderer" below. softpipe was
+never unable to draw ruffle; wgpu was handing it shaders that could not carry
+their own bindings, and any GL 3.3 driver draws the same black frame.
+
 ### Three bugs this milestone found
 
 - **miniBox** ran host callbacks on the guest's `%fs` (fixed there, 9b3fa9d).
@@ -428,3 +432,262 @@ and again at exit. Opcodes are the master list's order (miniBox
 `source/gl/gl-entry-points.txt`, first entry is 100). `chimera-run
 --render-every-frame` is the other half of the A/B: without it the runner draws
 only the frames a screenshot asks for, which makes it a measurement of a seek.
+
+## The software renderer (2026-09-11)
+
+The hardware path was too unstable for the user, so the core now draws in
+software by default: ruffle's same wgpu renderer, on a Mesa softpipe compiled
+into the guest behind OSMesa. Nothing crosses the sandbox boundary to draw. A
+`renderer` setting chooses: `software` (default) or `opengl-hw` (the old path,
+renamed from `wgpu-hw` so the wizard labels it "Hardware (OpenGL)" like every
+other core).
+
+### What renderers actually exist in the pinned ruffle
+
+`render/` has three backends and one of them can run here. `render/canvas` and
+`render/webgl` are browser backends (web-sys; no canvas or WebGL exists outside
+a browser). `render/wgpu` is the only native one, and wgpu has no CPU backend of
+its own - its software options are a software DRIVER underneath (llvmpipe or
+lavapipe, both LLVM JITs) or Mesa's softpipe on the GL backend. There is no
+CPU rasteriser crate in the tree; writing a `RenderBackend` on something like
+tiny-skia would be a new renderer, not a setting. So: wgpu on softpipe, which
+is what M4 tried and gave up on.
+
+### Why M4's softpipe drew black
+
+Reproduced first on the host, with the old core: `GALLIUM_DRIVER=softpipe` on
+run-wbx's EGL context gives `litPixels=0` for avm1/color. Two separate bugs,
+found in order:
+
+1. **wgpu claims multisampling the driver does not have.** Its GL backend
+   reports 2x and 4x as supported whenever `GL_MAX_SAMPLES` is below 8 (it reads
+   a low answer as an iOS Safari quirk). softpipe's is 1. ruffle asks for 4 at
+   the default quality, `glRenderbufferStorageMultisample(samples=4)` fails, the
+   framebuffer is incomplete, and every clear and draw after it is refused.
+   Seen with `MESA_DEBUG=1`; M4 had noted this one, then worked around it.
+2. **The real black frame: bindings a GLSL 3.30 shader cannot write.** With the
+   sample count forced to 1 there are no GL errors at all, and still nothing
+   draws. A probe in a scratch copy of gl-host.c that reads the framebuffer back
+   after every draw showed the clear lands and every draw - including the final
+   full-screen copy - changes nothing. The decisive A/B: **llvmpipe told to
+   report GLSL 3.30** (`MESA_GL_VERSION_OVERRIDE=3.3
+   MESA_GLSL_VERSION_OVERRIDE=330`) draws the exact same black frame, digest for
+   digest (13ab10433231a583). So it was never softpipe.
+
+   naga writes `layout(binding = N)` only from desktop GLSL 4.20 up; below that
+   the bindings have to be set after linking with `glUniformBlockBinding`. wgpu
+   does that only when it believes the shader could not, and it decides that
+   from `GL_ARB_compute_shader` rather than from the GLSL version
+   (`SHADER_BINDING_LAYOUT = supports_compute`, wgpu-hal 30.0.1
+   gles/adapter.rs). softpipe is GL 3.3 AND offers compute shaders, so every
+   uniform block landed on binding 0 and ruffle's second one - the transforms -
+   read as zeros. Every vertex collapsed. `MESA_EXTENSION_OVERRIDE=-GL_ARB_compute_shader`
+   on the host's softpipe then drew **ef37bc5c264bfd83, byte-identical to
+   llvmpipe**.
+
+Both fixes live in `waterbox/gl-map.cpp`, in the extension filter that already
+withheld buffer_storage, and both loaders go through them:
+`GL_ARB_compute_shader` is withheld exactly when the context's GLSL is below
+4.20, and the three calls that allocate multisampled storage clamp their sample
+count to `GL_MAX_SAMPLES`. Neither is softpipe-specific - a GL 3.3 host GPU
+across the bridge had the same two bugs - and neither touches `extern/`, so the
+patch series is unchanged (verified: a fresh worktree at the pin plus 0001 and
+0002 differs from extern/ruffle in 0 files).
+
+### What was built
+
+- `waterbox/setup-mesa.sh` - Flycast's recipe (Mesa 24.0.9, softpipe + OSMesa,
+  static, no LLVM), with one fix: the cross file points pkg-config at an empty
+  directory. On this machine a host libdrm has appeared since Flycast's Mesa
+  was built; Mesa found it, turned on externalobjects.c, and stopped at
+  `<linux/types.h>`, which the guest sysroot does not have. Flycast's copy has
+  the same latent problem.
+- `waterbox/gl-osmesa.cpp` - the OSMesa context and the software loader; a
+  build without a guest Mesa compiles it as two refusals, so the core still
+  builds bridge-only on a machine that cannot build Mesa.
+- `renderer.rs` / `lib.rs` - `renderer::build(w, h, Which)`. The software path
+  answers `context_id() = 0`, so the rebuild-on-context-change check never fires
+  on it: its GL objects are guest memory and the savestate already has them.
+  `opengl-hw` with no bridge refuses to start, naming the setting, rather than
+  quietly drawing in software - the two draw different pixels.
+- `run-wbx --no-gpu`, and a host with no GL context is no longer fatal to
+  run-wbx (the software renderer does not need one).
+- Mesa added to `package-licenses.json` (MIT). core.wbx is 116 MB, the package
+  44 MB - in line with Flycast, which carries the same Mesa.
+
+Proof there is no bridge in the software path: `CHIMERA_GL_TRACE=1` counts
+**one** crossing for a whole run (the opcode-list handshake at SetGpuBridge,
+before the renderer exists), and `run-wbx --no-gpu` draws the same
+ef37bc5c264bfd83.
+
+### The price: no anti-aliasing
+
+softpipe cannot multisample at all, so every edge is hard. The image leg, run on
+both renderers against ruffle's own expected pictures at 8 per channel:
+
+| | within 1% of pixels | worst movie |
+| --- | --- | --- |
+| opengl-hw (host llvmpipe, 4x MSAA) | 197/197 | - |
+| software (guest softpipe, 1x) | 190/197 | 2.4% |
+
+The five past 1% are all text and gradient edges
+(define_font_glyph_table_order 2.4%, overlay_onto_stage 2.1%,
+edittext_selection_font_size 1.5%, acid-text-2 1.4%, acid-color-2 1.0%). The
+gate now runs the image leg twice, software with `--no-gpu` at a stated 3%
+budget and hardware at the old 1%; the per-channel tolerance is 8 in both, so a
+pixel of the wrong colour still fails either. Of the seven software failures
+at 1%, five are those edges; the other two were NO FRAME and an empty second
+digest (bitmapdata_applyfilter_colormatrix, blend_scroll). mcl_target_gif89a,
+which failed the same way in an earlier pass, drew identically three times
+running alone, so these read as run-wbx exiting when its host EGL context failed
+- which it no longer does - rather than as the renderer. That is an inference;
+the gate run below is the measurement.
+
+### What it costs: speed
+
+New Star Soccer (nss102.swf, spoofed to kongregate.com), a blank 300-frame
+movie, `chimera-run` on this WSL box (20 cores, no GPU), one run at a time.
+Frames 0-60 are the loader and nearly free on either renderer, so the rate is
+taken over frames 60-300 - the language screen, which ruffle redraws in full
+every frame (`Player::render` always runs; see SetRenderingEnabled above).
+
+Seek mode (the runner's default: frames drawn, not read back):
+
+| | 60 frames | 300 frames | frames 60-300 |
+| --- | --- | --- | --- |
+| software, run A | 3.15 s | 285.0 s | **1174 ms a frame** (0.85 fps) |
+| software, run B | | 293.1 s | 1208 ms a frame |
+| opengl-hw on host llvmpipe, run A | 1.49 s | 70.7 s | **288 ms a frame** (3.5 fps) |
+| opengl-hw on host llvmpipe, run B | | 71.0 s | 290 ms a frame |
+
+So on the same box and the same frames the software renderer is **about 4x
+slower than the bridge on llvmpipe**. That comparison is the only fair one this
+machine can make, and it flatters the hardware path's absence: llvmpipe is
+itself a software rasteriser, JIT-compiled and multithreaded. Against a real
+GPU the gap is far wider - the GTX 1060 figure above is 18.59 ms for a New Star
+Soccer frame, which would make softpipe on the order of 60x slower - but that was
+measured on another machine, on another part of the game, and the rule above
+about quoting llvmpipe as a GPU applies in reverse: this is an order of
+magnitude, not a measurement.
+
+Play mode (`--render-every-frame`: every frame read back, as a person watching):
+
+| | 60 frames | 300 frames | frames 60-300 |
+| --- | --- | --- | --- |
+| software | 3.20 s | 279.5 s | **1151 ms a frame** (0.87 fps) |
+| opengl-hw on host llvmpipe | 1.47 s | 70.4 s | **287 ms a frame** (3.5 fps) |
+
+Reading the picture back costs the software renderer nothing measurable -
+play mode is not slower than seek mode, within run-to-run noise - because the
+"readback" is a copy out of memory the rasteriser has just written. All the time
+is softpipe drawing. The ratio is 4.0x in both modes.
+
+### Determinism
+
+Same movie, same renderer, two separate processes, savestate at frame 250 and
+screenshots at 150 and at the end:
+
+| | pictures A vs B | savestate A vs B (101 MB / 89 MB) |
+| --- | --- | --- |
+| software | identical (f8f3604423e5a432) | 5,476 bytes differ |
+| opengl-hw (llvmpipe) | identical (d65925b6624280ef) | 6,497 bytes differ |
+
+The pictures agree on both. This is a static screen, which makes that the weaker
+half of the evidence - and the final screenshot of a turbo run is not proof of
+anything by itself, because chimera-run reads a frame back only when a
+screenshot asks for that frame, so a final picture can be the last one read. The
+reload runs below, which ask for frames 10 and 49 with every frame read back,
+show the language screen really is unchanged. The savestates are the interesting half, because they differ
+for **different reasons**:
+
+- **software: every one of the 5,476 bytes is one host address.** The value
+  0x5db878f27d88 in run A and 0x59ba6841ad88 in run B - a host heap address
+  under ASLR (same low twelve bits, different base) - stored 1,043 times, plus a
+  handful of tagged and shifted copies of the same page base. With it masked the
+  two states are byte-identical. It sits in one repeated guest structure
+  (guest pointer, 0, HOST, guest pointer, guest pointer; 936 copies) whose type
+  words point into the first heap allocations after `_end` and have no symbol.
+  The obvious suspect is ruled out as far as a static look can rule it out:
+  the only guest code that reads `%gs:0x18` (the one host-owned slot a guest
+  can see) is musl's own threading and locale code, every site going through
+  `__pthread_self`, which dereferences the slot to a guest pointer rather than
+  keeping it. Who does write the address is **not found**; that needs an
+  instrumented guest. It does not appear in the hardware state at all, so it
+  arrived with the in-guest Mesa stack or with something only that path
+  exercises.
+- **opengl-hw: none of its 6,497 bytes is a host address.** They are real data
+  (the first is a double, 144.77 in one run and 114.28 in the other) - state
+  the machine computed differently because the frames came back from a driver
+  outside the sandbox at different moments.
+
+So the claim that can be made with numbers: the software renderer's machine
+state is identical run to run **except for one leaked host address**, while the
+GPU path's state differs in the values themselves. Byte-identical savestates
+cannot be claimed.
+
+What the leak does NOT do, measured: break a state reopened in another process.
+Saved at frame 250 in one chimera-run, loaded into a fresh one, every frame read
+back:
+
+| | straight through | reopened in a new process, frames 10 and 49 later |
+| --- | --- | --- |
+| software | f8f3604423e5a432 | **f8f3604423e5a432, both** |
+| opengl-hw (llvmpipe) | d65925b6624280ef | 3aaaa5bc94aa9fc8, both - rebuilt its renderer, drew something else |
+| software, avm1/color, saved at 5 | 883c227ffe3b3acc | 883c227ffe3b3acc |
+
+That is the determinism result that matters for a TAS, and it is the software
+renderer's: a greenzone reopened from disk draws what it drew, where the GPU
+path, even on the same machine and driver, does not. (Which of the rebuilt
+backend's caches is responsible on the GPU side was not chased; the BitmapCache
+epoch gap above is a candidate.)
+
+A first attempt at this test asked only for `--final-screenshot` and got a
+blank 1920x1080 frame from BOTH renderers - the runner's picture when nothing
+was read back, not a broken state. Worth knowing before trusting a turbo run's
+final screenshot.
+
+Two controls, with the pre-change package still installed on the Windows side
+(ruffle-fef5fcf36163-dirty+local, hardware only, no guest Mesa), same movie,
+same box:
+
+- **the old core's savestates were never identical either.** Two runs to
+  frame 250 did not even agree on the SIZE of the state (94,673,726 and
+  92,023,614 bytes). Byte-identical savestates across processes is not a
+  property this core had and lost; it is one the software renderer is now one
+  leaked address away from.
+- **the hardware path's picture is unchanged by this work.** Frame 150 through
+  the old package, the new package's opengl-hw, and a second run of each: all
+  d65925b6624280ef. On llvmpipe (GLSL 4.50, 4 samples) neither gl-map.cpp fix
+  triggers, which is the point of keying them on what the driver says.
+
+### The gate
+
+`waterbox/run-gate.sh`, one run, alone, 1904 s:
+
+| leg | result |
+| --- | --- |
+| trace / determinism / sandbox | 197/197 |
+| image, software (--no-gpu, 97%) | **197/197** |
+| image, opengl-hw (99%) | 197/197 |
+| state (save and reload before every frame, now on software) | 30/30 |
+| navigator | 92/92 |
+| audio | 2/2 |
+| input | 17/17 |
+| sub-frame | 11/11 |
+| settings | **16/17** |
+
+The one failure was this work's, and it was the test's premise that had to
+change, not its budget. `quality:low` must draw a different frame from the
+default - and on the default renderer it cannot, because softpipe has one
+sample and low and high both mean one sample. The quality checks now run on
+opengl-hw against a base of their own (where they still prove the setting
+reaches the renderer), and two assertions were added that are true of the new
+default: on software, `quality:low` draws the SAME frame as the default (if that
+ever fails, softpipe has learned to multisample and the 3% image budget should
+come down), and `renderer=software` at its declared default is inert. That leg
+alone was rerun after the edit: 14/14 picture checks, and its five address
+checks were untouched and had passed. **The whole gate was not rerun after that
+edit.**
+
+The two NO FRAME results from the earlier standalone software pass did not
+recur in the gate's software pass.
