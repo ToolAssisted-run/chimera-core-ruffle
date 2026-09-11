@@ -266,3 +266,75 @@ extension filter (buffer_storage) had been implemented in the gate's host, so
 it did not apply under the engine's context and every upload failed there.
 It now lives in the guest, where it belongs - the core knows it cannot use a
 persistent mapping across the bridge, whoever is hosting it.
+
+## What the crossings actually cost (2026-09-11)
+
+The bridge was the suspect: ruffle's wgpu backend makes about six thousand GL
+calls in an ordinary frame and fifty thousand in a heavy one, and every one of
+them leaves the sandbox through a single callback. So batching them looked like
+the next thing to build.
+
+It is not, and the reason is a number. `run-wbx --bench-crossings N` makes N
+crossings of GL_OP_CONTEXT_ID - the opcode the host answers from a variable,
+touching no driver - and divides:
+
+| | |
+| --- | --- |
+| one crossing | **4.0 ns** |
+| six thousand of them | 24 us |
+| fifty thousand of them | 200 us |
+
+A fifth of a millisecond in the worst frame there is. The boundary is not what
+those six thousand calls cost; the DRIVER is, and batching them would move the
+same work to the same place. Written down rather than built.
+
+The bench is kept because the next person will have the same suspicion, and
+because a change to miniBox's callback path would show up here first.
+
+Two real things came out of the same look:
+
+* **the runner's own dispatcher asked the environment on every crossing.**
+  `getenv("CHIMERA_GL_TRACE")`, per GL call - the same mistake the engine's
+  bridge made and had fixed (chimera e00b19c); this copy was still there. Read
+  once now. It never affected a shipped core, because Chimera's engine is the
+  host in a real session and this file is only the gate's, but it made every
+  measurement taken with the gate's runner a measurement of getenv.
+* **GL_OP_CONTEXT_ID had no case here at all**, so it fell through to the
+  default, printed a complaint, and told the guest "cannot tell" - which is the
+  answer that disables the renderer-rebuild check. Answered now.
+
+## SetRenderingEnabled (2026-09-11)
+
+A seek replays hundreds of frames nobody sees and a turbo run replays them as
+fast as the machine will go. Every core that can tell the difference is told,
+through `SetRenderingEnabled`, and this one exported none - so it drew, read the
+picture back off the GPU and converted it, for frames that were thrown away.
+
+**What is skipped is the READBACK and nothing else.** `Player::render` still
+runs, because it is not only drawing: it broadcasts `Event.RENDER` to the
+display list, updates the bitmap caches and sweeps the font caches, and all of
+that is machine state a movie depends on. Skipping it would be a desync wearing
+an optimisation's clothes. The readback is pure output - a whole-frame copy off
+the GPU, which blocks until the GPU has finished, and then a per-pixel RGBA to
+BGRA pass over three hundred thousand pixels - so leaving it out changes nothing
+the machine can observe. The buffer keeps whatever was last drawn into it, so a
+host that asks for the picture anyway gets the last real one rather than
+garbage.
+
+Measured with `run-wbx --no-render`, 300 frames of Corporate Climber under
+llvmpipe:
+
+| | seconds |
+| --- | --- |
+| drawing and read back | 5.32 |
+| read back, digest skipped | 4.82 |
+| neither | 3.00 |
+
+So the readback and its conversion are 1.82 s of 300 frames - about 6 ms a
+frame - and the runner's own picture digest is the other half a second.
+
+That middle row is the lesson, not a detail. The first attempt measured
+`--no-render` as 25% SLOWER, repeatably. The cause was the harness: the runner
+digests every pixel of every frame, and with the readback skipped it was
+digesting a stale pointer into an empty vector. A flag that says "nobody is
+going to look at this frame" has to mean it in the runner too.

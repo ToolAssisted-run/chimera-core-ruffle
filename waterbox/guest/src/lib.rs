@@ -235,6 +235,9 @@ struct Machine {
     video: Vec<u8>,
     video_w: u32,
     video_h: u32,
+    /// Whether the frontend is going to look at the frame (SetRenderingEnabled).
+    /// Output only: it gates the readback and nothing the machine can observe.
+    rendering: bool,
     /// The movie's declared frame rate, as a ratio the engine can clock from.
     vsync_num: i32,
     vsync_den: i32,
@@ -512,6 +515,7 @@ pub extern "C" fn Init() -> i32 {
                 mouse: (0, 0), prev_mouse: (0, 0), live_pointer: false, text_input: true,
                 audio_f32, audio_i16: Vec::new(), tasks,
                 video: Vec::new(), video_w: vw.max(1), video_h: vh.max(1),
+                rendering: true,
                 vsync_num, vsync_den,
                 gl_context: 0,
             });
@@ -633,7 +637,12 @@ pub extern "C" fn FrameAdvance(_input: u64) {
         p.render();
         // Read the frame back out of the offscreen target. ruffle's own image
         // tests capture exactly here, through the same downcast.
-        if let Some(rb) = (p.renderer_mut() as &mut dyn std::any::Any).downcast_mut::<GuestRenderer>() {
+        //
+        // Not when nobody is looking: see SetRenderingEnabled. This is the one
+        // part of the frame that is pure output, so it is the one part that can
+        // be left out without changing the machine.
+        if m.rendering {
+          if let Some(rb) = (p.renderer_mut() as &mut dyn std::any::Any).downcast_mut::<GuestRenderer>() {
             if let Some(img) = rb.capture_frame() {
                 m.video_w = img.width();
                 m.video_h = img.height();
@@ -645,6 +654,7 @@ pub extern "C" fn FrameAdvance(_input: u64) {
                     m.video.extend_from_slice(&[px[2], px[1], px[0], px[3]]);
                 }
             }
+          }
         }
         drop(p);
         m.frames += 1;
@@ -877,9 +887,57 @@ pub extern "C" fn GetMemoryDomainWritable(_i: i32) -> i32 { 0 }
 /// The host's GL callback, handed over before Init. Without it there is no
 /// renderer and Init refuses, rather than running blind: a core that quietly
 /// produced no picture would still pass a trace gate and be useless for a TAS.
+/// Whether the frontend is going to LOOK at the next frame.
+///
+/// A seek replays hundreds of frames nobody sees, and a turbo run replays them
+/// as fast as the machine will go. Every core that can tell the difference is
+/// told, and until now this one could not: it drew, read the picture back off
+/// the GPU and converted it, for frames that were thrown away.
+///
+/// What is skipped is the READBACK and nothing else. `Player::render` still
+/// runs, because it is not only drawing: it broadcasts `Event.RENDER` to the
+/// display list, updates bitmap caches and sweeps the font caches, and all of
+/// that is machine state a movie depends on. Skipping it would be a desync
+/// rather than an optimisation. The readback is pure output - a whole-frame
+/// copy off the GPU, which blocks until the GPU has finished, and then a
+/// per-pixel RGBA to BGRA pass - so leaving it out changes nothing the machine
+/// can observe.
+///
+/// The buffer keeps whatever was last drawn into it, so a frontend that asks
+/// for the picture anyway gets the last real one rather than garbage.
+#[no_mangle]
+pub extern "C" fn SetRenderingEnabled(on: i32) {
+    unsafe {
+        if let Some(m) = &mut *core::ptr::addr_of_mut!(MACHINE) {
+            m.rendering = on != 0;
+        }
+    }
+}
+
 #[no_mangle]
 pub extern "C" fn SetGpuBridge(addr: u64) {
     renderer::set_bridge(addr);
+}
+
+/// How long a GL crossing costs, measured rather than guessed.
+///
+/// ruffle's wgpu backend makes about six thousand GL calls in an ordinary
+/// frame and fifty thousand in a heavy one, and every one of them leaves the
+/// sandbox through a single callback. Whether that is worth batching depends
+/// entirely on what one crossing costs, and the only honest way to know is to
+/// make a lot of them and divide.
+///
+/// GL_OP_CONTEXT_ID is the crossing with nothing in it: the host answers from
+/// a variable and touches no driver. So this measures the boundary itself and
+/// nothing else. The host times the call; the sum is returned so that nothing
+/// here can be optimised away.
+#[no_mangle]
+pub extern "C" fn BenchGlCrossings(count: u64) -> u64 {
+    let mut sum = 0u64;
+    for _ in 0..count {
+        sum = sum.wrapping_add(renderer::context_id());
+    }
+    sum
 }
 
 #[no_mangle]

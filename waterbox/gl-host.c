@@ -303,7 +303,13 @@ static uintptr_t chimera_gl_dispatch_inner(uintptr_t op, uintptr_t a, uintptr_t 
 	/* CHIMERA_GL_TRACE=1 prints every crossing, so a core that dies inside the
 	 * driver says which call it died on. */
 	static unsigned long s_prev;
-	if (getenv("CHIMERA_GL_TRACE")) {
+	/* Read ONCE. A getenv is a linear walk of the environment, and this runs on
+	 * every crossing - six thousand of them in an ordinary ruffle frame and
+	 * fifty thousand in a heavy one. The engine's own bridge learned this the
+	 * expensive way (chimera e00b19c); the same mistake was still here. */
+	static int trace = -1;
+	if (trace < 0) { const char *v = getenv("CHIMERA_GL_TRACE"); trace = v && *v && *v != '0'; }
+	if (trace) {
 		fprintf(stderr, "[gl] %lu returned; entering op=%lu\n", s_prev, (unsigned long)op);
 		fflush(stderr);
 		s_prev = (unsigned long)op;
@@ -316,6 +322,17 @@ static uintptr_t chimera_gl_dispatch_inner(uintptr_t op, uintptr_t a, uintptr_t 
 			 * what it was built against and declines us if we are behind; the
 			 * list being append-only is what makes that check sufficient. */
 			return CHIMERA_GL_OP_LIST_LENGTH;
+
+		case GL_OP_CONTEXT_ID:
+			/* Which context these calls land on. This runner makes exactly one
+			 * and never replaces it, so any non-zero constant is the honest
+			 * answer - and answering at all matters: without a case here the
+			 * question fell through to the default and printed a complaint per
+			 * frame, while the guest heard "cannot tell".
+			 *
+			 * It is also the cheapest crossing there is, which makes it the one
+			 * to time a crossing with. */
+			return 1;
 
 		case GL_OP_VERSION:
 		{

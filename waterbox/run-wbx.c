@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <time.h>
 
 /* --rerecord saves and reloads the machine before every single frame. If any
  * of the machine lives outside the sandbox's memory - or the core keeps a
@@ -76,6 +77,8 @@ int main(int argc, char **argv) {
 	const char *movespath = NULL, *audiopath = NULL, *peakspath = NULL, *spoofurl = NULL;
 	const char *videopath = NULL;
 	int rerecord = 0;
+	long benchCrossings = 0;
+	int noRender = 0;
 	int from_vfs = 0;
 	const char *files[64][2]; int nfiles = 0;
 	for (int i = 3; i < argc; i++) {
@@ -87,6 +90,10 @@ int main(int argc, char **argv) {
 		else if (!strcmp(argv[i], "--spoof-url") && i + 1 < argc) spoofurl = argv[++i];
 		else if (!strcmp(argv[i], "--video-out") && i + 1 < argc) videopath = argv[++i];
 		else if (!strcmp(argv[i], "--rerecord")) rerecord = 1;
+		else if (!strcmp(argv[i], "--bench-crossings") && i + 1 < argc) benchCrossings = atol(argv[++i]);
+		/* what a seek or a turbo run looks like: the frames still happen, nobody
+		 * looks at the picture */
+		else if (!strcmp(argv[i], "--no-render")) noRender = 1;
 		/* skip AllocSwf and let Init find the movie in the guest's filesystem,
 		 * which is how the engine loads a game (waterbox.config: romFile) */
 		else if (!strcmp(argv[i], "--from-vfs")) from_vfs = 1;
@@ -190,6 +197,25 @@ int main(int argc, char **argv) {
 	int32_t vw = 0, vh = 0;
 	const uint8_t *last_px = NULL;
 
+	/* --bench-crossings N: how long one GL crossing costs. Nothing else in
+	 * this runner needs it; it is here because the answer decides whether
+	 * batching the bridge is worth building. Run before Init so no renderer
+	 * exists and the number is the boundary and nothing else. */
+	if (benchCrossings > 0) {
+		uint64_t (*Bench)(uint64_t) = (uint64_t (*)(uint64_t))proc(h, "BenchGlCrossings");
+		/* warm the path once, then time it */
+		Bench(1000);
+		struct timespec t0, t1;
+		clock_gettime(CLOCK_MONOTONIC, &t0);
+		uint64_t sum = Bench((uint64_t)benchCrossings);
+		clock_gettime(CLOCK_MONOTONIC, &t1);
+		double secs = (double)(t1.tv_sec - t0.tv_sec) + (double)(t1.tv_nsec - t0.tv_nsec) / 1e9;
+		printf("crossings %ld in %.6f s = %.1f ns each (sum %llu)\n",
+			benchCrossings, secs, secs * 1e9 / (double)benchCrossings,
+			(unsigned long long)sum);
+		return 0;
+	}
+
 	if (!Init()) {
 		const char *(*GetLoadError)(void) = (const char *(*)(void))proc(h, "GetLoadError");
 		fprintf(stderr, "init failed: %s\n", GetLoadError());
@@ -204,6 +230,11 @@ int main(int argc, char **argv) {
 		wbx_seal(h, &sr);
 		fprintf(stderr, "[seal] done\n"); fflush(stderr);
 		if (sr.error_message[0]) { fprintf(stderr, "seal: %s\n", sr.error_message); return 1; }
+	}
+	if (noRender) {
+		void (*SetRenderingEnabled)(int32_t) =
+			(void (*)(int32_t))proc(h, "SetRenderingEnabled");
+		SetRenderingEnabled(0);
 	}
 	/* the corpus protocol scripts TextInput as its own event, so a replayed
 	 * moves file must not have key presses type characters on top */
@@ -248,8 +279,12 @@ int main(int argc, char **argv) {
 		 * neither black nor transparent. A digest alone cannot tell a real
 		 * frame from a uniformly blank one, and a blank frame is exactly what a
 		 * broken renderer produces. */
+		/* --no-render is a frontend that is not going to LOOK at the frame, and
+		 * that includes this runner: digesting the picture here is two passes
+		 * over a megabyte, which is more than the frame costs and would drown
+		 * out what the flag is being measured for. */
 		vw = GetVideoWidth(); vh = GetVideoHeight();
-		const uint8_t *px = GetVideoBgra();
+		const uint8_t *px = noRender ? NULL : GetVideoBgra();
 		if (px && vw > 0 && vh > 0) {
 			size_t bytes = (size_t)vw * (size_t)vh * 4;
 			lit = 0;

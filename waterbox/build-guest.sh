@@ -67,7 +67,7 @@ cxxinc="-I$cxxver -I$cxxver/x86_64-linux-musl"
   $cxxinc -I"$here/extern/glad/include" -I"$minibox/source/gl" -I"$here" -I"$here/generated" \
   -o "$here/build/gl-map.o" "$here/gl-map.cpp"
 
-exports="-Wl,-u,GetMemoryDomainCount -Wl,-u,GetMemoryDomainName -Wl,-u,GetMemoryDomainPtr -Wl,-u,GetMemoryDomainSize -Wl,-u,GetMemoryDomainWritable -Wl,-u,SetMousePixels -Wl,-u,GetVsyncNumerator -Wl,-u,GetVsyncDenominator -Wl,-u,SetGpuBridge -Wl,-u,GetVideoBgra -Wl,-u,GetVideoWidth -Wl,-u,GetVideoHeight -Wl,-u,Init -Wl,-u,SetSpoofUrl -Wl,-u,GetAudio -Wl,-u,GetAudioSampleCount -Wl,-u,AllocSwf -Wl,-u,SetButton -Wl,-u,SetAxis -Wl,-u,SetTextInput -Wl,-u,FrameAdvance -Wl,-u,GetTty -Wl,-u,GetTtySize -Wl,-u,GetTraceDigest -Wl,-u,GetFrameCount -Wl,-u,GetLoadError -Wl,-u,IsRunning"
+exports="-Wl,-u,GetMemoryDomainCount -Wl,-u,GetMemoryDomainName -Wl,-u,GetMemoryDomainPtr -Wl,-u,GetMemoryDomainSize -Wl,-u,GetMemoryDomainWritable -Wl,-u,SetMousePixels -Wl,-u,GetVsyncNumerator -Wl,-u,GetVsyncDenominator -Wl,-u,SetGpuBridge -Wl,-u,GetVideoBgra -Wl,-u,GetVideoWidth -Wl,-u,GetVideoHeight -Wl,-u,Init -Wl,-u,SetSpoofUrl -Wl,-u,GetAudio -Wl,-u,GetAudioSampleCount -Wl,-u,AllocSwf -Wl,-u,SetButton -Wl,-u,SetAxis -Wl,-u,SetTextInput -Wl,-u,FrameAdvance -Wl,-u,GetTty -Wl,-u,GetTtySize -Wl,-u,GetTraceDigest -Wl,-u,GetFrameCount -Wl,-u,GetLoadError -Wl,-u,IsRunning -Wl,-u,BenchGlCrossings -Wl,-u,SetRenderingEnabled"
 # -fno-stack-protector applies to cxxglue.c, which is compiled right here: the
 # canary lives at %fs:0x28, and this guest has no %fs. Everything else in the
 # link already carries the flag.
