@@ -64,7 +64,7 @@ jobs:
         # (libegl-mesa0). Without libegl-dev the build stops at EGL/egl.h.
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends meson ninja-build build-essential cmake pkg-config python3 default-jdk libegl-dev libegl-mesa0 libgl1-mesa-dri
+          sudo apt-get install -y --no-install-recommends meson ninja-build build-essential cmake pkg-config python3 bison flex python3-mako python3-packaging default-jdk libegl-dev libegl-mesa0 libgl1-mesa-dri
 
       - name: Rust (stable for the reference, nightly for the guest target)
         run: |
@@ -91,6 +91,14 @@ jobs:
           meson compile -C "$mb/build/meson-linux"
           [ -f "$mb/build/meson-cpp/build.ninja" ] || meson setup "$mb/build/meson-cpp" "$mb" -Dguest_cpp=true
           meson compile -C "$mb/build/meson-cpp"
+
+      - name: Build the guest Mesa (softpipe + OSMesa) the GL renderer links
+        # The software renderer draws through this. Without it build-guest.sh
+        # still produces a core - loudly - but a bridge-only one, and every
+        # sandbox leg of the gate then fails with no frame. The core fetches its
+        # own, pinned by SHA256 to mesa 24.0.9, the same tarball the Flycast
+        # core builds. bash, not sh: the script uses `set -o pipefail`.
+        run: bash waterbox/setup-mesa.sh -m "$PWD/chimera-checkout/extern/chimera-common-minibox"
 
       - name: Build the native reference
         run: ./waterbox/build-native.sh
@@ -141,7 +149,7 @@ jobs:
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends meson ninja-build build-essential cmake pkg-config python3 default-jdk mono-complete xvfb libgl1-mesa-dev libx11-dev libxext-dev libasound2-dev
+          sudo apt-get install -y --no-install-recommends meson ninja-build build-essential cmake pkg-config python3 bison flex python3-mako python3-packaging default-jdk mono-complete xvfb libgl1-mesa-dev libx11-dev libxext-dev libasound2-dev
 
       - name: Set up .NET
         uses: actions/setup-dotnet@v4
@@ -179,6 +187,12 @@ jobs:
           meson compile -C "$mb/build/meson-linux"
           [ -f "$mb/build/meson-cpp/build.ninja" ] || meson setup "$mb/build/meson-cpp" "$mb" -Dguest_cpp=true
           meson compile -C "$mb/build/meson-cpp"
+
+      - name: Build the guest Mesa (softpipe + OSMesa) the GL renderer links
+        # The package published from this job has to carry the software
+        # renderer, so it is built here too; see the core gate's copy of this
+        # step for what a package without it can and cannot draw.
+        run: bash waterbox/setup-mesa.sh -m "$PWD/chimera-checkout/extern/chimera-common-minibox"
 
       - name: Build the native reference
         run: ./waterbox/build-native.sh
