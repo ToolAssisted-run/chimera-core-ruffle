@@ -112,6 +112,35 @@ jobs:
       - name: Build the waterbox core
         run: MINIBOX_DIR="$PWD/chimera-checkout/extern/chimera-common-minibox" ./waterbox/build-guest.sh
 
+      - name: Smoke the sandboxed core before spending a runner on the gate
+        # The gate runs every leg with stderr sent to /dev/null, so a core that
+        # does not run at all says "FAIL" 197 times over 66 minutes and then dies
+        # on the job timeout - cancelled, not failed, so the work dir is never
+        # even uploaded and there is nothing to read afterwards. That is what
+        # 2026-09-12 looked like from the outside.
+        #
+        # One trace test here, with stderr left where it can be seen, answers in
+        # ten minutes instead of two and a half hours. avm1/add is the smallest
+        # thing the core can be asked to do: one frame, no rendering, no input,
+        # no savestate - if this cannot print what ruffle prints, nothing further
+        # down the gate is going to work either.
+        run: |
+          core=waterbox/build/core.wbx
+          t=extern/ruffle/tests/tests/swfs/avm1/add
+          ls -l "$core"
+          echo "guest Mesa symbols: $(nm -C "$core" 2>/dev/null | grep -ci 'osmesa\|softpipe' || echo 0)"
+          set +e
+          out=$(timeout 120 ./waterbox/build/run-wbx "$core" "$t/test.swf" --frames 1)
+          rc=$?
+          set -e
+          echo "exit=$rc"
+          printf 'got:\n%s\n---\n' "$out"
+          printf 'expected:\n%s\n---\n' "$(cat "$t/output.txt")"
+          if [ "$out" != "$(cat "$t/output.txt")" ]; then
+            echo "::error::the sandboxed core cannot reproduce avm1/add; stopping before the gate"
+            exit 1
+          fi
+
       - name: Core gate
         run: ./waterbox/run-gate.sh
 
