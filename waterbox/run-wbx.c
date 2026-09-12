@@ -161,7 +161,7 @@ int main(int argc, char **argv) {
 	if (!noGpu) {
 		char glerr[256] = {0};
 		if (chimera_gl_host_init(glerr, sizeof glerr) != 0) {
-			/* Not fatal any more. The core's default renderer is the Mesa
+			/* Not fatal any more. The core falls back to the Mesa
 			 * inside the sandbox, which needs nothing from this side, and a
 			 * machine with no GL - or one whose EGL has run out of something -
 			 * should still be able to run the picture legs. A core that was

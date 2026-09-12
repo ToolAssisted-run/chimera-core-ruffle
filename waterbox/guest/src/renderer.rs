@@ -4,7 +4,7 @@
 //! which OpenGL it is talking to, and that is the whole of the difference
 //! between the core's two renderers.
 //!
-//! **software** (the default) is Mesa's softpipe, compiled into the guest
+//! **software** is Mesa's softpipe, compiled into the guest
 //! behind the OSMesa front end (`waterbox/setup-mesa.sh`,
 //! `waterbox/gl-osmesa.cpp`). Nothing leaves the sandbox: the OpenGL is code we
 //! compiled, plain C with no JIT and no dispatch on host CPU features, so the

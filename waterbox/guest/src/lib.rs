@@ -417,12 +417,18 @@ pub extern "C" fn Init() -> i32 {
     let clock_millis = Rc::new(Cell::new(0i64));
     let audio_f32 = Rc::new(RefCell::new(Vec::new()));
     let tasks: Tasks = std::rc::Rc::new(RefCell::new(Vec::new()));
-    // Which OpenGL the picture is drawn on. 'software' is Mesa's softpipe,
-    // compiled into this binary, and it is the default because it is the only
-    // one that is inside the savestate and the same on every machine.
-    // 'opengl-hw' is the machine's GPU across the bridge: several times faster,
-    // and a picture that belongs to a driver rather than to the movie. Both run
-    // ruffle's one wgpu renderer; see renderer.rs.
+    // Which OpenGL the picture is drawn on. 'opengl-hw' is the machine's GPU
+    // across the bridge: several times faster, and a picture that belongs to a
+    // driver rather than to the movie. It is what the PACKAGE declares as its
+    // default, so it is what a project gets. 'software' is Mesa's softpipe
+    // compiled into this binary: slower, but inside the savestate and the same
+    // on every machine. Both run ruffle's one wgpu renderer; see renderer.rs.
+    //
+    // The fallback below answers a different question - what to draw on when
+    // nothing was asked for at all, which only happens to a headless caller
+    // that passes no settings. Software is the answer there because it is the
+    // one that needs no host GL: falling back to hardware would refuse to
+    // start on a machine with no bridge, rather than quietly drawing nothing.
     let which = cfg.choice(
         "renderer",
         &[("software", renderer::Which::Software), ("opengl-hw", renderer::Which::Hardware)],

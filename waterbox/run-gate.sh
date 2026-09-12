@@ -355,7 +355,7 @@ if [ "$have_sandbox" = 1 ]; then
     if [ -f "$qsw" ]; then
       base=$(digest "$qsw")
       # Quality is anti-aliasing, so it can only be SEEN on a renderer that
-      # multisamples. The default software renderer cannot (softpipe's
+      # multisamples. The software renderer cannot (softpipe's
       # GL_MAX_SAMPLES is 1): there 'low' and 'high' both mean one sample and
       # draw the same frame, and asking them to differ would be asking softpipe
       # for something it does not have. So the question "does the setting reach

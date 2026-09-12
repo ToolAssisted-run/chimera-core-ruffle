@@ -678,7 +678,7 @@ same box:
 
 The one failure was this work's, and it was the test's premise that had to
 change, not its budget. `quality:low` must draw a different frame from the
-default - and on the default renderer it cannot, because softpipe has one
+default - and on the software renderer it cannot, because softpipe has one
 sample and low and high both mean one sample. The quality checks now run on
 opengl-hw against a base of their own (where they still prove the setting
 reaches the renderer), and two assertions were added that are true of the new
@@ -691,3 +691,27 @@ edit.**
 
 The two NO FRAME results from the earlier standalone software pass did not
 recur in the gate's software pass.
+
+## The default goes back to the GPU (2026-09-12)
+
+The software renderer landed the day before as the default, for determinism
+and because the hardware path had been unstable in use. Both halves of that
+changed within a day.
+
+The instability was not the renderer. It was a sandbox bug on Windows: the
+guest's %fs is lost across any context switch there, not merely across a
+fault as had been believed, so Mesa's glapi read a dispatch table through a
+null thread pointer and the process died with an access violation. Fixed in
+miniBox a6e6f0b, which repairs the pointer at the fault and retries the
+instruction.
+
+The speed is decisive on its own: about 0.87 frames a second on New Star
+Soccer, against 18.6 ms a frame on a GTX 1060 from the measurements above.
+Deterministic and unplayable is not a default, so `opengl-hw` is the default
+again, by the user's decision.
+
+`software` stays exactly as built, and it is the answer whenever a replay has
+to reproduce the picture rather than just the machine. The setting's
+description now names which is which and why, instead of asserting that
+whichever renderer it happens to mention first is the default - the shape of
+prose that goes stale the moment a default moves.
