@@ -3,9 +3,10 @@
 #
 # The submodule pin is PRISTINE upstream; the chimera patch set lives in
 # patches/ and is applied into the working tree here (idempotent - run at the
-# start of every build). Two patches: a clock that advances with the frames
-# rather than with the wall, and a renderer that rebuilds its GPU objects when
-# the context they belonged to is gone.
+# start of every build). Three patches: a clock that advances with the frames
+# rather than with the wall, a renderer that rebuilds its GPU objects when the
+# context they belonged to is gone, and an offscreen texture pool that is kept
+# (bounded) across frames instead of thrown away at the end of each one.
 set -eu
 here="$(cd "$(dirname "$0")" && pwd)"
 root="$(cd "$here/.." && pwd)"

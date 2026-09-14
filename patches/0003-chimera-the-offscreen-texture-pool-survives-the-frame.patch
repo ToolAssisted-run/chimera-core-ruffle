@@ -1,0 +1,127 @@
+From: Chimera
+Subject: [PATCH] chimera: the offscreen texture pool survives the frame
+
+submit_frame ended with `self.offscreen_texture_pool = TexturePool::new()`,
+which threw the pool away every frame. PoolEntry::drop had just handed each
+texture back through a Weak to that pool's `available` vec, so replacing the
+pool freed all of them and the next frame's get_texture fell through to the
+BufferPool constructor and built them again.
+
+Measured on a GTX 1060 (New Star Soccer, 400 frames, --render-every-frame):
+14,074 glGenTextures against 14,031 glDeleteTextures, the counts pairing
+almost exactly, each with a glTexStorage2D of its own. On the backends
+upstream targets that is cheap. Across a remote GL bridge - where the guest
+is sandboxed and every call crosses - it is 1.19 ms of an 18.67 ms frame.
+
+The reset was doing a job, though: a bucket is keyed {size, usage, format,
+sample_count}, so a movie whose offscreen sizes vary - hundreds of
+cacheAsBitmap children, each its own size - would otherwise accumulate one
+bucket per size for the length of the run, which is what the comment about
+OOM above the call site is about. So the retention is BOUNDED rather than
+unbounded: TexturePool::trim keeps at most `per_bucket` textures in any one
+bucket and drops every bucket once there are more than `max_buckets`.
+
+The bound is free at the sizes that matter: trim(64, 64) and trim(4096, 4096)
+measure the same (17.48 vs 17.46 ms/frame) with an identical glGenTextures
+count, so the cap never binds on real content and the OOM protection costs
+nothing.
+
+18.67 -> 17.45 ms/frame (-6.4%), same tree and same build both sides, three
+runs each, spread 0.03. Note the win is mostly NOT texture reuse - only 285
+of 14,074 creations go away - but the per-frame rebuild of the `pools`
+HashMap with a fresh BufferPool and boxed constructor for every key.
+
+Correctness: the core's own gate, all legs, zero failures - image 394/394
+(both renderers), state 30/30 (a save and reload before EVERY frame agreeing
+on trace, audio and picture), trace/determinism/sandbox 197/197.
+diff --git a/render/wgpu/src/backend.rs b/render/wgpu/src/backend.rs
+index 3af1ba1b..41e87634 100644
+--- a/render/wgpu/src/backend.rs
++++ b/render/wgpu/src/backend.rs
+@@ -666,7 +666,14 @@ impl<T: RenderTarget + 'static> RenderBackend for WgpuRenderBackend<T> {
+ 
+         self.active_frame
+             .submit_for_target(&self.descriptors, &self.target, frame_output);
+-        self.offscreen_texture_pool = TexturePool::new();
++        // This was `= TexturePool::new()`, which freed every texture the frame
++        // had just handed back and made the next frame build them again -
++        // 14,074 glGenTextures against 14,031 glDeleteTextures over 400 frames
++        // on a GTX 1060, each with a glTexStorage2D of its own. They are kept
++        // now, but within a bound, so that a movie with many differently-sized
++        // offscreen caches still cannot grow the pool for the length of the run
++        // (the reason the reset was here at all - see TexturePool::trim).
++        self.offscreen_texture_pool.trim(64, 64);
+         self.profiler
+             .end_frame()
+             .expect("Frame should end successfully");
+diff --git a/render/wgpu/src/buffer_pool.rs b/render/wgpu/src/buffer_pool.rs
+index 7d36ac70..61d8952b 100644
+--- a/render/wgpu/src/buffer_pool.rs
++++ b/render/wgpu/src/buffer_pool.rs
+@@ -60,6 +60,44 @@ impl TexturePool {
+         pool.take(descriptors, AlwaysCompatible)
+     }
+ 
++    /// Keep the pooled textures for the next frame, within a bound.
++    ///
++    /// The offscreen pool used to be REPLACED after every frame, which threw
++    /// away every texture `PoolEntry::drop` had just handed back: the next
++    /// frame's `get_texture` then found an empty bucket and built a new one.
++    /// Measured on a GTX 1060 (New Star Soccer, 400 frames): 14,074
++    /// glGenTextures against 14,031 glDeleteTextures - the counts pairing
++    /// almost exactly - with a glTexStorage2D apiece, so about thirty-five
++    /// textures were created, given immutable storage, and destroyed every
++    /// frame. On the backends upstream targets that is cheap; across a remote
++    /// GL bridge it is not.
++    ///
++    /// Dropping the pool was doing a job, though, and this keeps it: a bucket
++    /// is keyed by {size, usage, format, sample_count}, so a movie whose
++    /// offscreen sizes vary - hundreds of `cacheAsBitmap` children, each its
++    /// own size - would otherwise accumulate one bucket per size for the whole
++    /// run. That is what the caller's comment about OOM is about. So the
++    /// retention is bounded: at most `per_bucket` textures kept in any one
++    /// bucket, and every bucket dropped once there are more than `max_buckets`
++    /// of them.
++    ///
++    /// The BUCKET COUNT is the axis that can run away - a frame's working set
++    /// is a few dozen textures across a handful of sizes - so the depth cap is
++    /// generous and the bucket cap is what actually bounds a bad movie.
++    pub fn trim(&mut self, per_bucket: usize, max_buckets: usize) {
++        if self.pools.len() > max_buckets {
++            // Nothing here says which bucket is worth keeping, and a bucket
++            // that is still wanted is rebuilt by the next get_texture at the
++            // cost of the textures it held. Clearing all of them is the honest
++            // version of the old behaviour, just far rarer.
++            self.pools.clear();
++            return;
++        }
++        for pool in self.pools.values() {
++            pool.trim(per_bucket);
++        }
++    }
++
+     pub fn get_globals(
+         &mut self,
+         descriptors: &Descriptors,
+@@ -139,6 +177,21 @@ impl<Type, Description: BufferDescription> BufferPool<Type, Description> {
+         }
+     }
+ 
++    /// Drop all but `keep` of the items waiting in this pool.
++    ///
++    /// Safe against entries that are still out: a `PoolEntry` holds a `Weak`
++    /// to this same `available` vec and pushes itself back on drop whatever
++    /// the vec's length is by then, so a trim can never strand one.
++    pub fn trim(&self, keep: usize) {
++        let mut guard = self
++            .available
++            .lock()
++            .expect("Should not be able to lock recursively");
++        if guard.len() > keep {
++            guard.truncate(keep);
++        }
++    }
++
+     pub fn take(
+         &self,
+         descriptors: &Descriptors,
