@@ -408,6 +408,47 @@ A reopen on a movie WITH input needs the movie wound to the state's frame;
 `chimera-run --state` does not do that, and comparing such a run with a
 straight one measures the harness, not the renderer.
 
+### What a rebuild left behind, and the frame that ran before it (2026-09-15)
+
+With the names kept apart, a rewind still drew 3 pixels differently on some
+frames - edge pixels on a moving character - and a user stress-testing on a
+GTX 1060 saw glitches right after a rewind that cleared once the movie had
+played on. Three more things, found by drawing the FIRST frame after a rewind
+rather than the last frame of a long replay, and by walking every GPU handle
+ruffle_core keeps:
+
+- **The tessellation cache was emptied, not rebuilt.** A graphic keeps up to
+  four meshes at different scales and draws the nearest. Emptied by the epoch,
+  it tessellated at this frame's scale where a run that never rebuilt still
+  drew a mesh cached frames earlier: different edge pixels that stayed
+  different until the cache turned over. `take_stale_scales` now hands the
+  scales back, least recently used first, and the graphic tessellates each
+  again onto the new backend, so the cache comes back as it was (patch 0005).
+- **The frame's scripts ran before the check.** `FrameAdvance` ran
+  `run_frame` and only then asked whether the context had changed, so the
+  first frame after a load ran its ActionScript against the dead backend -
+  `BitmapData.draw`, `applyFilter` and every read-back of a GPU-drawn bitmap.
+  The check now comes first.
+- **A GPU copy queued on the old device was resolved on the new one.**
+  `BitmapData::sync` resolved a `GpuModified` sync handle whatever epoch it was
+  made in: through dead or reissued names, or - for a copy not yet issued -
+  into the new device's encoder, which panics. A stale one is now dropped and
+  the CPU pixels kept, the answer `try_bitmap_handle` already gives (patch
+  0005). Pixels that existed only on the GPU at the save are still lost; that
+  is the one thing a savestate cannot carry.
+
+Measured on the GTX 1060, `CHIMERA_GL_CHECK` on, against runs that never
+stopped: the first and the tenth frame drawn after rewinding to 150, 300, 450
+and 520, five rewinds in a row to 300, and three to 300 replayed to 600 - every
+one 0 of 220,400 pixels different and no GL error. Before these the rewind to
+300 left 3 pixels.
+
+What is still not covered, because nothing in the gate or the test movie uses
+it and each would panic rather than glitch: `Drawing.bitmaps` from
+`beginBitmapFill`, a `DisplacementMapFilter`'s map, Pixel Bender shaders and
+blend shaders, and Stage3D. Video has no decoder wired in, so it cannot hold a
+stale frame.
+
 ## Where a New Star Soccer frame actually goes (GTX 1060, 2026-09-11)
 
 The user's own report - Flash is slow in Chimera and not in vanilla Ruffle -

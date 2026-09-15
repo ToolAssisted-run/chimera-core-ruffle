@@ -556,53 +556,13 @@ pub extern "C" fn FrameAdvance(_input: u64) {
         // so a movie's frame-k input lands exactly where ruffle's block k does
         // and the corpus is a valid oracle.
         let mut p = m.player.lock().unwrap();
-        // The clock moves one frame's worth, every frame: the sandbox has no
-        // wall clock (it answers clock_gettime with a constant, so a movie
-        // replays the same everywhere), and without this getTimer() answers the
-        // same number forever. Buttons still work that way - they are events -
-        // but everything a game drives from elapsed time stops dead, which is
-        // why Zuma reached its menu and then no ball ever rolled.
-        p.advance_virtual_time(m.frame_time.to_std());
-        // the same step for the same reason, so `Date` and getTimer() agree
-        m.clock_millis
-            .set(m.clock_millis.get() + m.frame_time.as_millis().round() as i64);
-        // How many movie frames should have run by the end of this host frame:
-        // ceil(host frames so far * movie rate / host rate), in integers so it
-        // cannot drift over a long run and cannot differ between two machines.
-        // At the default rate this is exactly one per host frame, which is what
-        // it has always been; above it, the movie frame lands on the FIRST host
-        // frame that reaches it and the host frames after it belong to the
-        // movie frame already running.
-        let due = {
-            let n = (m.frames + 1) * m.rate_256 * m.host_den;
-            let d = 256 * m.host_num;
-            (n + d - 1) / d
-        };
-        while m.movie_frames < due {
-            // BEFORE the frame, every frame - not once at startup. preload is what
-            // processes a movie whose bytes have just arrived, so a child SWF that
-            // loadMovie fetched is parsed here and nowhere else. Preloading only at
-            // startup means the fetch completes, the data is delivered, and the
-            // child then sits there: "Loading movie" traces and "Child movie
-            // loaded!" never does, with nothing anywhere reporting a failure.
-            // ExecutionLimit::exhausted is upstream's own choice here: no budget,
-            // so it finishes rather than spreading the work over later frames,
-            // which is what keeps this deterministic.
-            p.preload(&mut ExecutionLimit::exhausted());
-            p.run_frame();
-            m.movie_frames += 1;
-        }
-        p.update_timers(m.frame_time);
-        p.audio_mut().tick();
-        drop(p);
-        run_tasks(&m.tasks); // resolve any loadMovie/loadSound the frame kicked off
-        let mut p = m.player.lock().unwrap();
-        {
-            // f32 -> i16, the conversion every host expects; clamp, never wrap
-            let f = m.audio_f32.borrow();
-            m.audio_i16.clear();
-            m.audio_i16.extend(f.iter().map(|v| (v.clamp(-1.0, 1.0) * 32767.0) as i16));
-        }
+        // First, before the frame's scripts: a movie's ActionScript reaches the
+        // renderer too - BitmapData.draw, applyFilter and every getPixel that
+        // reads a GPU-drawn bitmap back. Checked after run_frame, as it was, the
+        // first frame after a load ran those against the dead backend: reads
+        // through names that are gone or reissued came back as zeros or as
+        // another object's bytes and were kept as the bitmap's pixels, and a
+        // pending GPU copy queued on the old device could panic the frame.
         // The renderer's objects belong to a host GL context, and this frame
         // may be the first after a savestate was loaded into a fresh process:
         // the names wgpu holds are then another context's, every call on them is
@@ -669,6 +629,53 @@ pub extern "C" fn FrameAdvance(_input: u64) {
         }
         if live != 0 {
             m.gl_context = live;
+        }
+        // The clock moves one frame's worth, every frame: the sandbox has no
+        // wall clock (it answers clock_gettime with a constant, so a movie
+        // replays the same everywhere), and without this getTimer() answers the
+        // same number forever. Buttons still work that way - they are events -
+        // but everything a game drives from elapsed time stops dead, which is
+        // why Zuma reached its menu and then no ball ever rolled.
+        p.advance_virtual_time(m.frame_time.to_std());
+        // the same step for the same reason, so `Date` and getTimer() agree
+        m.clock_millis
+            .set(m.clock_millis.get() + m.frame_time.as_millis().round() as i64);
+        // How many movie frames should have run by the end of this host frame:
+        // ceil(host frames so far * movie rate / host rate), in integers so it
+        // cannot drift over a long run and cannot differ between two machines.
+        // At the default rate this is exactly one per host frame, which is what
+        // it has always been; above it, the movie frame lands on the FIRST host
+        // frame that reaches it and the host frames after it belong to the
+        // movie frame already running.
+        let due = {
+            let n = (m.frames + 1) * m.rate_256 * m.host_den;
+            let d = 256 * m.host_num;
+            (n + d - 1) / d
+        };
+        while m.movie_frames < due {
+            // BEFORE the frame, every frame - not once at startup. preload is what
+            // processes a movie whose bytes have just arrived, so a child SWF that
+            // loadMovie fetched is parsed here and nowhere else. Preloading only at
+            // startup means the fetch completes, the data is delivered, and the
+            // child then sits there: "Loading movie" traces and "Child movie
+            // loaded!" never does, with nothing anywhere reporting a failure.
+            // ExecutionLimit::exhausted is upstream's own choice here: no budget,
+            // so it finishes rather than spreading the work over later frames,
+            // which is what keeps this deterministic.
+            p.preload(&mut ExecutionLimit::exhausted());
+            p.run_frame();
+            m.movie_frames += 1;
+        }
+        p.update_timers(m.frame_time);
+        p.audio_mut().tick();
+        drop(p);
+        run_tasks(&m.tasks); // resolve any loadMovie/loadSound the frame kicked off
+        let mut p = m.player.lock().unwrap();
+        {
+            // f32 -> i16, the conversion every host expects; clamp, never wrap
+            let f = m.audio_f32.borrow();
+            m.audio_i16.clear();
+            m.audio_i16.extend(f.iter().map(|v| (v.clamp(-1.0, 1.0) * 32767.0) as i16));
         }
         inject_edges(&mut p, &mut m.buttons, &mut m.prev_buttons, m.mouse, &mut m.prev_mouse, m.live_pointer, m.text_input);
         p.render();

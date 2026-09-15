@@ -1,0 +1,91 @@
+diff --git a/core/src/display_object/graphic.rs b/core/src/display_object/graphic.rs
+index 073294b..4df4391 100644
+--- a/core/src/display_object/graphic.rs
++++ b/core/src/display_object/graphic.rs
+@@ -162,10 +162,28 @@ impl<'gc> Graphic<'gc> {
+         // Since graphics are created from a shared shape, we may be able to reuse a
+         // cached tessellation from another instance at a similar scale.
+         let shared = self.0.shared.get();
++        let epoch = ruffle_render::render_epoch();
++
++        // After a backend rebuild, put back every scale the cache held rather
++        // than start it empty: which cached scale is nearest decides the edge
++        // pixels, and a run that never rebuilt still has them all.
++        let stale = shared.scaled_handle.borrow_mut().take_stale_scales(epoch);
++        if let Some(scales) = stale.filter(|scales| !scales.is_empty()) {
++            if let Some(library) = context.library.library_for_movie(shared.movie.clone()) {
++                for scale in scales {
++                    let handle = context.renderer.register_shape_with_scale(
++                        (&shared.shape).into(),
++                        &MovieLibrarySource { library },
++                        scale,
++                    );
++                    shared.scaled_handle.borrow_mut().insert(scale, handle);
++                }
++            }
++        }
+ 
+         {
+             let mut cache = shared.scaled_handle.borrow_mut();
+-            if let Some(handle) = cache.find_near_and_touch(current_scale, ruffle_render::render_epoch()) {
++            if let Some(handle) = cache.find_near_and_touch(current_scale, epoch) {
+                 // Found a cached handle at a similar scale; reuse it.
+                 return handle;
+             }
+diff --git a/core/src/tessellation_cache.rs b/core/src/tessellation_cache.rs
+index 7b2d740..5d0e8b3 100644
+--- a/core/src/tessellation_cache.rs
++++ b/core/src/tessellation_cache.rs
+@@ -81,6 +81,30 @@ impl TessellationCache {
+         best_index.map(|index| self.touch_entry(index))
+     }
+ 
++    /// Empties a cache tessellated under another render epoch and returns the
++    /// scales it held, least recently used first; `None` when it is current.
++    ///
++    /// The caller tessellates those same scales again onto the rebuilt backend
++    /// and inserts them in this order, so the cache comes back exactly as it
++    /// was. Emptying it instead is not neutral: `find_near_and_touch` answers
++    /// with the NEAREST cached scale, so a run whose cache was emptied draws a
++    /// shape tessellated at this frame's scale where a run that never rebuilt
++    /// draws the one cached frames earlier - edge pixels that differ after a
++    /// rewind and stay different until the cache happens to turn over.
++    pub(crate) fn take_stale_scales(&mut self, epoch: u64) -> Option<Vec<f32>> {
++        if self.epoch == epoch {
++            return None;
++        }
++        let scales = self.entries[..self.len]
++            .iter()
++            .filter_map(|entry| entry.as_ref().map(|(scale, _)| *scale))
++            .collect();
++        self.entries = std::array::from_fn(|_| None);
++        self.len = 0;
++        self.epoch = epoch;
++        Some(scales)
++    }
++
+     /// Inserts a new cached shape handle with the given scale.
+     ///
+     /// If the cache is full, the least recently used entry will be evicted to make room for the new entry.
+diff --git a/core/src/bitmap/bitmap_data.rs b/core/src/bitmap/bitmap_data.rs
+index cad89bb..5a30e91 100644
+--- a/core/src/bitmap/bitmap_data.rs
++++ b/core/src/bitmap/bitmap_data.rs
+@@ -534,6 +534,17 @@ mod wrapper {
+             let mut write = unsafe { Write::assume(Gc::as_ref(self.0)) }
+                 .unlock()
+                 .borrow_mut();
++            // A GPU -> CPU copy queued before the backend was rebuilt belongs to
++            // the old device: resolving it reads through GL names that are gone
++            // or reissued, and a copy not yet issued is submitted to the new
++            // device's encoder and panics. Its GPU-side pixels are gone with the
++            // old backend either way, so the CPU copy is the best that is left -
++            // the same answer `try_bitmap_handle` gives for the handle itself.
++            if write.handle_epoch != ruffle_render::render_epoch()
++                && matches!(write.dirty_state, DirtyState::GpuModified(..))
++            {
++                write.dirty_state = DirtyState::Clean;
++            }
+             match std::mem::replace(&mut write.dirty_state, DirtyState::Clean) {
+                 DirtyState::GpuModified(sync_handle, bounds) => {
+                     renderer
