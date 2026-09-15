@@ -351,28 +351,62 @@ digests every pixel of every frame, and with the readback skipped it was
 digesting a stale pointer into an empty vector. A flag that says "nobody is
 going to look at this frame" has to mean it in the runner too.
 
-### One cache the render epoch does not reach (found 2026-09-11, not fixed)
+### One cache the render epoch did not reach (found 2026-09-11, fixed 2026-09-15)
 
-The renderer-rebuild path bumps `ruffle_render::render_epoch` and says, in a
-comment, that this makes "ruffle_core's own GPU-handle caches re-register from
-the display list and library rather than draw with the dangling handles they
-still hold". That is true of every cache that stamps the epoch - `BitmapData`,
-`Character`, `Drawing`, glyphs, morph shapes, the graphic shape cache - and it
-is NOT true of `BitmapCache`, the one behind `cacheAsBitmap` and filters. Its
-struct (core/src/display_object.rs) has no epoch field at all: it decides
-staleness from the matrix and the source size, so a handle made by a previous
-backend survives the bump and is drawn with.
+The renderer-rebuild path bumps `ruffle_render::render_epoch` so that
+ruffle_core's own GPU-handle caches re-register from the display list and
+library rather than draw with the dangling handles they still hold. That was
+true of every cache that stamped the epoch - `BitmapData`, `Character`,
+`Drawing`, glyphs, morph shapes, the graphic tessellation cache - and NOT of
+`BitmapCache`, the one behind `cacheAsBitmap` and filters, nor of a graphic's
+own base shape handle (`GraphicShared::render_handle`). Both decided staleness
+without the epoch, so a handle made by a previous backend survived the bump and
+was drawn with.
 
-What it would take: the same four lines `bitmap_data.rs` already has - a
-`handle_epoch` set in `BitmapCache::update`, and `is_dirty` returning true when
-it does not match `render_epoch()`. Not done here because nothing in the gate
-can see it: the state leg saves and reloads in the SAME process, where the
-context never changes, and the image leg never rebuilds a backend. A test has to
-come first, and it has to be a second process.
+It went unseen until Chimera began treating every restore as a new context
+(its issue #43, 2026-09-15): then a rebuild happened on every rewind, and the
+first rewind of a project aborted in wgpu with "Cannot get non-existent
+resource BindGroupId". Patch 0004 stamps both with the epoch: `BitmapCache` is
+dirty and drops its texture when the epoch moved, and the graphic re-registers
+its shape from the library.
 
-Who it bites: a project reopened from disk, on a movie that uses cacheAsBitmap
-or a filter. Not a desync - the machine is unaffected - but a wrong picture,
-which the frontend will happily record.
+### Old handles delete new names (2026-09-15)
+
+With every cache re-registering, a rewind still came back with most of the
+picture missing and GL_INVALID_VALUE on glBufferSubData and glUseProgram. A GL
+name is a small integer that a context hands out again once it is free. The
+old backend was dropped after the new one was built, and ruffle_core's caches
+let their old shapes and bitmaps go over the frames after that. Every such drop
+deleted its objects by name, and when the new backend had since been given the
+same number, the new backend's buffer or program went with it.
+
+Only the guest can tell an old handle from a new one, and not at the delete -
+it is the same number. So the numbers are kept apart. `gl-map.cpp` notes every
+name as it is made; `renderer::new_gl_generation()`, called when the context
+changed, marks them stale; a gen the driver answers with a stale number holds
+that number back and asks again, and only the old handle's delete frees it. A
+stale program or shader the driver never had (after a reopen, all of them) is
+not deleted, since GL calls that an error. The old backend is also let go
+before the new one is built.
+
+Chimera's buffer pool had the same symptom for a different reason - it served
+a twice-deleted name to two owners - and was fixed there. And a diagnostic in
+the guest cannot be switched on from the host's environment: under
+`chimera-run` on Windows the guest's `getenv` saw nothing, so gl-map.cpp's
+`CHIMERA_GL_STALETRACE` (every bind of a name the current generation did not
+make) had to be forced on in a build to be read.
+
+Measured on the GTX 1060 with both fixes, against a run that never stopped,
+with `CHIMERA_GL_CHECK` on and no GL error anywhere:
+- a project rewound three times to frame 300 and replayed to 600: 0 of 220,400
+  pixels differ;
+- a state saved at 300 and loaded in a new process, on a movie with no input:
+  19 and 20 frames on it matches the straight run's frames 319 and 320
+  exactly, where neighbouring frames differ by about 48,700 pixels.
+
+A reopen on a movie WITH input needs the movie wound to the state's frame;
+`chimera-run --state` does not do that, and comparing such a run with a
+straight one measures the harness, not the renderer.
 
 ## Where a New Star Soccer frame actually goes (GTX 1060, 2026-09-11)
 

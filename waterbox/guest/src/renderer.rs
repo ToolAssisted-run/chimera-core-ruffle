@@ -49,6 +49,10 @@ extern "C" {
     /// number changes under a loaded savestate, those names are another
     /// context's and the backend must be rebuilt. Zero means "cannot tell".
     fn chimera_gl_context_id() -> u64;
+    /// Forgets which GL names the current backend made (gl-map.cpp), so that a
+    /// delete of one made before it is dropped rather than sent to a context
+    /// that has since handed the same number to something else.
+    fn chimera_gl_new_generation();
     /// Brings the guest's own OpenGL up (waterbox/gl-osmesa.cpp). Zero when
     /// this core was built without a guest Mesa, or Mesa refused to start.
     fn chimera_gl_software_init() -> i32;
@@ -195,4 +199,10 @@ pub fn build(w: u32, h: u32, which: Which) -> Result<GuestRenderer, String> {
     let target = TextureTarget::new(&descriptors.device, (w, h))
         .map_err(|e| format!("offscreen target {w}x{h}: {e:?}"))?;
     WgpuRenderBackend::new(descriptors, target).map_err(|e| format!("ruffle wgpu backend: {e:?}"))
+}
+
+/// A new GL context is taking over: from here on only names made after this
+/// call are ever deleted. Call it before the old backend is dropped.
+pub fn new_gl_generation() {
+    unsafe { chimera_gl_new_generation() }
 }

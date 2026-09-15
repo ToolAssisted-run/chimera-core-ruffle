@@ -19,6 +19,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <cstdio>
+#include <vector>
 
 extern "C" void *chimera_gl_lookup(const char *name);   /* the generated table */
 
@@ -361,6 +362,361 @@ extern "C" void *chimera_gl_shared_override(const char *name)
 	return nullptr;
 }
 
+/* Names from a context the renderer has already given up.
+ *
+ * A GL name is a small integer the context hands out, and hands out AGAIN once
+ * it is free. When the host context changes under a loaded savestate - a
+ * rewind, a reopen - the core builds a fresh backend (see lib.rs), but
+ * ruffle_core still holds shapes, bitmaps and glyphs registered with the old
+ * one. Those are let go lazily, as each cache notices the render epoch moved,
+ * and letting go of one deletes its buffers and textures by name. If the new
+ * backend has been handed one of those numbers in the meantime, the old
+ * handle's drop deletes the new backend's object: its next glBufferSubData is
+ * refused with GL_INVALID_VALUE, and parts of the picture stop drawing.
+ * Measured on a rewind: most of the background gone, and a run of refused
+ * uploads after every rebuild.
+ *
+ * Telling the two apart at the delete is impossible - it is the same number -
+ * so the numbers are kept from ever being the same. Every name is noted when it
+ * is made. At a new generation the names still noted become STALE, and from
+ * then on a gen that the driver answers with a stale number keeps that number
+ * back and asks again: the new backend only ever holds numbers no old handle
+ * holds. A delete of a stale name is the old handle letting go, and goes to the
+ * driver - freeing what the old context left there, or the blank name held back
+ * - after which the number is free for anyone. A delete of a name that is
+ * neither is a double delete, and stops here.
+ *
+ * Programs and shaders share one namespace in GL, so they share one table. The
+ * tables are guest memory, so a savestate carries them. */
+namespace {
+
+enum NameKind { kBuffer, kTexture, kFramebuffer, kRenderbuffer, kVertexArray,
+	kSampler, kQuery, kProgramOrShader, kProgramPipeline, kTransformFeedback, kNameKinds };
+
+enum : unsigned char { kFree = 0, kCurrent = 1, kStale = 2 };
+
+std::vector<unsigned char> g_names[kNameKinds];
+
+unsigned char &name_state(NameKind k, GLuint name)
+{
+	if (g_names[k].size() <= name) g_names[k].resize((size_t)name + 1024, kFree);
+	return g_names[k][name];
+}
+
+unsigned char state_of(NameKind k, GLuint name)
+{
+	return g_names[k].size() > name ? g_names[k][name] : kFree;
+}
+
+/* After the driver filled `names`: note the fresh ones, and swap each stale one
+ * for another from `again` (which makes one name at a time). The stale number
+ * stays stale; its old holder's delete is what frees it. */
+template <typename Again> void note_made(NameKind k, GLsizei n, GLuint *names, Again again)
+{
+	if (!names) return;
+	for (GLsizei i = 0; i < n; i++) {
+		int tries = 0;
+		while (names[i] != 0 && state_of(k, names[i]) == kStale && tries++ < 1 << 20)
+			names[i] = again();
+		if (names[i] != 0) name_state(k, names[i]) = kCurrent;
+	}
+}
+
+/* Whether a delete of this name should reach the driver, and the bookkeeping
+ * for it: a current or stale name is freed, anything else was never ours. */
+bool release(NameKind k, GLuint name)
+{
+	if (name == 0 || state_of(k, name) == kFree) return false;
+	g_names[k][name] = kFree;
+	return true;
+}
+
+template <typename Del> void delete_ours(NameKind k, GLsizei n, const GLuint *names, const char *entry)
+{
+	auto real = (Del)chimera_gl_lookup(entry);
+	if (!real || !names || n <= 0) return;
+	GLuint small[16];
+	std::vector<GLuint> big;
+	GLuint *keep = small;
+	if (n > 16) { big.resize((size_t)n); keep = big.data(); }
+	GLsizei kept = 0;
+	for (GLsizei i = 0; i < n; i++)
+		if (release(k, names[i])) keep[kept++] = names[i];
+	if (kept) real(kept, keep);
+}
+
+} // namespace
+
+extern "C" void chimera_gl_new_generation(void)
+{
+	for (auto &v : g_names)
+		for (auto &st : v)
+			if (st == kCurrent) st = kStale;
+}
+
+#define CHIMERA_GEN_WRAP(kind, gen, del)                                         \
+	static void GLAD_API_PTR chimera_##gen(GLsizei n, GLuint *names)             \
+	{                                                                            \
+		auto real = (void (GLAD_API_PTR *)(GLsizei, GLuint *))chimera_gl_lookup(#gen); \
+		if (!real) return;                                                       \
+		real(n, names);                                                          \
+		note_made(kind, n, names, [real] { GLuint x = 0; real(1, &x); return x; }); \
+	}                                                                            \
+	static void GLAD_API_PTR chimera_##del(GLsizei n, const GLuint *names)       \
+	{                                                                            \
+		delete_ours<void (GLAD_API_PTR *)(GLsizei, const GLuint *)>(kind, n, names, #del); \
+	}
+
+CHIMERA_GEN_WRAP(kBuffer, glGenBuffers, glDeleteBuffers)
+CHIMERA_GEN_WRAP(kTexture, glGenTextures, glDeleteTextures)
+CHIMERA_GEN_WRAP(kFramebuffer, glGenFramebuffers, glDeleteFramebuffers)
+CHIMERA_GEN_WRAP(kRenderbuffer, glGenRenderbuffers, glDeleteRenderbuffers)
+CHIMERA_GEN_WRAP(kVertexArray, glGenVertexArrays, glDeleteVertexArrays)
+CHIMERA_GEN_WRAP(kSampler, glGenSamplers, glDeleteSamplers)
+CHIMERA_GEN_WRAP(kQuery, glGenQueries, glDeleteQueries)
+CHIMERA_GEN_WRAP(kProgramPipeline, glGenProgramPipelines, glDeleteProgramPipelines)
+CHIMERA_GEN_WRAP(kTransformFeedback, glGenTransformFeedbacks, glDeleteTransformFeedbacks)
+
+/* The direct-state-access makers hand out the same names as their glGen twins. */
+#define CHIMERA_CREATE_WRAP(kind, create)                                        \
+	static void GLAD_API_PTR chimera_##create(GLsizei n, GLuint *names)          \
+	{                                                                            \
+		auto real = (void (GLAD_API_PTR *)(GLsizei, GLuint *))chimera_gl_lookup(#create); \
+		if (!real) return;                                                       \
+		real(n, names);                                                          \
+		note_made(kind, n, names, [real] { GLuint x = 0; real(1, &x); return x; }); \
+	}
+CHIMERA_CREATE_WRAP(kBuffer, glCreateBuffers)
+CHIMERA_CREATE_WRAP(kFramebuffer, glCreateFramebuffers)
+CHIMERA_CREATE_WRAP(kRenderbuffer, glCreateRenderbuffers)
+CHIMERA_CREATE_WRAP(kVertexArray, glCreateVertexArrays)
+CHIMERA_CREATE_WRAP(kSampler, glCreateSamplers)
+CHIMERA_CREATE_WRAP(kProgramPipeline, glCreateProgramPipelines)
+CHIMERA_CREATE_WRAP(kTransformFeedback, glCreateTransformFeedbacks)
+
+static void GLAD_API_PTR chimera_glCreateTextures(GLenum target, GLsizei n, GLuint *names)
+{
+	auto real = (void (GLAD_API_PTR *)(GLenum, GLsizei, GLuint *))chimera_gl_lookup("glCreateTextures");
+	if (!real) return;
+	real(target, n, names);
+	note_made(kTexture, n, names, [real, target] { GLuint x = 0; real(target, 1, &x); return x; });
+}
+
+static void GLAD_API_PTR chimera_glCreateQueries(GLenum target, GLsizei n, GLuint *names)
+{
+	auto real = (void (GLAD_API_PTR *)(GLenum, GLsizei, GLuint *))chimera_gl_lookup("glCreateQueries");
+	if (!real) return;
+	real(target, n, names);
+	note_made(kQuery, n, names, [real, target] { GLuint x = 0; real(target, 1, &x); return x; });
+}
+
+static GLuint GLAD_API_PTR chimera_glCreateProgram(void)
+{
+	auto real = (GLuint (GLAD_API_PTR *)(void))chimera_gl_lookup("glCreateProgram");
+	GLuint name = real ? real() : 0;
+	note_made(kProgramOrShader, 1, &name, [real] { return real(); });
+	return name;
+}
+
+static GLuint GLAD_API_PTR chimera_glCreateShader(GLenum type)
+{
+	auto real = (GLuint (GLAD_API_PTR *)(GLenum))chimera_gl_lookup("glCreateShader");
+	GLuint name = real ? real(type) : 0;
+	note_made(kProgramOrShader, 1, &name, [real, type] { return real(type); });
+	return name;
+}
+
+static void GLAD_API_PTR chimera_glDeleteProgram(GLuint name)
+{
+	auto real = (void (GLAD_API_PTR *)(GLuint))chimera_gl_lookup("glDeleteProgram");
+	auto is = (GLboolean (GLAD_API_PTR *)(GLuint))chimera_gl_lookup("glIsProgram");
+	const bool stale = state_of(kProgramOrShader, name) == kStale;
+	if (!real || !release(kProgramOrShader, name)) return;
+	/* Unlike a buffer or a texture, a program or shader name the driver does not
+	 * know is an error (GL_INVALID_VALUE), and after a reopen none of the old
+	 * ones exist. Only a stale name is asked about; this generation's are real. */
+	if (stale && is && !is(name)) return;
+	real(name);
+}
+
+static void GLAD_API_PTR chimera_glDeleteShader(GLuint name)
+{
+	auto real = (void (GLAD_API_PTR *)(GLuint))chimera_gl_lookup("glDeleteShader");
+	auto is = (GLboolean (GLAD_API_PTR *)(GLuint))chimera_gl_lookup("glIsShader");
+	const bool stale = state_of(kProgramOrShader, name) == kStale;
+	if (!real || !release(kProgramOrShader, name)) return;
+	/* Unlike a buffer or a texture, a program or shader name the driver does not
+	 * know is an error (GL_INVALID_VALUE), and after a reopen none of the old
+	 * ones exist. Only a stale name is asked about; this generation's are real. */
+	if (stale && is && !is(name)) return;
+	real(name);
+}
+
+static void *generation_override(const char *name)
+{
+	static const struct { const char *name; void *fn; } table[] = {
+		{ "glGenBuffers", (void *)chimera_glGenBuffers },
+		{ "glDeleteBuffers", (void *)chimera_glDeleteBuffers },
+		{ "glGenTextures", (void *)chimera_glGenTextures },
+		{ "glDeleteTextures", (void *)chimera_glDeleteTextures },
+		{ "glGenFramebuffers", (void *)chimera_glGenFramebuffers },
+		{ "glDeleteFramebuffers", (void *)chimera_glDeleteFramebuffers },
+		{ "glGenRenderbuffers", (void *)chimera_glGenRenderbuffers },
+		{ "glDeleteRenderbuffers", (void *)chimera_glDeleteRenderbuffers },
+		{ "glGenVertexArrays", (void *)chimera_glGenVertexArrays },
+		{ "glDeleteVertexArrays", (void *)chimera_glDeleteVertexArrays },
+		{ "glGenSamplers", (void *)chimera_glGenSamplers },
+		{ "glDeleteSamplers", (void *)chimera_glDeleteSamplers },
+		{ "glGenQueries", (void *)chimera_glGenQueries },
+		{ "glDeleteQueries", (void *)chimera_glDeleteQueries },
+		{ "glGenProgramPipelines", (void *)chimera_glGenProgramPipelines },
+		{ "glDeleteProgramPipelines", (void *)chimera_glDeleteProgramPipelines },
+		{ "glGenTransformFeedbacks", (void *)chimera_glGenTransformFeedbacks },
+		{ "glDeleteTransformFeedbacks", (void *)chimera_glDeleteTransformFeedbacks },
+		{ "glCreateBuffers", (void *)chimera_glCreateBuffers },
+		{ "glCreateFramebuffers", (void *)chimera_glCreateFramebuffers },
+		{ "glCreateRenderbuffers", (void *)chimera_glCreateRenderbuffers },
+		{ "glCreateVertexArrays", (void *)chimera_glCreateVertexArrays },
+		{ "glCreateSamplers", (void *)chimera_glCreateSamplers },
+		{ "glCreateProgramPipelines", (void *)chimera_glCreateProgramPipelines },
+		{ "glCreateTransformFeedbacks", (void *)chimera_glCreateTransformFeedbacks },
+		{ "glCreateTextures", (void *)chimera_glCreateTextures },
+		{ "glCreateQueries", (void *)chimera_glCreateQueries },
+		{ "glCreateProgram", (void *)chimera_glCreateProgram },
+		{ "glCreateShader", (void *)chimera_glCreateShader },
+		{ "glDeleteProgram", (void *)chimera_glDeleteProgram },
+		{ "glDeleteShader", (void *)chimera_glDeleteShader },
+	};
+	for (const auto &e : table)
+		if (std::strcmp(name, e.name) == 0)
+			return e.fn;
+	return nullptr;
+}
+
+/* CHIMERA_GL_STALETRACE: is anything still USING a name from before the
+ * rebuild? A bind of a name the current generation did not make is an old
+ * handle drawing - one a ruffle_core cache kept past the render epoch. Printed
+ * once per name, with its kind. Only wired in when the variable is set at the
+ * time the backend looks its entry points up, so it costs nothing otherwise. */
+namespace {
+
+const char *state_word(unsigned char st)
+{
+	return st == kStale ? "stale (old handle not yet dropped)" : "free (old handle already dropped)";
+}
+
+void stale_use(NameKind k, GLuint name, const char *entry)
+{
+	if (name == 0) return;
+	unsigned char st = state_of(k, name);
+	if (st == kCurrent) return;
+	static std::vector<unsigned char> told[kNameKinds];
+	if (told[k].size() <= name) told[k].resize((size_t)name + 1024, 0);
+	if (told[k][name]) return;
+	told[k][name] = 1;
+	fprintf(stderr, "[gl-stale] %s(%u): %s\n", entry, name, state_word(st));
+	fflush(stderr);
+}
+
+} // namespace
+
+static void GLAD_API_PTR trace_glBindTexture(GLenum target, GLuint name)
+{
+	static auto real = (void (GLAD_API_PTR *)(GLenum, GLuint))chimera_gl_lookup("glBindTexture");
+	stale_use(kTexture, name, "glBindTexture");
+	real(target, name);
+}
+static void GLAD_API_PTR trace_glBindBuffer(GLenum target, GLuint name)
+{
+	static auto real = (void (GLAD_API_PTR *)(GLenum, GLuint))chimera_gl_lookup("glBindBuffer");
+	stale_use(kBuffer, name, "glBindBuffer");
+	real(target, name);
+}
+static void GLAD_API_PTR trace_glBindBufferBase(GLenum target, GLuint index, GLuint name)
+{
+	static auto real = (void (GLAD_API_PTR *)(GLenum, GLuint, GLuint))chimera_gl_lookup("glBindBufferBase");
+	stale_use(kBuffer, name, "glBindBufferBase");
+	real(target, index, name);
+}
+static void GLAD_API_PTR trace_glBindBufferRange(GLenum target, GLuint index, GLuint name, GLintptr off, GLsizeiptr size)
+{
+	static auto real = (void (GLAD_API_PTR *)(GLenum, GLuint, GLuint, GLintptr, GLsizeiptr))chimera_gl_lookup("glBindBufferRange");
+	stale_use(kBuffer, name, "glBindBufferRange");
+	real(target, index, name, off, size);
+}
+static void GLAD_API_PTR trace_glBindSampler(GLuint unit, GLuint name)
+{
+	static auto real = (void (GLAD_API_PTR *)(GLuint, GLuint))chimera_gl_lookup("glBindSampler");
+	stale_use(kSampler, name, "glBindSampler");
+	real(unit, name);
+}
+static void GLAD_API_PTR trace_glUseProgram(GLuint name)
+{
+	static auto real = (void (GLAD_API_PTR *)(GLuint))chimera_gl_lookup("glUseProgram");
+	stale_use(kProgramOrShader, name, "glUseProgram");
+	real(name);
+}
+static void GLAD_API_PTR trace_glBindVertexArray(GLuint name)
+{
+	static auto real = (void (GLAD_API_PTR *)(GLuint))chimera_gl_lookup("glBindVertexArray");
+	stale_use(kVertexArray, name, "glBindVertexArray");
+	real(name);
+}
+static void GLAD_API_PTR trace_glBindFramebuffer(GLenum target, GLuint name)
+{
+	static auto real = (void (GLAD_API_PTR *)(GLenum, GLuint))chimera_gl_lookup("glBindFramebuffer");
+	stale_use(kFramebuffer, name, "glBindFramebuffer");
+	real(target, name);
+}
+static void GLAD_API_PTR trace_glBindRenderbuffer(GLenum target, GLuint name)
+{
+	static auto real = (void (GLAD_API_PTR *)(GLenum, GLuint))chimera_gl_lookup("glBindRenderbuffer");
+	stale_use(kRenderbuffer, name, "glBindRenderbuffer");
+	real(target, name);
+}
+static void GLAD_API_PTR trace_glFramebufferTexture2D(GLenum target, GLenum att, GLenum textarget, GLuint name, GLint level)
+{
+	static auto real = (void (GLAD_API_PTR *)(GLenum, GLenum, GLenum, GLuint, GLint))chimera_gl_lookup("glFramebufferTexture2D");
+	stale_use(kTexture, name, "glFramebufferTexture2D");
+	real(target, att, textarget, name, level);
+}
+static void GLAD_API_PTR trace_glFramebufferTextureLayer(GLenum target, GLenum att, GLuint name, GLint level, GLint layer)
+{
+	static auto real = (void (GLAD_API_PTR *)(GLenum, GLenum, GLuint, GLint, GLint))chimera_gl_lookup("glFramebufferTextureLayer");
+	stale_use(kTexture, name, "glFramebufferTextureLayer");
+	real(target, att, name, level, layer);
+}
+static void GLAD_API_PTR trace_glFramebufferRenderbuffer(GLenum target, GLenum att, GLenum rbtarget, GLuint name)
+{
+	static auto real = (void (GLAD_API_PTR *)(GLenum, GLenum, GLenum, GLuint))chimera_gl_lookup("glFramebufferRenderbuffer");
+	stale_use(kRenderbuffer, name, "glFramebufferRenderbuffer");
+	real(target, att, rbtarget, name);
+}
+
+static void *stale_trace_override(const char *name)
+{
+	static const bool on = getenv("CHIMERA_GL_STALETRACE") != nullptr;
+	if (!on) return nullptr;
+	static const struct { const char *name; void *fn; } table[] = {
+		{ "glBindTexture", (void *)trace_glBindTexture },
+		{ "glBindBuffer", (void *)trace_glBindBuffer },
+		{ "glBindBufferBase", (void *)trace_glBindBufferBase },
+		{ "glBindBufferRange", (void *)trace_glBindBufferRange },
+		{ "glBindSampler", (void *)trace_glBindSampler },
+		{ "glUseProgram", (void *)trace_glUseProgram },
+		{ "glBindVertexArray", (void *)trace_glBindVertexArray },
+		{ "glBindFramebuffer", (void *)trace_glBindFramebuffer },
+		{ "glBindRenderbuffer", (void *)trace_glBindRenderbuffer },
+		{ "glFramebufferTexture2D", (void *)trace_glFramebufferTexture2D },
+		{ "glFramebufferTextureLayer", (void *)trace_glFramebufferTextureLayer },
+		{ "glFramebufferRenderbuffer", (void *)trace_glFramebufferRenderbuffer },
+	};
+	for (const auto &e : table)
+		if (std::strcmp(name, e.name) == 0)
+			return e.fn;
+	return nullptr;
+}
+
 /* The loader the renderer is actually handed.
  *
  * Buffer mapping is answered here rather than across the bridge, so it has to
@@ -376,5 +732,7 @@ extern "C" void *chimera_gl_lookup_guest(const char *name)
 	if (std::strcmp(name, "glFlushMappedBufferRange") == 0) return (void *)chimera_gl_flush_mapped_buffer_range;
 	if (std::strcmp(name, "glGetBufferPointerv") == 0)      return (void *)chimera_gl_get_buffer_pointerv;
 	if (void *shared = chimera_gl_shared_override(name))    return shared;
+	if (void *gen = generation_override(name))              return gen;
+	if (void *trace = stale_trace_override(name))           return trace;
 	return chimera_gl_lookup(name);
 }

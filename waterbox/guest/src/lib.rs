@@ -618,6 +618,26 @@ pub extern "C" fn FrameAdvance(_input: u64) {
         // and never triggers a rebuild.
         let live = renderer::context_id();
         if live != 0 && m.gl_context != 0 && live != m.gl_context {
+            // Every GL name the old backend made becomes stale here. Dropping a
+            // handle deletes its objects by name, and a context's names are
+            // handed out again: in a new process from 1, and after a rewind the
+            // ones freed since. The backend itself goes right below, but
+            // ruffle_core's caches let go of their old shapes and bitmaps one by
+            // one over the next frames, long after the new backend has been
+            // built - and a drop whose number the new backend had been given took
+            // the new backend's program or buffer with it: GL_INVALID_VALUE on
+            // its next use and parts of the picture gone. gl-map.cpp keeps the
+            // new backend off every stale number, so an old drop can only ever
+            // free what is old. The null renderer in between lets the old
+            // backend's own memory go before the new one is built.
+            renderer::new_gl_generation();
+            p.set_renderer(Box::new(ruffle_render::backend::null::NullRenderer::new(
+                ruffle_render::backend::ViewportDimensions {
+                    width: m.video_w,
+                    height: m.video_h,
+                    scale_factor: 1.0,
+                },
+            )));
             match renderer::build(m.video_w, m.video_h, renderer::Which::Hardware) {
                 Ok(rb) => {
                     p.set_renderer(Box::new(rb));

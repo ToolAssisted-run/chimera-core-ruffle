@@ -1,0 +1,110 @@
+diff --git a/core/src/display_object.rs b/core/src/display_object.rs
+index 3b092bf..e36d070 100644
+--- a/core/src/display_object.rs
++++ b/core/src/display_object.rs
+@@ -113,6 +113,11 @@ pub struct BitmapCache {
+ 
+     /// Whether we warned that this bitmap was too large to be cached
+     warned_for_oversize: bool,
++
++    /// The render epoch the cached texture was made in. A backend rebuilt since
++    /// (a lost GL context) left `bitmap` naming another backend's texture, and
++    /// drawing it panics on a bind group that no longer exists.
++    epoch: u64,
+ }
+ 
+ impl BitmapCache {
+@@ -132,6 +137,7 @@ impl BitmapCache {
+             || self.source_width != source_width
+             || self.source_height != source_height
+             || self.bitmap.is_none()
++            || self.epoch != ruffle_render::render_epoch()
+     }
+ 
+     /// Clears any dirtiness and ensure there's an appropriately sized texture allocated
+@@ -154,6 +160,12 @@ impl BitmapCache {
+         self.source_width = source_width;
+         self.source_height = source_height;
+         self.draw_offset = draw_offset;
++        // a texture from before a backend rebuild is not a texture: make it again
++        let epoch = ruffle_render::render_epoch();
++        if self.epoch != epoch {
++            self.bitmap = None;
++            self.epoch = epoch;
++        }
+         if let Some(current) = &mut self.bitmap
+             && current.width == actual_width
+             && current.height == actual_height
+diff --git a/core/src/display_object/graphic.rs b/core/src/display_object/graphic.rs
+index 7e2faf8..073294b 100644
+--- a/core/src/display_object/graphic.rs
++++ b/core/src/display_object/graphic.rs
+@@ -58,11 +58,12 @@ impl<'gc> Graphic<'gc> {
+             id: swf_shape.id,
+             shape_bounds: swf_shape.shape_bounds,
+             edge_bounds: swf_shape.edge_bounds,
+-            render_handle: Some(
++            render_handle: RefCell::new(Some((
++                ruffle_render::render_epoch(),
+                 context
+                     .renderer
+                     .register_shape((&swf_shape).into(), &MovieLibrarySource { library }),
+-            ),
++            ))),
+             shape: swf_shape,
+             movie,
+             scaled_handle: RefCell::new(TessellationCache::new()),
+@@ -86,7 +87,7 @@ impl<'gc> Graphic<'gc> {
+             id: 0,
+             shape_bounds: Default::default(),
+             edge_bounds: Default::default(),
+-            render_handle: None,
++            render_handle: RefCell::new(None),
+             shape: swf::Shape {
+                 version: 32,
+                 id: 0,
+@@ -131,6 +132,26 @@ impl<'gc> Graphic<'gc> {
+         unlock!(Gc::write(mc, self.0), GraphicData, shared).set(shared);
+     }
+ 
++    /// The shape's own handle. One registered before a backend rebuild names the
++    /// old backend's mesh, so it is registered again from the shape this graphic
++    /// keeps whenever the render epoch has moved.
++    fn render_handle(self, context: &mut RenderContext) -> Option<ShapeHandle> {
++        let shared = self.0.shared.get();
++        let epoch = ruffle_render::render_epoch();
++        let mut slot = shared.render_handle.borrow_mut();
++        match &*slot {
++            Some((ep, handle)) if *ep == epoch => return Some(handle.clone()),
++            None => return None,
++            _ => {}
++        }
++        let library = context.library.library_for_movie(shared.movie.clone())?;
++        let handle = context
++            .renderer
++            .register_shape((&shared.shape).into(), &MovieLibrarySource { library });
++        *slot = Some((epoch, handle.clone()));
++        Some(handle)
++    }
++
+     /// Returns the best shape handle for the current scale, retessellating if necessary.
+     fn get_or_retessellate_handle(
+         self,
+@@ -255,7 +276,7 @@ impl<'gc> TDisplayObject<'gc> for Graphic<'gc> {
+ 
+         if let Some(drawing) = self.0.drawing.get() {
+             drawing.borrow().render(context);
+-        } else if let Some(base_handle) = self.0.shared.get().render_handle.clone() {
++        } else if let Some(base_handle) = self.render_handle(context) {
+             let transform = context.transform_stack.transform();
+ 
+             // Calculate the current scale from the transform, to determine if
+@@ -338,7 +359,7 @@ impl<'gc> TDisplayObject<'gc> for Graphic<'gc> {
+ struct GraphicShared {
+     id: CharacterId,
+     shape: swf::Shape,
+-    render_handle: Option<ShapeHandle>,
++    render_handle: RefCell<Option<(u64, ShapeHandle)>>,
+     shape_bounds: Rectangle<Twips>,
+     edge_bounds: Rectangle<Twips>,
+     movie: Arc<SwfMovie>,
