@@ -249,6 +249,15 @@ fi
 glist="$root/tests/image-list.txt"
 run_image_leg() {
   # $1 renderer setting, $2 percent of pixels allowed to differ, $3 extra args
+  #
+  # Everything in here is local. It was not, and ok/bad/total are the names the
+  # trace loop at the top of this file counts its own results in - so calling
+  # this function reset them to zero, on its way to reporting its own tally
+  # into gok/gbad/gtotal. The summary then printed the image leg's numbers as
+  # the trace leg's, and the exit test asked whether the IMAGE leg had failed
+  # while believing it was asking about correctness. A movie whose trace no
+  # longer matched ruffle's own output.txt printed FAIL and exited 0.
+  local rend pct extra ok bad total tmp cfg rel nf d exp fargs f iarg mv p1 p2 d1 d2 px
   rend="$1"; pct="$2"; extra="$3"
   ok=0; bad=0; total=0
   tmp=$(mktemp -d)
