@@ -119,6 +119,87 @@ PYMOVIE
 	fi
 fi
 
+# --- every restore rebuilds, the frame-0 anchor included (chimera issue 126) -
+#
+# On the GPU bridge the wgpu backend's objects live in the driver and a
+# savestate carries only their NAMES, so the engine mints a fresh context id on
+# every state load and this core rebuilds the backend when the id it stored
+# beside those objects no longer matches (FrameAdvance, guest/src/lib.rs).
+#
+# One state used to slip through: the greenzone's FRAME-0 ANCHOR, taken right
+# after Init and before the first frame advance. Init builds the hardware
+# backend against the live context and never records WHICH one - gl_context is
+# first written at the bottom of FrameAdvance - so the anchor is the only state
+# in a session that carries a zero while real GL objects already exist, and zero
+# was read as "the bridge cannot tell, nothing moved". It reaches a person
+# because TAStudio goes to a frame by loading the state BEFORE it and emulating
+# one forward, so frames 0 and 1 both load that anchor and frame 2 is the first
+# that does not.
+#
+# What it measures: the calls that cross the bridge on the frame after a
+# restore, against the busiest frame of a run that restored nothing. A backend
+# rebuild is about 950 calls on top of whatever the frame was drawing anyway,
+# and the core announces it on stderr, so both are asserted - a restore to frame
+# 0 and a restore to frame 2 must BOTH rebuild, because the difference between
+# them was the bug.
+#
+# WHAT THIS DOES NOT STAND IN FOR (chimera docs/gates.md, E): this SWF draws
+# static text, so the backend it rebuilds is holding almost nothing, and
+# llvmpipe is not a driver. What is proven is that the rebuild RUNS, not that a
+# real movie's picture is right on real hardware.
+if [ ! -x "$crun" ]; then
+	report "engine:rebuild-at-zero" SKIP "chimera-run not built"
+elif [ ! -f "$package" ]; then
+	report "engine:rebuild-at-zero" SKIP "no package"
+elif [ ! -f "$swfs/text/br_at_start/test.swf" ]; then
+	report "engine:rebuild-at-zero" SKIP "ruffle's test corpus not present"
+else
+	gz="$work/glzero"
+	mkdir -p "$gz"
+	swf="$swfs/text/br_at_start/test.swf"
+	printf '[Input]\nLogKey:#\n' > "$gz/none.txt"
+	glrun() { # <movie> <out> <extra args...>
+		glmovie="$1"; glout="$2"; shift 2
+		( cd "$chimera_root" && CHIMERA_GL_TRACE=1 CHIMERA_GL_STATEAUDIT=1 \
+			timeout 600 "$crun" "$package" "$swf" "$glmovie" \
+			--settings '{"renderer":"opengl-hw"}' --frames 30 --gpu "$@" \
+		) > "$glout" 2>&1 || true
+	}
+	# the busiest frame of a run, and the first traced frame after a restore
+	biggestFrame() { grep -o "\[ce-gl\] frame [0-9]*: [0-9]* calls" "$1" | awk '{print $4}' | sort -n | tail -1; }
+	afterRestore() {
+		awk '/ce-gl-audit\] restore/ { seen = 1 }
+		     seen && match($0, /\[ce-gl\] frame [0-9]+: [0-9]+ calls/) {
+			s = substr($0, RSTART, RLENGTH); split(s, f, " "); print f[4]; exit }' "$1"
+	}
+	glrun "$gz/none.txt" "$gz/record.log" --record "$gz/movie.txt"
+	if [ ! -s "$gz/movie.txt" ]; then
+		report "engine:rebuild-at-zero" FAIL "could not record a movie to rewind through (see $gz/record.log)"
+	else
+		glrun "$gz/movie.txt" "$gz/plain.log"
+		glrun "$gz/movie.txt" "$gz/rewind0.log" --greenzone 4096 --rewind-loop 0,1
+		glrun "$gz/movie.txt" "$gz/rewind2.log" --greenzone 4096 --rewind-loop 2,1
+		plain="$(biggestFrame "$gz/plain.log")"
+		zero="$(afterRestore "$gz/rewind0.log")"
+		two="$(afterRestore "$gz/rewind2.log")"
+		if grep -q "^chimera gl: no context" "$gz/plain.log"; then
+			report "engine:rebuild-at-zero" SKIP "this machine gives the bridge no GL context"
+		elif [ -z "$plain" ] || [ -z "$zero" ] || [ -z "$two" ]; then
+			report "engine:rebuild-at-zero" FAIL "nothing was traced across the bridge (see $gz)"
+		elif grep -q "came from context" "$gz/plain.log"; then
+			report "engine:rebuild-at-zero" FAIL "a run with no state load rebuilt the backend anyway: $(grep -o 'ruffle: GL objects came from.*' "$gz/plain.log" | head -1)"
+		elif ! grep -q "came from context" "$gz/rewind0.log"; then
+			report "engine:rebuild-at-zero" FAIL "restoring the frame-0 anchor made $zero GL calls on the next frame, against $plain for the busiest frame of a run with no restore, and the backend was never rebuilt"
+		elif ! grep -q "came from context" "$gz/rewind2.log"; then
+			report "engine:rebuild-at-zero" FAIL "restoring frame 2 made $two GL calls and the backend was never rebuilt"
+		elif [ "$zero" -le "$plain" ] || [ "$two" -le "$((plain / 2))" ]; then
+			report "engine:rebuild-at-zero" FAIL "a rebuild was announced but the calls do not show it: $zero after frame 0 and $two after frame 2, against $plain for the busiest frame with no restore"
+		else
+			report "engine:rebuild-at-zero" PASS "a restore rebuilds the backend wherever it lands - $zero calls after frame 0 and $two after frame 2, against $plain with no restore"
+		fi
+	fi
+fi
+
 echo
 echo "$ok ok, $failed failed"
 [ "$failed" -eq 0 ]

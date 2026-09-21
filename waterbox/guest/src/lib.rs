@@ -254,6 +254,38 @@ struct Machine {
 // One machine per sandbox, driven by one thread (vsched runs guest threads one
 // at a time), so a static is the honest representation.
 static mut MACHINE: Option<Machine> = None;
+
+/// ZERO MEANT TWO THINGS, AND ONE OF THEM WAS A LIE (chimera issue 126).
+///
+/// `Machine::gl_context` starts at 0 - Init builds the backend against the live
+/// context and never records which one - and is first written at the bottom of
+/// `FrameAdvance`, below the rebuild test. So there is one state in every
+/// session that carries 0 while the backend's GL objects already exist: the
+/// greenzone's frame-0 anchor, taken right after Init and before the first frame
+/// advance. Loading it read that 0 as "the bridge cannot tell, nothing moved",
+/// when what it really means is "this state was taken before anyone looked, so
+/// it cannot vouch for the objects the driver is holding NOW" - and those are
+/// whatever the frames after the anchor left behind.
+///
+/// It reaches a person because TAStudio goes to a frame by loading the state
+/// BEFORE it and emulating one forward, so frames 0 and 1 both load that anchor
+/// and frame 2 is the first that does not. Reported on PCSX2 and Maximo: Ghosts
+/// to Glory as a corrupt picture from frame 0 or 1 and a clean one from frame 2.
+/// The same code was in every bridged core.
+///
+/// So the host's word for it is kept instead of guessed from the number: the
+/// engine tells every core when the machine's memory has been replaced (the
+/// StateLoaded export below), and after one of those the stored 0 cannot be
+/// trusted. Recording the id in Init instead would put it in the SEALED
+/// baseline, where no state carries it as a delta, and the cross-session rebuild
+/// the test exists for would stop happening; a non-zero "never seen" sentinel
+/// fails identically, because the anchor carries whatever the initial value is.
+///
+/// This lives outside `Machine` on purpose: it is a fact about what the HOST did
+/// a moment ago rather than part of the machine. A state carries it like any
+/// other guest byte, which is harmless because it is set AFTER the load - the
+/// load cannot wipe it - and cleared the moment it has been read.
+static mut STATE_LOADED: bool = false;
 static mut LOAD_ERROR: [u8; 256] = [0; 256];
 static mut SPOOF_URL: [u8; 512] = [0; 512];
 
@@ -540,6 +572,16 @@ pub extern "C" fn Init() -> i32 {
     1
 }
 
+/// Told by the engine after every load of the machine - a savestate, a branch
+/// file, a greenzone restore - with the machine stopped and before it runs
+/// again. See STATE_LOADED above: the only thing this core keeps that a load
+/// invalidates is the renderer's claim about which host GL context its objects
+/// came from.
+#[no_mangle]
+pub extern "C" fn StateLoaded() {
+    unsafe { *core::ptr::addr_of_mut!(STATE_LOADED) = true };
+}
+
 #[no_mangle]
 pub extern "C" fn FrameAdvance(_input: u64) {
     unsafe {
@@ -577,7 +619,11 @@ pub extern "C" fn FrameAdvance(_input: u64) {
         // machine stays exactly what it was. Zero is "cannot tell" (no bridge),
         // and never triggers a rebuild.
         let live = renderer::context_id();
-        if live != 0 && m.gl_context != 0 && live != m.gl_context {
+        // Taken and cleared whatever the ids say: it has been read into this
+        // decision, and a flag left standing would rebuild at some later context
+        // change for a load that is long past.
+        let after_load = core::mem::replace(&mut *core::ptr::addr_of_mut!(STATE_LOADED), false);
+        if live != 0 && live != m.gl_context && (m.gl_context != 0 || after_load) {
             // Every GL name the old backend made becomes stale here. Dropping a
             // handle deletes its objects by name, and a context's names are
             // handed out again: in a new process from 1, and after a rewind the
@@ -590,6 +636,13 @@ pub extern "C" fn FrameAdvance(_input: u64) {
             // new backend off every stale number, so an old drop can only ever
             // free what is old. The null renderer in between lets the old
             // backend's own memory go before the new one is built.
+            // Every other bridged core says this on stderr when it happens, and
+            // it is the only direct witness that the decision above went the way
+            // it did - a rebuild is otherwise just a frame that cost more.
+            eprintln!(
+                "ruffle: GL objects came from context {}, now {}; rebuilding",
+                m.gl_context, live
+            );
             renderer::new_gl_generation();
             p.set_renderer(Box::new(ruffle_render::backend::null::NullRenderer::new(
                 ruffle_render::backend::ViewportDimensions {

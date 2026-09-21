@@ -790,3 +790,76 @@ to reproduce the picture rather than just the machine. The setting's
 description now names which is which and why, instead of asserting that
 whichever renderer it happens to mention first is the default - the shape of
 prose that goes stale the moment a default moves.
+
+## The frame-0 anchor was the one state that did not rebuild (2026-09-21)
+
+Chimera issue #126, reported and fixed on PCSX2 first: a bridged core stores the
+host's GL context id beside its GL objects and rebuilds when the stored id no
+longer matches the live one, and the guard skips exactly one state. This core
+had the same hole, arrived at independently of PCSX2's wording but identical in
+effect.
+
+`Machine::gl_context` is written in exactly two places. `Init` sets it to the
+literal `0` in the struct that creates the machine - it builds the hardware
+backend against the live context and never asks which one that is - and
+`FrameAdvance` writes the live id at the BOTTOM of the frame, under the rebuild
+test. So the greenzone's **frame-0 anchor**, taken right after Init and before
+the first frame advance, is the only state in a session that carries a zero
+while real GL objects already exist in the driver. `live != 0 && m.gl_context !=
+0 && live != m.gl_context` read that zero as "the bridge cannot tell, nothing
+moved". What it means is "this state was taken before anyone looked", and the
+objects wgpu's names refer to were whatever the frames after the anchor had left
+behind.
+
+It reaches a person because TAStudio goes to a frame by loading the state BEFORE
+it and emulating one forward, so frames 0 and 1 both load the anchor and frame 2
+is the first that does not - the boundary the reporter of #126 described.
+
+The fix keeps the host's word rather than inferring it from the number. The core
+now implements the engine's optional `StateLoaded` export (forced into the link
+in `build-guest.sh`, or it would be stripped), which sets `STATE_LOADED`; the
+frame takes and clears that flag and the guard became `live != 0 && live !=
+m.gl_context && (m.gl_context != 0 || after_load)`. The flag is set AFTER the
+load, so the load cannot wipe it, and a fresh boot has had no load and still
+does not rebuild. Recording the id in Init instead would put it in the SEALED
+baseline, where no state carries it as a delta, and the cross-session rebuild
+would stop happening; a non-zero "never seen" sentinel fails identically,
+because the anchor carries whatever the initial value is.
+
+The rebuild now also says so on stderr - `ruffle: GL objects came from context
+X, now Y; rebuilding` - which every other bridged core already did. Without it a
+rebuild is only a frame that cost more, and on a busy movie that difference
+vanishes into the noise: on Corporate Climber the frame after restoring the
+anchor went 15,208 -> 16,155 calls, a 6% change that no threshold should be
+asked to see.
+
+**Measured, not reasoned.** `chimera-run --gpu --greenzone 4096 --rewind-loop
+N,1` on the corpus SWF `text/br_at_start` under `CHIMERA_GL_TRACE=1
+CHIMERA_GL_STATEAUDIT=1`, counting bridge crossings on the frame after the
+restore. An ordinary frame of this movie is 457 calls and its busiest frame with
+no restore at all is 1102:
+
+| restore to | before | after |
+|---|---|---|
+| frame 0 (the anchor) | **1102 - no rebuild** | 2049, and it announced it |
+| frame 2 (an ordinary state) | 1714, and it rebuilt | 1714, and it rebuilt |
+
+The leg is `engine:rebuild-at-zero` in `tests/run-frontend.sh`, which is where
+this core's chimera-facing legs live - `waterbox/run-gate.sh` drives run-native
+and run-wbx, and run-wbx's `--rerecord` calls `wbx_load_state` directly, so it
+never calls `StateLoaded` and never mints a context id. Neither could have
+witnessed this. NEGATIVE CONTROL: a package built with the announcement present
+but the guard left as it was - so the leg fails for the right reason and not
+merely for want of a log line - FAILS by name: "restoring the frame-0 anchor
+made 1102 GL calls on the next frame, against 1102 for the busiest frame of a
+run with no restore, and the backend was never rebuilt". It passes on the fixed
+package. Frontend gate 5 ok, 0 failed.
+
+**What the leg does not stand in for** (chimera `docs/gates.md`, E): that SWF
+draws static text, so the backend it rebuilds is holding almost nothing - no
+bitmap library, no filters, no offscreen pool worth the name - and llvmpipe is
+not a driver. What is established is that the rebuild RUNS after every restore,
+not that a real movie's picture is right on real hardware. No wrong picture was
+reproduced here on any core; what connects the fix to the report is that it is
+the one thing that differs between the frames the reporter says are broken and
+the frame they say is not.
