@@ -109,6 +109,24 @@ exec g++ "\$@" -specs $sr/lib/musl-gcc.specs
 EOF
 chmod +x "$mesa/gw-cc" "$mesa/gw-cxx"
 
+# Kernel uapi headers, as a LAST-RESORT include path. The guest compiles with
+# -nostdinc plus the musl sysroot (from the specs), and musl ships no linux/,
+# asm/ or asm-generic/ headers - but mesa's include/drm-uapi/drm.h includes
+# <linux/types.h>. The directory below holds nothing but symlinks to those
+# three kernel trees and is passed with -idirafter, which is searched AFTER
+# the sysroot: musl still wins for every header it provides. A plain
+# -I/usr/include would let glibc headers shadow musl's, which is what
+# -nostdinc is here to prevent.
+uapi="$mesa/uapi-include"
+mkdir -p "$uapi"
+ln -sfn /usr/include/linux "$uapi/linux"
+ln -sfn /usr/include/asm-generic "$uapi/asm-generic"
+if [ -d /usr/include/x86_64-linux-gnu/asm ]; then
+	ln -sfn /usr/include/x86_64-linux-gnu/asm "$uapi/asm"
+elif [ -d /usr/include/asm ]; then
+	ln -sfn /usr/include/asm "$uapi/asm"
+fi
+
 # large code model, static reloc, no %fs stack guard, the guest's own libstdc++.
 cat > "$mesa/guest-cross.ini" <<EOF
 [binaries]
@@ -134,8 +152,8 @@ needs_exe_wrapper = true
 pkg_config_libdir = ['$mesa/no-host-packages']
 
 [built-in options]
-c_args = ['-mcmodel=large', '-mstack-protector-guard=global', '-fno-stack-protector', '-fno-pic', '-fno-pie', '-fcf-protection=none']
-cpp_args = ['-mcmodel=large', '-mstack-protector-guard=global', '-fno-stack-protector', '-fno-pic', '-fno-pie', '-fcf-protection=none', '-fexceptions', '-I$sr/include/c++/$gccver', '-I$sr/include/c++/$gccver/x86_64-linux-musl']
+c_args = ['-mcmodel=large', '-mstack-protector-guard=global', '-fno-stack-protector', '-fno-pic', '-fno-pie', '-fcf-protection=none', '-idirafter', '$uapi']
+cpp_args = ['-mcmodel=large', '-mstack-protector-guard=global', '-fno-stack-protector', '-fno-pic', '-fno-pie', '-fcf-protection=none', '-fexceptions', '-I$sr/include/c++/$gccver', '-I$sr/include/c++/$gccver/x86_64-linux-musl', '-idirafter', '$uapi']
 EOF
 
 # softpipe + gallium OSMesa, static, no LLVM, nothing that pulls a host lib.
@@ -147,6 +165,14 @@ opts="-Dforce_fallback_for=zlib,expat -Dgallium-drivers=swrast -Dvulkan-drivers=
   -Ddefault_library=static -Dbuild-tests=false -Dzstd=disabled -Dshared-glapi=disabled"
 
 mkdir -p "$mesa/no-host-packages"
+
+# A cross build must not see the HOST's libraries. Without this, mesa's
+# pkg-config finds the host libdrm, turns HAVE_LIBDRM on, and util/u_screen.c
+# then includes xf86drm.h, which no guest sysroot has.
+mkdir -p "$mesa/no-pkgconfig"
+PKG_CONFIG_LIBDIR="$mesa/no-pkgconfig"
+PKG_CONFIG_PATH=""
+export PKG_CONFIG_LIBDIR PKG_CONFIG_PATH
 
 if [ -f "$build/build.ninja" ]; then
 	"$meson" setup --reconfigure "$build" "$mesa" --cross-file "$mesa/guest-cross.ini" $opts
