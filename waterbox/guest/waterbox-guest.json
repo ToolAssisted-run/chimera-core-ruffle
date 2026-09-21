@@ -1,5 +1,6 @@
 {
   "arch": "x86_64",
+  "disable-redzone": true,
   "cpu": "x86-64",
   "crt-objects-fallback": "musl",
   "crt-static-default": true,

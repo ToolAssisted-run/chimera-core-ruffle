@@ -3,8 +3,15 @@ build-std = ["std"]
 json-target-spec = true
 
 [build]
-# waterbox-guest.json is the stock x86_64-unknown-linux-musl target with one
-# field changed: has-thread-local = false.
+# waterbox-guest.json is the stock x86_64-unknown-linux-musl target with two
+# fields changed: has-thread-local = false (below) and disable-redzone = true.
+#
+# disable-redzone: a guest may be interrupted by a dirty-tracking fault at any
+# instruction, and on Windows that exception lands on the guest's own stack,
+# where the bytes below rsp do not survive it (miniBox docs/RED-ZONE.md). The C
+# cores get -mno-red-zone through the musl-gcc specs; Rust has no such flag,
+# the target spec is where LLVM is told. build-std rebuilds std with it too.
+# miniBox's check-wbx.sh refuses a guest that still addresses below rsp.
 #
 # Rust compiles #[thread_local] to %fs-relative loads, and %fs is the one
 # per-thread base a host OS does not maintain for us. Windows keeps %gs alive
