@@ -912,10 +912,12 @@ What it is not:
 - Not stable across builds. Addresses repeat for one build of the core and
   move with any other; a project pins its build, so a watch file belongs to
   the project it was made in.
-- Not Flash's types. A number is eight bytes of IEEE double - the frontend's
-  RAM Search and RAM Watch take one, two and four byte values, so a number
-  needs an 8-byte type there (chimera's side, tracked with this issue). A
+- Not Flash's types. A number is eight bytes of IEEE double, and the
+  frontend's RAM Search and RAM Watch take one, two and four byte values
+  (RAM Search stays that way, by the user's decision: it searches bytes). A
   clip's `_x` is not a number at all but twentieths of a pixel in an i32.
+  The next section is the answer to this: variables by name, with their
+  types.
 - Not safe to scribble on. A poke on a pointer kills the machine (the guest
   dies and Chimera says so; a state load brings it back). A poke on a value
   is what the tool is for.
@@ -925,3 +927,83 @@ exports (run-wbx `--heap-probe V [--heap-poke W]`): found, poked, absent (a
 number the movie never held follows nothing - the control), untouched,
 repeat, bounded.
 
+## A movie's variables, by name (issue #216, 2026-10-07)
+
+The bus gives bytes. This gives names: every ActionScript 1/2 variable that
+has a place in memory is a game property on the Heap bus, called what a
+script calls it - `_root.v`, `_root.hero.hp`, `_root.grid[3]`,
+`_level2.score`, `_global.lives`. User-decided, 2026-10-07: the user asked
+for a dialog of every variable with its type and address and a way to watch
+one; it was built as chimera's own Add Game Properties with a DYNAMIC
+property table (chimera docs/game-cores.md), ActionScript 1/2 first, and RAM
+Search left alone.
+
+Two exports, both JSON in the engine's table format:
+
+- `GetGameProperties()`: `{"dynamic": true, "properties": [...]}` - the
+  listing, made when the engine asks (the dialog opening, Refresh,
+  `game.list()`);
+- `GetGameProperty(name)`: one entry, or "" - where that variable is NOW,
+  asked before every read and write, because a variable moves.
+
+What has a place, and its type there:
+
+| in the movie | listed as | |
+|---|---|---|
+| a number | `f64` | writable |
+| a boolean | `bool` | writable |
+| a string | `string`, `latin1` or `utf16le`, its length now | read-only: a string is shared and never changed in place |
+| a clip's `_x`, `_y` | `s32`, in twips (20 to a pixel) | read-only: the position has caches behind it |
+| a clip's `_currentframe` | `u16` | read-only |
+
+Reached from: every level's clip tree (a child by its instance name, unless
+a variable of that name hides it, as it would from a script), each clip's
+own variables, objects and arrays those hold (to 12 deep, each object once
+however many variables hold it), and `_global`. Not listed: a property with
+a getter (it has no place, and nothing is called to ask), a property hidden
+from enumeration, a name with a dot or a bracket in it, a value that lives
+outside the small heap (a constant string in the program, a string over
+about 230 KiB), `undefined` and `null` (no type to show; listed once they
+hold something). `_root.$version` is listed because it is a real variable
+of every movie.
+
+THE RULE: asking changes nothing. The heap IS the machine, so the walk
+(`core/src/chimera_vars.rs`, patch 0006) allocates nothing - names are spelt
+into a buffer on the stack, the set of objects already seen is a table in
+`.ldata.invis`, the JSON is written into `.ldata.invis` - and calls nothing
+of the movie's. It does not use `child_by_name`, which allocates when a
+removal is pending. To make that a measurement and not a claim, the guest's
+allocator is wrapped by a counter (`variables::Counting`, itself in
+invisible memory): `GetVariableListCost` is how many allocator calls the
+last answer made.
+
+Measured (tests/make-variables-swf.py, whose list is known from the script):
+
+- 17 properties listed at frame 20, in 1903 bytes; allocator calls 0 of
+  150696 made so far; the heap byte for byte what it was;
+- the counter movie's `_root.v` is at the address the Heap gate's poke
+  proved to be the variable;
+- in the movie that makes a new variable every frame, `_root.v` is at three
+  different addresses over 40 frames and is read right at each;
+- a number written where the name points is where the movie goes on from;
+- a version-6 movie's names fold case, a version-8 movie's do not.
+
+Controls, both caught: a 24-byte `Vec` made and dropped inside the answer
+(the count says 1 per answer, and the heap compares CHANGED - so the rule is
+not pedantry); every offset reported 8 bytes on (values, same place,
+followed and poked all fail; the poke kills the guest, which is what a poke
+on the wrong eight bytes does).
+
+Through the frontend: headless Chimera's Lua reads all of them by name
+(`game.get("_root.o.inner.depth")`), `game.describe` shows the address
+moving, `game.set("_root.v", 500)` is 501 a frame later, and a string or a
+clip's `_x` refuses a set with the reason.
+
+Gate: "ruffle variables gate", ten legs (run-wbx `--variables`,
+`--variable NAME`, `--variable-frames K`, `--variable-poke W`): listed,
+values, same place, followed, poked, free, undisturbed, absent, case, as3.
+
+Not done: ActionScript 3 (objects hash by address there, so the same rule
+matters even more; slots are reachable through the vtable); a clip's other
+built-ins (`_xscale`, `_rotation`, `_visible`, `_alpha`); text field
+contents.

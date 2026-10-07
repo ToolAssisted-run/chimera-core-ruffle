@@ -82,6 +82,7 @@ int main(int argc, char **argv) {
 	int from_vfs = 0;
 	int noGpu = 0;
 	int heapProbe = 0, heapPoke = 0; double heapValue = 0, heapPokeValue = 0;
+	int listVars = 0, nvars = 0, varPoke = 0; long varFrames = 1; double varPokeValue = 0; const char *varNames[16];
 	const char *files[64][2]; int nfiles = 0;
 	for (int i = 3; i < argc; i++) {
 		if (!strcmp(argv[i], "--frames") && i + 1 < argc) frames = atol(argv[++i]);
@@ -105,6 +106,10 @@ int main(int argc, char **argv) {
 		else if (!strcmp(argv[i], "--no-gpu")) noGpu = 1;
 		else if (!strcmp(argv[i], "--heap-probe") && i + 1 < argc) { heapProbe = 1; heapValue = strtod(argv[++i], NULL); }
 		else if (!strcmp(argv[i], "--heap-poke") && i + 1 < argc) { heapPoke = 1; heapPokeValue = strtod(argv[++i], NULL); }
+		else if (!strcmp(argv[i], "--variables")) listVars = 1;
+		else if (!strcmp(argv[i], "--variable") && i + 1 < argc && nvars < 16) varNames[nvars++] = argv[++i];
+		else if (!strcmp(argv[i], "--variable-frames") && i + 1 < argc) varFrames = atol(argv[++i]);
+		else if (!strcmp(argv[i], "--variable-poke") && i + 1 < argc) { varPoke = 1; varPokeValue = strtod(argv[++i], NULL); }
 		else if (!strcmp(argv[i], "--file") && i + 1 < argc && nfiles < 64) {
 			char *eq = strchr(argv[++i], '=');
 			if (eq) { *eq = 0; files[nfiles][0] = argv[i]; files[nfiles][1] = eq + 1; nfiles++; }
@@ -384,6 +389,80 @@ no_bridge:
 			printf("heap: poked %.17g at 0x%llx: not the variable (the movie says %s)\n", w, (unsigned long long)alive[k], line);
 		}
 		PokeBus(0, (int32_t)(live + 4096), 0xff); /* past the break: must go nowhere */
+		fflush(stdout);
+	}
+	/* The movie's variables as game properties (chimera#216). --variables
+	 * prints the table the core lists (GetGameProperties) and says what the
+	 * listing cost: how many times it went to the allocator, and whether one
+	 * byte of the heap is different afterwards. --variable NAME asks for one
+	 * by name (GetGameProperty), reads its value off the Heap bus the way the
+	 * engine does, and with --variable-frames K does it again K times, a frame
+	 * apart - a variable that moved is found where it moved to.
+	 * --variable-poke W writes W over the first named variable, once. */
+	if (listVars || nvars) {
+		const char *(*GetGameProperties)(void) = (const char *(*)(void))proc(h, "GetGameProperties");
+		const char *(*GetGameProperty)(const char *) = (const char *(*)(const char *))proc(h, "GetGameProperty");
+		int64_t (*GetVariableListCost)(void) = (int64_t (*)(void))proc(h, "GetVariableListCost");
+		int64_t (*GetAllocationCount)(void) = (int64_t (*)(void))proc(h, "GetAllocationCount");
+		const uint8_t *(*ReadBus)(int32_t, int64_t, int32_t) = (const uint8_t *(*)(int32_t, int64_t, int32_t))proc(h, "ReadBus");
+		void (*PokeBus)(int32_t, int32_t, int32_t) = (void (*)(int32_t, int32_t, int32_t))proc(h, "PokeBus");
+		int64_t (*GetHeapBytes)(void) = (int64_t (*)(void))proc(h, "GetHeapBytes");
+		if (listVars) {
+			uint64_t digest[2];
+			const char *json = NULL;
+			int64_t cost = 0;
+			for (int pass = 0; pass < 2; pass++) {
+				const int64_t live = GetHeapBytes();
+				uint64_t d = 1469598103934665603ull;
+				for (int64_t at = 0; at < live; at += 65536) {
+					const uint8_t *run = ReadBus(0, at, 65536);
+					for (int k = 0; k < 65536; k++) { d ^= run[k]; d *= 1099511628211ull; }
+				}
+				digest[pass] = d;
+				if (pass == 0) { json = GetGameProperties(); cost = GetVariableListCost(); }
+			}
+			int count = 0;
+			for (const char *q = json; (q = strstr(q, "{\"name\":")) != NULL; q++) count++;
+			printf("vars: %d listed in %zu bytes; allocator calls: %lld (of %lld so far); the heap is %s\n",
+				count, strlen(json), (long long)cost, (long long)GetAllocationCount(),
+				digest[0] == digest[1] ? "untouched" : "CHANGED");
+			printf("vars: %s\n", json);
+		}
+		for (long f = 0; f < varFrames; f++) {
+			for (int v = 0; v < nvars; v++) {
+				const char *e = GetGameProperty(varNames[v]);
+				const int64_t cost = GetVariableListCost();
+				const char *off = strstr(e, "\"offset\":"), *type = strstr(e, "\"type\":\"");
+				if (!off || !type) { printf("var: %s is not there (allocator calls: %lld)\n", varNames[v], (long long)cost); continue; }
+				const int64_t at = strtoll(off + 9, NULL, 10);
+				const char *len = strstr(e, "\"length\":");
+				int bytes = len ? atoi(len + 9) : 8;
+				if (bytes > 255) bytes = 255;
+				uint8_t b[256] = {0};
+				memcpy(b, ReadBus(0, at, bytes), (size_t)bytes);
+				char value[600] = "";
+				type += 8;
+				if (!strncmp(type, "f64", 3)) { double d; memcpy(&d, b, 8); snprintf(value, sizeof value, "%.17g", d); }
+				else if (!strncmp(type, "bool", 4)) snprintf(value, sizeof value, "%s", b[0] ? "true" : "false");
+				else if (!strncmp(type, "s32", 3)) { int32_t i; memcpy(&i, b, 4); snprintf(value, sizeof value, "%d", i); }
+				else if (!strncmp(type, "u16", 3)) { uint16_t u; memcpy(&u, b, 2); snprintf(value, sizeof value, "%u", u); }
+				else if (!strncmp(type, "string", 6)) {
+					const int wide = strstr(e, "utf16le") != NULL;
+					int o = 0;
+					value[o++] = '"';
+					for (int k = 0; k < bytes; k += wide ? 2 : 1) value[o++] = (b[k] >= 32 && b[k] < 127 && !(wide && b[k + 1])) ? (char)b[k] : '?';
+					value[o++] = '"'; value[o] = 0;
+				}
+				printf("var: %s = %s at 0x%llx%s (allocator calls: %lld)\n", varNames[v], value, (unsigned long long)at,
+					strstr(e, "\"writable\":false") ? " read-only" : "", (long long)cost);
+				if (varPoke && f == 0 && v == 0 && !strncmp(type, "f64", 3)) {
+					uint8_t w[8]; memcpy(w, &varPokeValue, 8);
+					for (int j = 0; j < 8; j++) PokeBus(0, (int32_t)(at + j), w[j]);
+					printf("var: poked %.17g into %s\n", varPokeValue, varNames[v]);
+				}
+			}
+			if (f + 1 < varFrames) FrameAdvance(0);
+		}
 		fflush(stdout);
 	}
 	int64_t n = GetTtySize();

@@ -446,8 +446,132 @@ if [ "$have_sandbox" = 1 ]; then
   rm -rf "$htmp"
 fi
 
+# ---- a movie's variables, by name ----
+# The Heap bus gives the tools bytes; this gives them names (chimera#216,
+# user-decided 2026-10-07). The core lists every ActionScript 1/2 variable
+# that has a place in memory as a game property on that bus
+# (GetGameProperties), and says where one is now when asked by name
+# (GetGameProperty) - a variable moves when its object's table grows. The
+# movie is tests/make-variables-swf.py, whose list is known without running
+# anything, so the legs compare with what the script says and not with what
+# the core said last time:
+#   listed      the list is exactly the movie's: every name, with its type;
+#   values      each of them, read off the bus where the core says it is, is
+#               what the script set;
+#   same place  the counter movie's v is listed at the very address the Heap
+#               gate's poke proved to be the variable;
+#   followed    in the movie that outgrows its table, v is found again every
+#               frame, at the next value, and at least once somewhere else;
+#   poked       a number written where the name points is where the movie
+#               carries on from;
+#   free        no listing and no lookup went to the allocator (the counter
+#               that says so is seen to count), and the heap is byte for byte
+#               what it was;
+#   undisturbed a run that was listed and looked up every frame has the trace
+#               of one that was not;
+#   absent      a name with no place gets nothing: an unknown one, an object,
+#               a clip, a level that is not there, and four that are not paths;
+#   case        a version-6 movie's names do not tell upper case from lower,
+#               a version-8 movie's do;
+#   as3         an ActionScript 3 movie lists nothing (not yet read).
+vok=0; vbad=0; vtotal=0
+if [ "$have_sandbox" = 1 ]; then
+  vtmp=$(mktemp -d)
+  python3 "$root/tests/make-variables-swf.py" "$vtmp/vars.swf"
+  python3 "$root/tests/make-variables-swf.py" "$vtmp/vars6.swf" 6
+  python3 "$root/tests/make-variables-swf.py" "$vtmp/grow.swf" 8 grow
+  python3 "$root/tests/make-counter-swf.py" "$vtmp/counter.swf"
+  vrun() { m=$1; shift; timeout 120 "$wbx" "$core" "$vtmp/$m.swf" --no-gpu "$@" 2>/dev/null; }
+  vcheck() { # name, 0 when it holds, what to say when it does not
+    vtotal=$((vtotal+1))
+    if [ "$2" = 0 ]; then vok=$((vok+1)); else vbad=$((vbad+1)); echo "  variables $1: $3"; fi
+  }
+  vlist=$(vrun vars --frames 20 --quiet --variables)
+  vnames=$(printf '%s\n' "$vlist" | sed -n 's/^vars: {/{/p' | python3 -c '
+import json, sys
+for p in json.load(sys.stdin)["properties"]:
+    print(p["name"], p["type"], p.get("group"), "ro" if p.get("writable") is False else "rw")' 2>&1 | sort)
+  vwant=$(sort <<'WANT'
+_global.lives f64 _global rw
+_root.$version string _root ro
+_root._currentframe u16 _root ro
+_root._x s32 _root ro
+_root._y s32 _root ro
+_root.a[0] f64 _root rw
+_root.a[1] f64 _root rw
+_root.a[2] f64 _root rw
+_root.flag bool _root rw
+_root.o.hp f64 _root rw
+_root.o.inner.depth f64 _root rw
+_root.ship._currentframe u16 _root.ship ro
+_root.ship._x s32 _root.ship ro
+_root.ship._y s32 _root.ship ro
+_root.ship.fuel f64 _root.ship rw
+_root.v f64 _root rw
+_root.who string _root ro
+WANT
+)
+  [ "$vnames" = "$vwant" ]; vcheck listed $? "the list is not the movie's: $(printf '%s' "$vnames" | tr '\n' ';' | cut -c1-600)"
+
+  vnow=$(vrun vars --frames 20 | tail -1)
+  vvals=$(vrun vars --frames 20 --quiet --variable _root.v --variable _root.flag --variable _root.who \
+    --variable _root.o.hp --variable _root.o.inner.depth --variable '_root.a[0]' --variable '_root.a[1]' \
+    --variable '_root.a[2]' --variable _root.ship._x --variable _root.ship._y --variable _root.ship.fuel \
+    --variable _root.ship._currentframe --variable _global.lives | sed 's/ at 0x.*//')
+  vwantvals="var: _root.v = $vnow
+var: _root.flag = true
+var: _root.who = \"hero\"
+var: _root.o.hp = 7
+var: _root.o.inner.depth = 2
+var: _root.a[0] = 10
+var: _root.a[1] = 20
+var: _root.a[2] = 30
+var: _root.ship._x = 2000
+var: _root.ship._y = 1000
+var: _root.ship.fuel = 55
+var: _root.ship._currentframe = 1
+var: _global.lives = 3"
+  [ "${vnow:-0}" -gt 123456789 ] 2>/dev/null && [ "$vvals" = "$vwantvals" ]; vcheck values $? "read: $(printf '%s' "$vvals" | tr '\n' ';' | cut -c1-600)"
+
+  vcnow=$(vrun counter --frames 40 | tail -1)
+  vproved=$(vrun counter --frames 40 --heap-probe "$vcnow" --heap-poke 987654321 | sed -n 's/^heap: poked .* at \(0x[0-9a-f]*\) and the movie went on.*/\1/p')
+  vnamed=$(vrun counter --frames 41 --quiet --variable _root.v | sed -n 's/^var: _root.v = .* at \(0x[0-9a-f]*\) .*/\1/p')
+  [ -n "$vproved" ] && [ "$vproved" = "$vnamed" ]; vcheck 'same place' $? "the poke proved ${vproved:-nothing}, the name says ${vnamed:-nothing}"
+
+  vgrow=$(vrun grow --frames 5 --variable _root.v --variable-frames 40)
+  vsteps=$(printf '%s\n' "$vgrow" | sed -n 's/^var: _root.v = \([0-9]*\) at .*/\1/p' | awk 'NR > 1 && $1 != prev + 1 { bad++ } { prev = $1 } END { print NR, bad + 0 }')
+  vplaces=$(printf '%s\n' "$vgrow" | sed -n 's/^var: _root.v = .* at \(0x[0-9a-f]*\) .*/\1/p' | sort -u | wc -l)
+  [ "$vsteps" = "40 0" ] && [ "$vplaces" -ge 2 ]; vcheck followed $? "read at 'count, breaks' = $vsteps, in $vplaces place(s)"
+
+  vpoke=$(vrun grow --frames 5 --quiet --variable _root.v --variable-frames 3 --variable-poke 500 | sed -n 's/^var: _root.v = \([0-9]*\) at .*/\1/p' | tr '\n' ' ')
+  case "$vpoke" in *' 501 502 ') vcheck poked 0 ;; *) vcheck poked 1 "after the poke the movie read: $vpoke" ;; esac
+
+  vall=$(printf '%s\n%s\n%s\n' "$vlist" "$(vrun vars --frames 20 --quiet --variable _root.v --variable _root.o.inner.depth --variable _root.nothing --variable-frames 3)" "$vgrow")
+  vcalls=$(printf '%s\n' "$vall" | grep -c 'allocator calls: ')
+  vfree=$(printf '%s\n' "$vall" | grep -c 'allocator calls: 0[ )]')
+  valive=$(printf '%s\n' "$vlist" | sed -n 's/.*allocator calls: 0 (of \([0-9]*\) so far).*/\1/p')
+  [ "$vcalls" -ge 40 ] && [ "$vcalls" = "$vfree" ] && [ "${valive:-0}" -gt 1000 ] && printf '%s\n' "$vlist" | grep -q 'the heap is untouched'
+  vcheck free $? "$vfree of $vcalls answers were free; the counter stands at ${valive:-nothing}; $(printf '%s\n' "$vlist" | sed -n 's/^vars: [0-9]* listed.*; //p')"
+
+  vwatched=$(vrun grow --frames 5 --variables --variable _root.v --variable _root.ship.fuel --variable-frames 36 | grep -v '^var')
+  [ -n "$vwatched" ] && [ "$vwatched" = "$(vrun grow --frames 40)" ]; vcheck undisturbed $? "a watched run's trace is not the unwatched run's"
+
+  vabsent=$(vrun vars --frames 20 --quiet --variable _root.nothing --variable _root.o --variable _root.ship --variable _level7.v \
+    --variable _root..v --variable '_root.a[' --variable _root --variable 'v' --variable '_root.v.' | grep -c 'is not there')
+  [ "$vabsent" = 9 ]; vcheck absent $? "$vabsent of 9 names with no place got nothing"
+
+  vfold=$(vrun vars6 --frames 20 --quiet --variable _root.WHO --variable _root.SHIP.Fuel --variable _global.LIVES | grep -c ' = ')
+  vkeep=$(vrun vars --frames 20 --quiet --variable _root.WHO --variable _root.SHIP.Fuel --variable _global.LIVES --variable _root.who | grep -c ' = ')
+  [ "$vfold" = 3 ] && [ "$vkeep" = 1 ]; vcheck case $? "version 6 found $vfold of 3 names in the other case, version 8 found $vkeep of 4 (1 is right)"
+
+  vas3=$(timeout 120 "$wbx" "$core" "$root/extern/ruffle/tests/tests/swfs/avm2/hello_world/test.swf" --no-gpu --frames 5 --quiet --variables 2>/dev/null | sed -n 's/^vars: \([0-9]*\) listed.*/\1/p')
+  [ "$vas3" = 0 ]; vcheck as3 $? "an ActionScript 3 movie listed '${vas3:-nothing}'"
+  rm -rf "$vtmp"
+fi
+
 if [ "$have_sandbox" = 1 ]; then
   echo "ruffle heap gate: $hok/$htotal the Heap bus holds a movie's number where it can be found, followed and changed, and reading it changes nothing; $hbad failures"
+  echo "ruffle variables gate: $vok/$vtotal a movie's variables are listed by name where they are, followed when they move, and changed by a write, and asking allocates nothing; $vbad failures"
   echo "ruffle settings gate: $pok/$ptotal the settings channel reaches the player - the movie reports the address it was told to, quality and font substitution show up in the frame, and every other setting is invisible at its declared default; $pbad failures"
   echo "ruffle state gate: $sok/$stotal movies survive a save and reload before every frame with the same trace, audio and picture; $sbadstate failures"
   echo "ruffle image gate: $gok/$gtotal movies draw the frame ruffle draws (both renderers, each to its own stated budget), reruns identical; $gbad failures"
@@ -459,4 +583,4 @@ if [ "$have_sandbox" = 1 ]; then
 else
   echo "ruffle gate: $ok/$total trace-identical to ruffle AND deterministic; $bad correctness, $nondet determinism failures (sandbox SKIPPED: build waterbox/build/core.wbx with build-guest.sh)"
 fi
-[ "$bad" -eq 0 ] && [ "$nondet" -eq 0 ] && [ "$sbad" -eq 0 ] && [ "$ibad" -eq 0 ] && [ "$fbad" -eq 0 ] && [ "$abad" -eq 0 ] && [ "$nbad" -eq 0 ] && [ "$gbad" -eq 0 ] && [ "$sbadstate" -eq 0 ] && [ "$pbad" -eq 0 ] && [ "$hbad" -eq 0 ]
+[ "$bad" -eq 0 ] && [ "$nondet" -eq 0 ] && [ "$sbad" -eq 0 ] && [ "$ibad" -eq 0 ] && [ "$fbad" -eq 0 ] && [ "$abad" -eq 0 ] && [ "$nbad" -eq 0 ] && [ "$gbad" -eq 0 ] && [ "$sbadstate" -eq 0 ] && [ "$pbad" -eq 0 ] && [ "$hbad" -eq 0 ] && [ "$vbad" -eq 0 ]

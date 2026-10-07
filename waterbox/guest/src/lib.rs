@@ -1034,6 +1034,14 @@ mod heap_bus {
         if addr < 0 || addr >= live() { return; }
         unsafe { *start().add(addr as usize) = value; }
     }
+    /// Where on the bus an address in this process is, when all `len` bytes of
+    /// it are heap right now (`live`, asked once by the caller: it is a call
+    /// out of the sandbox).
+    pub fn offset_of(addr: usize, len: usize, live: i64) -> Option<i64> {
+        let offset = (addr as i64).checked_sub(start() as i64)?;
+        if len == 0 || offset < 0 || offset + len as i64 > live { return None; }
+        Some(offset)
+    }
     pub fn read(addr: i64, len: i32) -> *const u8 {
         let len = (len.max(0) as usize).min(RUN);
         let live = live();
@@ -1083,6 +1091,214 @@ pub extern "C" fn ReadBus(bus: i32, addr: i64, len: i32) -> *const u8 {
 /// Diagnostic: the gate reads it; nothing in a session does.
 #[no_mangle]
 pub extern "C" fn GetHeapBytes() -> i64 { heap_bus::live() }
+
+/// A movie's variables as game properties (chimera#216): every ActionScript
+/// 1/2 variable that has a place in memory, by the name a script would write
+/// (`_root.hero.hp`), as an entry on the Heap bus. The table is DYNAMIC - a
+/// variable's slot moves when its object gains a property and is gone when the
+/// object is - so the engine asks for the whole list when the user wants to
+/// choose, and for one name (GetGameProperty) every time it is about to read.
+///
+/// Both answers are made WITHOUT TOUCHING THE HEAP. The heap is the machine's
+/// state: a `String` built here and dropped would leave the allocator's free
+/// lists in another order, and a run where the list was opened would part
+/// ways with one where it was not. So the walk (ruffle's chimera_vars)
+/// allocates nothing, and what it finds is written into memory the sandbox
+/// keeps out of states (.ldata.invis). ALLOCATIONS counts every call the Rust
+/// side makes to the allocator, so the gate can see that the count does not
+/// move across a listing rather than take it on trust.
+mod variables {
+    use super::heap_bus;
+    use ruffle_core::chimera_vars::{Kind, Place};
+    use std::alloc::{GlobalAlloc, Layout, System};
+
+    #[link_section = ".ldata.invis"]
+    static mut ALLOCATIONS: u64 = 0;
+    #[link_section = ".ldata.invis"]
+    static mut LAST_COST: u64 = 0;
+
+    pub struct Counting;
+    unsafe impl GlobalAlloc for Counting {
+        unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
+            ALLOCATIONS += 1;
+            System.alloc(layout)
+        }
+        unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
+            ALLOCATIONS += 1;
+            System.dealloc(ptr, layout)
+        }
+        unsafe fn alloc_zeroed(&self, layout: Layout) -> *mut u8 {
+            ALLOCATIONS += 1;
+            System.alloc_zeroed(layout)
+        }
+        unsafe fn realloc(&self, ptr: *mut u8, layout: Layout, new_size: usize) -> *mut u8 {
+            ALLOCATIONS += 1;
+            System.realloc(ptr, layout, new_size)
+        }
+    }
+
+    pub fn allocations() -> u64 { unsafe { ALLOCATIONS } }
+    /// How many times the last listing or lookup went to the allocator: 0.
+    pub fn last_cost() -> u64 { unsafe { LAST_COST } }
+
+    const LIST_BYTES: usize = 4 << 20;
+    const ONE_BYTES: usize = 4096;
+    const SEEN_SLOTS: usize = 1 << 16;
+    /// The longest string listed; a longer one is listed by its start.
+    const STRING_MAX: usize = 4096;
+    #[link_section = ".ldata.invis"]
+    static mut LIST: [u8; LIST_BYTES] = [0; LIST_BYTES];
+    #[link_section = ".ldata.invis"]
+    static mut ONE: [u8; ONE_BYTES] = [0; ONE_BYTES];
+    #[link_section = ".ldata.invis"]
+    static mut SEEN: [usize; SEEN_SLOTS] = [0; SEEN_SLOTS];
+
+    struct Out { buf: *mut u8, cap: usize, len: usize, full: bool, live: i64 }
+    impl Out {
+        fn put(&mut self, bytes: &[u8]) {
+            // one byte is always kept for the NUL
+            if self.len + bytes.len() >= self.cap { self.full = true; return; }
+            unsafe { core::ptr::copy_nonoverlapping(bytes.as_ptr(), self.buf.add(self.len), bytes.len()); }
+            self.len += bytes.len();
+        }
+        fn text(&mut self, s: &str) {
+            self.put(b"\"");
+            for b in s.bytes() {
+                match b {
+                    b'"' => self.put(b"\\\""),
+                    b'\\' => self.put(b"\\\\"),
+                    _ => self.put(&[b]),
+                }
+            }
+            self.put(b"\"");
+        }
+        fn number(&mut self, mut n: u64) {
+            let mut digits = [0u8; 20];
+            let mut at = digits.len();
+            loop {
+                at -= 1;
+                digits[at] = b'0' + (n % 10) as u8;
+                n /= 10;
+                if n == 0 { break; }
+            }
+            self.put(&digits[at..]);
+        }
+        fn end(&mut self) { unsafe { *self.buf.add(self.len) = 0; } }
+    }
+
+    /// One entry of the table, or nothing when the place is not on the Heap
+    /// bus (a constant in the program, a string too big for the small heap).
+    fn entry(out: &mut Out, place: &Place<'_>, first: bool) -> bool {
+        let len = if matches!(place.kind, Kind::Latin1 | Kind::Utf16) { place.len.min(STRING_MAX) & !(matches!(place.kind, Kind::Utf16) as usize) } else { place.len };
+        let Some(offset) = heap_bus::offset_of(place.addr, len, out.live) else { return false };
+        let mark = out.len;
+        if !first { out.put(b","); }
+        out.put(b"{\"name\":");
+        out.text(place.name);
+        out.put(b",\"group\":");
+        out.text(place.group);
+        out.put(b",\"domain\":\"Heap\",\"offset\":");
+        out.number(offset as u64);
+        match place.kind {
+            Kind::Number => out.put(b",\"type\":\"f64\""),
+            Kind::Bool => out.put(b",\"type\":\"bool\""),
+            Kind::Twips => out.put(b",\"type\":\"s32\",\"description\":\"in twips: 20 to a pixel\""),
+            Kind::Frame => out.put(b",\"type\":\"u16\""),
+            Kind::Latin1 | Kind::Utf16 => {
+                out.put(b",\"type\":\"string\",\"encoding\":");
+                out.put(if place.kind == Kind::Latin1 { b"\"latin1\"" } else { b"\"utf16le\"" });
+                out.put(b",\"length\":");
+                out.number(len as u64);
+            }
+        }
+        if !place.writable { out.put(b",\"writable\":false"); }
+        out.put(b"}");
+        if out.full { out.len = mark; return false; }
+        true
+    }
+
+    /// The whole table, as the engine reads one (docs/game-cores.md).
+    pub fn list(player: Option<&ruffle_core::Player>) -> *const u8 {
+        unsafe {
+            let before = ALLOCATIONS;
+            let mut out = Out { buf: core::ptr::addr_of_mut!(LIST) as *mut u8, cap: LIST_BYTES - 2, len: 0, full: false, live: heap_bus::live() };
+            out.put(b"{\"dynamic\":true,\"properties\":[");
+            if let Some(player) = player {
+                let seen = &mut *core::ptr::addr_of_mut!(SEEN);
+                seen.fill(0);
+                let mut count = 0usize;
+                player.chimera_variables(seen, &mut |place| {
+                    if entry(&mut out, place, count == 0) { count += 1; }
+                    !out.full
+                });
+            }
+            // the two bytes kept back: the list is closed even when it was cut short
+            out.full = false;
+            out.cap = LIST_BYTES;
+            out.put(b"]}");
+            out.end();
+            LAST_COST = ALLOCATIONS - before;
+            out.buf
+        }
+    }
+
+    /// One entry, by name, or an empty string when the name has no place now.
+    pub fn one(player: Option<&ruffle_core::Player>, name: &str) -> *const u8 {
+        unsafe {
+            let before = ALLOCATIONS;
+            let mut out = Out { buf: core::ptr::addr_of_mut!(ONE) as *mut u8, cap: ONE_BYTES, len: 0, full: false, live: heap_bus::live() };
+            if let Some(player) = player {
+                player.chimera_variable(name, &mut |place| { entry(&mut out, place, true); });
+            }
+            out.end();
+            LAST_COST = ALLOCATIONS - before;
+            out.buf
+        }
+    }
+}
+
+#[global_allocator]
+static ALLOCATOR: variables::Counting = variables::Counting;
+
+#[no_mangle]
+pub extern "C" fn GetGameProperties() -> *const u8 {
+    unsafe {
+        match &*core::ptr::addr_of!(MACHINE) {
+            Some(m) => match m.player.try_lock() {
+                Ok(player) => variables::list(Some(&player)),
+                Err(_) => variables::list(None),
+            },
+            None => variables::list(None),
+        }
+    }
+}
+
+/// `name` is a NUL-terminated UTF-8 string in the caller's memory.
+#[no_mangle]
+pub extern "C" fn GetGameProperty(name: *const u8) -> *const u8 {
+    unsafe {
+        let mut len = 0usize;
+        while !name.is_null() && len < 1024 && *name.add(len) != 0 { len += 1; }
+        let text = if name.is_null() { "" } else { core::str::from_utf8(core::slice::from_raw_parts(name, len)).unwrap_or("") };
+        match &*core::ptr::addr_of!(MACHINE) {
+            Some(m) => match m.player.try_lock() {
+                Ok(player) => variables::one(Some(&player), text),
+                Err(_) => variables::one(None, text),
+            },
+            None => variables::one(None, text),
+        }
+    }
+}
+
+/// How many times the last GetGameProperties or GetGameProperty went to the
+/// allocator. It is 0; the gate checks that it is.
+#[no_mangle]
+pub extern "C" fn GetVariableListCost() -> i64 { variables::last_cost() as i64 }
+
+/// Every call the Rust side has made to the allocator so far. Diagnostic: the
+/// gate's control reads it to see the counter is alive.
+#[no_mangle]
+pub extern "C" fn GetAllocationCount() -> i64 { variables::allocations() as i64 }
 
 /// The frame's picture, BGRA, as the chimera video contract wants it: a pointer
 /// into guest memory the host reads GetVideoWidth x GetVideoHeight pixels from.
