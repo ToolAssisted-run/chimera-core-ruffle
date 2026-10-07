@@ -15,7 +15,7 @@
       "name": "Ruffle",
       "license": "MIT or Apache-2.0",
       "url": "https://github.com/ruffle-rs/ruffle",
-      "commit": "{file:extern/ruffle-pinned-commit.txt}",
+      "commit": "{submodule:extern/ruffle}",
       "sourceUrl": "https://github.com/ruffle-rs/ruffle/archive/{commit}.tar.gz"
     },
     {

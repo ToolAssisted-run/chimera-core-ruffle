@@ -4,10 +4,10 @@ This repository is licensed as follows:
     bridge and its generator, the gate and its lists, the packaging - is
     licensed under the MIT licence, reproduced below.
 
-  * Ruffle itself is not part of this repository; it is pinned by commit in
-    extern/ruffle-pinned-commit.txt and fetched at build time. Ruffle is
-    licensed under either of Apache License 2.0 or MIT, at your option. See
-    https://github.com/ruffle-rs/ruffle.
+  * Ruffle itself is not part of this repository; it is the submodule
+    extern/ruffle, pinned by commit, and patches/ is applied to it at build
+    time. Ruffle is licensed under either of Apache License 2.0 or MIT, at
+    your option. See https://github.com/ruffle-rs/ruffle.
 
   * waterbox/extern/glad is Dav1dde's glad OpenGL loader, MIT licensed.
     See https://github.com/Dav1dde/glad.

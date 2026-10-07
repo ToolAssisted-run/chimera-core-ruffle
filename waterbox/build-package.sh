@@ -82,7 +82,7 @@ musl_version="$(cat "$mb/extern/musl/VERSION" 2>/dev/null || echo unknown)"
 binutils_version="$(ld --version | head -1 | grep -o '[0-9][0-9.]*$' || echo unknown)"
 os_id="$(. /etc/os-release 2>/dev/null && printf '%s %s' "${ID:-unknown}" "${VERSION_ID:-}" || echo unknown)"
 guest_kit="$(git -C "$mb" rev-parse --short=12 HEAD 2>/dev/null || echo unknown)"
-ruffle_pin="$(cat "$root/extern/ruffle-pinned-commit.txt" 2>/dev/null | cut -c1-12 || echo unknown)"
+ruffle_pin="$(git -C "$root" rev-parse --short=12 HEAD:extern/ruffle 2>/dev/null || echo unknown)"
 rustc_version="$(rustc +nightly --version 2>/dev/null || echo unknown)"
 python3 - "$staging/build.json" <<PYPROV
 import json, subprocess
