@@ -955,15 +955,12 @@ pub extern "C" fn SetTextInput(on: i32) {
     }
 }
 
-/// Memory domains: a Flash movie has none worth naming.
+/// Memory domains: a Flash movie has no machine RAM to name.
 ///
 /// The other cores expose a machine's flat RAM here, which is what a RAM search
 /// or a watch is for. Flash has no such thing: a movie's state is a garbage
-/// collected object graph inside the AVM, moved and recycled as it runs, and
-/// there is no address that means the same thing from one frame to the next.
-/// Publishing the guest's heap as "RAM" would be worse than publishing nothing,
-/// because it would look searchable and quietly lie. So the count is zero and
-/// the rest of the contract is answered honestly.
+/// collected object graph inside the AVM. So the count stays zero, and what
+/// there is to look at is offered as a bus instead - see GetBusCount below.
 #[no_mangle]
 pub extern "C" fn GetMemoryDomainCount() -> i32 { 0 }
 
@@ -978,6 +975,114 @@ pub extern "C" fn GetMemoryDomainSize(_i: i32) -> i64 { 0 }
 
 #[no_mangle]
 pub extern "C" fn GetMemoryDomainWritable(_i: i32) -> i32 { 0 }
+
+/// The heap, as a bus (chimera#216; user-decided, 2026-10-07).
+///
+/// Until that day this core published nothing, on the reasoning that the heap
+/// of an emulator is not a machine's RAM and would "look searchable and
+/// quietly lie". The decision reverses that with its eyes open: it is the only
+/// place a movie's values are, and being able to find one, watch it, poke it
+/// and read it from a script is worth more than the tidiness of refusing.
+///
+/// What a person is looking at, then, is RUFFLE's memory and not Flash's:
+/// - a number a movie keeps is an f64, eight bytes, wherever the AVM put it;
+///   a clip's position is in twentieths of a pixel in a 32-bit integer;
+/// - an address is good for as long as the object lives. Objects are freed
+///   and their memory reused, and a table that grows moves;
+/// - addresses are the same from run to run of one build of this core (the
+///   machine is deterministic, the allocator with it) and move with any
+///   other build. A project pins its build.
+///
+/// It is the program break's heap: `sbrk` from its arena's start to the break,
+/// which is where the allocator keeps everything under about 230 KiB - the
+/// AVM's objects and their tables. Bigger buffers (bitmaps, long arrays) are
+/// mapped elsewhere and are not here. The bus is as long as the arena can
+/// ever get, because a bus's length is read once and the heap grows; past the
+/// break it reads as zeros and ignores writes.
+///
+/// A BUS and not a domain, for that reason: a domain is a pointer and a
+/// length the host reads by itself, and the pages past the break are not
+/// there to be read. Reading changes nothing in the machine: a run inside the
+/// heap is answered with a pointer to it, and the one buffer used for a run
+/// that straddles the break is invisible to savestates.
+mod heap_bus {
+    #[repr(C)]
+    struct Range { start: u64, size: u64 }
+    #[repr(C)]
+    struct Layout { elf: Range, main_thread: Range, alt_thread: Range, sbrk: Range, sealed: Range, invis: Range, plain: Range, mmap: Range }
+    extern "C" {
+        // the sandbox's layout, written into the guest when it is loaded (emulibc)
+        static __wbxsysinfo: Layout;
+        fn sbrk(increment: isize) -> *mut core::ffi::c_void;
+    }
+    pub const RUN: usize = 65536; // CE_BUS_READ_CHUNK: the most the engine asks for at once
+    #[link_section = ".ldata.invis"]
+    static mut SCRATCH: [u8; RUN] = [0; RUN];
+
+    pub fn capacity() -> i64 { unsafe { __wbxsysinfo.sbrk.size as i64 } }
+    fn start() -> *mut u8 { unsafe { __wbxsysinfo.sbrk.start as *mut u8 } }
+    /// How much of the arena is heap right now.
+    pub fn live() -> i64 {
+        let brk = unsafe { sbrk(0) } as i64;
+        (brk - start() as i64).clamp(0, capacity())
+    }
+    pub fn peek(addr: i64) -> i32 {
+        if addr < 0 || addr >= live() { return 0; }
+        unsafe { *start().add(addr as usize) as i32 }
+    }
+    pub fn poke(addr: i64, value: u8) {
+        if addr < 0 || addr >= live() { return; }
+        unsafe { *start().add(addr as usize) = value; }
+    }
+    pub fn read(addr: i64, len: i32) -> *const u8 {
+        let len = (len.max(0) as usize).min(RUN);
+        let live = live();
+        if addr >= 0 && addr + len as i64 <= live {
+            return unsafe { start().add(addr as usize) };
+        }
+        unsafe {
+            let scratch = core::ptr::addr_of_mut!(SCRATCH) as *mut u8;
+            core::ptr::write_bytes(scratch, 0, len);
+            if addr >= 0 && addr < live {
+                core::ptr::copy_nonoverlapping(start().add(addr as usize), scratch, (live - addr) as usize);
+            }
+            scratch
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn GetBusCount() -> i32 { 1 }
+
+#[no_mangle]
+pub extern "C" fn GetBusName(_i: i32) -> *const u8 { b"Heap\0".as_ptr() }
+
+#[no_mangle]
+pub extern "C" fn GetBusSize(_i: i32) -> i64 { heap_bus::capacity() }
+
+#[no_mangle]
+pub extern "C" fn GetBusWritable(_i: i32) -> i32 { 1 }
+
+#[no_mangle]
+pub extern "C" fn PeekBus(bus: i32, addr: i32) -> i32 {
+    if bus != 0 { 0 } else { heap_bus::peek(addr as i64) }
+}
+
+#[no_mangle]
+pub extern "C" fn PokeBus(bus: i32, addr: i32, value: i32) {
+    if bus == 0 { heap_bus::poke(addr as i64, value as u8) }
+}
+
+/// Up to 64 KiB of the bus at once (chimera engine.h, ce_session_bus_read).
+#[no_mangle]
+pub extern "C" fn ReadBus(bus: i32, addr: i64, len: i32) -> *const u8 {
+    heap_bus::read(if bus != 0 { -1 } else { addr }, len)
+}
+
+/// How much of the Heap bus is heap at this moment (the rest reads as zeros).
+/// Diagnostic: the gate reads it; nothing in a session does.
+#[no_mangle]
+pub extern "C" fn GetHeapBytes() -> i64 { heap_bus::live() }
 
 /// The frame's picture, BGRA, as the chimera video contract wants it: a pointer
 /// into guest memory the host reads GetVideoWidth x GetVideoHeight pixels from.

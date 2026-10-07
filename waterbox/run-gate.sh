@@ -402,7 +402,52 @@ if [ "$have_sandbox" = 1 ]; then
   fi
 fi
 
+# ---- the Heap bus: a movie's values, where the tools can reach them ----
+# A Flash movie has no RAM, and this core published none until chimera#216
+# (user-decided, 2026-10-07): its heap is now a bus, "Heap". The claim is that
+# a number a movie keeps can be found there, watched, and changed - so the
+# counter movie (tests/make-counter-swf.py: v = v + 1 and trace(v), once a
+# frame) is run to a known value and the bus is asked, through the exports the
+# tools use:
+#   found     the value is in the heap, and a frame later at least one of
+#             those places holds the next value (a variable, not a leftover);
+#   poked     one of those places, written with another number, is where the
+#             movie carries on from - its own trace says so;
+#   absent    a number the movie never held is at no place that follows it
+#             (the control: the search can come back empty);
+#   untouched reading the whole bus changes nothing: the trace of a run that
+#             was searched is the trace of one that was not;
+#   repeat    two runs find the same places (one build, one machine);
+#   bounded   past the program break the bus reads as zeros.
+hok=0; hbad=0; htotal=0
 if [ "$have_sandbox" = 1 ]; then
+  htmp=$(mktemp -d)
+  python3 "$root/tests/make-counter-swf.py" "$htmp/counter.swf"
+  hrun() { timeout 120 "$wbx" "$core" "$htmp/counter.swf" --no-gpu "$@" 2>/dev/null; }
+  hplain=$(hrun --frames 40)
+  hnow=$(printf '%s\n' "$hplain" | tail -1)
+  hprobe=$(hrun --frames 40 --heap-probe "$hnow" --heap-poke 987654321)
+  hagain=$(hrun --frames 40 --heap-probe "$hnow" --heap-poke 987654321)
+  hscan=$(hrun --frames 40 --heap-probe "$hnow")
+  hplain41=$(hrun --frames 41)
+  habsent=$(hrun --frames 40 --heap-probe "$hnow.5")
+  hcheck() { # name, 0 when it holds, what to say when it does not
+    htotal=$((htotal+1))
+    if [ "$2" = 0 ]; then hok=$((hok+1)); else hbad=$((hbad+1)); echo "  heap $1: $3"; fi
+  }
+  hline=$(printf '%s\n' "$hprobe" | grep '^heap: .* place(s)')
+  hlive=$(printf '%s\n' "$hline" | sed -n 's/.*; \([0-9]*\) of them hold.*/\1/p')
+  [ "${hnow:-0}" -gt 123456789 ] 2>/dev/null && [ "${hlive:-0}" -ge 1 ]; hcheck found $? "the movie says '$hnow'; the bus: ${hline:-nothing}"
+  printf '%s\n' "$hprobe" | grep -q 'and the movie went on from it'; hcheck poked $? "$(printf '%s\n' "$hprobe" | grep '^heap: poked' | tail -1)"
+  printf '%s\n' "$habsent" | grep -q '; 0 of them hold'; hcheck absent $? "$(printf '%s\n' "$habsent" | grep 'place(s)')"
+  [ "$(printf '%s\n' "$hscan" | grep -v '^heap: ')" = "$hplain41" ]; hcheck untouched $? "a searched run's trace is not the unsearched run's"
+  [ -n "$hline" ] && [ "$(printf '%s\n' "$hprobe" | grep '^heap: ')" = "$(printf '%s\n' "$hagain" | grep '^heap: ')" ]; hcheck repeat $? "two runs disagree about where"
+  printf '%s\n' "$hprobe" | grep -q 'zeros past the break: yes'; hcheck bounded $? "$(printf '%s\n' "$hprobe" | grep 'bus(es)')"
+  rm -rf "$htmp"
+fi
+
+if [ "$have_sandbox" = 1 ]; then
+  echo "ruffle heap gate: $hok/$htotal the Heap bus holds a movie's number where it can be found, followed and changed, and reading it changes nothing; $hbad failures"
   echo "ruffle settings gate: $pok/$ptotal the settings channel reaches the player - the movie reports the address it was told to, quality and font substitution show up in the frame, and every other setting is invisible at its declared default; $pbad failures"
   echo "ruffle state gate: $sok/$stotal movies survive a save and reload before every frame with the same trace, audio and picture; $sbadstate failures"
   echo "ruffle image gate: $gok/$gtotal movies draw the frame ruffle draws (both renderers, each to its own stated budget), reruns identical; $gbad failures"
@@ -414,4 +459,4 @@ if [ "$have_sandbox" = 1 ]; then
 else
   echo "ruffle gate: $ok/$total trace-identical to ruffle AND deterministic; $bad correctness, $nondet determinism failures (sandbox SKIPPED: build waterbox/build/core.wbx with build-guest.sh)"
 fi
-[ "$bad" -eq 0 ] && [ "$nondet" -eq 0 ] && [ "$sbad" -eq 0 ] && [ "$ibad" -eq 0 ] && [ "$fbad" -eq 0 ] && [ "$abad" -eq 0 ] && [ "$nbad" -eq 0 ] && [ "$gbad" -eq 0 ] && [ "$sbadstate" -eq 0 ] && [ "$pbad" -eq 0 ]
+[ "$bad" -eq 0 ] && [ "$nondet" -eq 0 ] && [ "$sbad" -eq 0 ] && [ "$ibad" -eq 0 ] && [ "$fbad" -eq 0 ] && [ "$abad" -eq 0 ] && [ "$nbad" -eq 0 ] && [ "$gbad" -eq 0 ] && [ "$sbadstate" -eq 0 ] && [ "$pbad" -eq 0 ] && [ "$hbad" -eq 0 ]

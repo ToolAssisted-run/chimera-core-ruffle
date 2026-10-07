@@ -863,3 +863,65 @@ not that a real movie's picture is right on real hardware. No wrong picture was
 reproduced here on any core; what connects the fix to the report is that it is
 the one thing that differs between the frames the reporter says are broken and
 the frame they say is not.
+
+## The heap is a bus (issue #216, 2026-10-07)
+
+User-decided, 2026-10-07, reversing M-era "memory domains, honestly empty"
+above. That entry's reasoning stands as a description - a movie's state is a
+garbage collected object graph, not a machine's RAM - and the decision goes
+the other way with it in view: the heap is the only place a movie's values
+are, and finding one, watching it, poking it and reading it from a script is
+worth having even though what is being looked at is Ruffle's memory and not
+Flash's. Asked for by a Flash TASer (chimera#216) after RAM Search was greyed
+out for this core (chimera#197).
+
+What is published: one bus, "Heap" - the program break's heap, from the
+sbrk arena's start (the sandbox's layout, `__wbxsysinfo`) to the break. Not a
+memory domain: a domain is a pointer and a length the host reads by itself,
+its length is taken once, and the heap grows; the pages past the break are
+not there to be read. So the bus is as long as the arena can get (256 MiB),
+reads zeros past the break and ignores writes there, and is writable below
+it. A run inside the heap is answered with a pointer into it, so reading
+copies nothing and dirties nothing; the one buffer used for a run across the
+break is invisible to savestates. `GetMemoryDomainCount` stays 0.
+
+What a person finds there, measured with a three-frame counter movie
+(`tests/make-counter-swf.py`: `v = v + 1; trace(v)` once a frame) at frame
+40, where the movie says 123456828:
+
+- the value as an f64 at three places. A frame later all three hold
+  123456829 - two are the AVM's stack (the leftovers of `v + 1` and of the
+  `trace`), written over every frame, and one is the variable;
+- which is which is found the way a person finds it: poke another number
+  in. At two of them the movie carries on as before; at the third its next
+  trace is the poked number plus one;
+- 35 MiB of the 256 is heap at that point, and a whole-bus search costs
+  about a second;
+- the same places on a second run (one build of the core, one machine);
+- reading the whole bus leaves the trace of the run as it would have been.
+
+Through the frontend the same: headless Chimera's Lua (`memory.*` on the
+domain "Heap") finds the three, follows them, and the poke that takes is
+the third.
+
+What it is not:
+
+- Not everything. The allocator maps anything over about 230 KiB elsewhere
+  (bitmaps, long arrays), and that is not on the bus. A movie's objects and
+  their tables are far under that.
+- Not stable across builds. Addresses repeat for one build of the core and
+  move with any other; a project pins its build, so a watch file belongs to
+  the project it was made in.
+- Not Flash's types. A number is eight bytes of IEEE double - the frontend's
+  RAM Search and RAM Watch take one, two and four byte values, so a number
+  needs an 8-byte type there (chimera's side, tracked with this issue). A
+  clip's `_x` is not a number at all but twentieths of a pixel in an i32.
+- Not safe to scribble on. A poke on a pointer kills the machine (the guest
+  dies and Chimera says so; a state load brings it back). A poke on a value
+  is what the tool is for.
+
+Gate: "ruffle heap gate", six legs on the counter movie through the bus's own
+exports (run-wbx `--heap-probe V [--heap-poke W]`): found, poked, absent (a
+number the movie never held follows nothing - the control), untouched,
+repeat, bounded.
+

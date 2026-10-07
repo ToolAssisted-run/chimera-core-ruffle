@@ -81,6 +81,7 @@ int main(int argc, char **argv) {
 	int noRender = 0;
 	int from_vfs = 0;
 	int noGpu = 0;
+	int heapProbe = 0, heapPoke = 0; double heapValue = 0, heapPokeValue = 0;
 	const char *files[64][2]; int nfiles = 0;
 	for (int i = 3; i < argc; i++) {
 		if (!strcmp(argv[i], "--frames") && i + 1 < argc) frames = atol(argv[++i]);
@@ -102,6 +103,8 @@ int main(int argc, char **argv) {
 		 * like. The software renderer has to draw anyway; the hardware one has
 		 * to refuse. Both are things the gate should be able to ask for. */
 		else if (!strcmp(argv[i], "--no-gpu")) noGpu = 1;
+		else if (!strcmp(argv[i], "--heap-probe") && i + 1 < argc) { heapProbe = 1; heapValue = strtod(argv[++i], NULL); }
+		else if (!strcmp(argv[i], "--heap-poke") && i + 1 < argc) { heapPoke = 1; heapPokeValue = strtod(argv[++i], NULL); }
 		else if (!strcmp(argv[i], "--file") && i + 1 < argc && nfiles < 64) {
 			char *eq = strchr(argv[++i], '=');
 			if (eq) { *eq = 0; files[nfiles][0] = argv[i]; files[nfiles][1] = eq + 1; nfiles++; }
@@ -322,6 +325,67 @@ no_bridge:
 	if (audiof) fclose(audiof);
 	if (peaksf) fclose(peaksf);
 
+	/* The Heap bus (chimera#216): a number the movie keeps is somewhere in the
+	 * heap as an f64. --heap-probe V finds every place the bus holds V now,
+	 * steps the movie one frame, and counts the places that then hold V + 1 -
+	 * which is how a variable is told from a stale copy. --heap-poke W writes W
+	 * over the first of those and steps one more frame, so the trace says
+	 * whether the movie took it. All of it through the bus's own exports, as
+	 * the tools reach it. */
+	if (heapProbe) {
+		int32_t (*GetBusCount)(void) = (int32_t (*)(void))proc(h, "GetBusCount");
+		const char *(*GetBusName)(int32_t) = (const char *(*)(int32_t))proc(h, "GetBusName");
+		int64_t (*GetBusSize)(int32_t) = (int64_t (*)(int32_t))proc(h, "GetBusSize");
+		const uint8_t *(*ReadBus)(int32_t, int64_t, int32_t) = (const uint8_t *(*)(int32_t, int64_t, int32_t))proc(h, "ReadBus");
+		int32_t (*PeekBus)(int32_t, int32_t) = (int32_t (*)(int32_t, int32_t))proc(h, "PeekBus");
+		void (*PokeBus)(int32_t, int32_t, int32_t) = (void (*)(int32_t, int32_t, int32_t))proc(h, "PokeBus");
+		int64_t (*GetHeapBytes)(void) = (int64_t (*)(void))proc(h, "GetHeapBytes");
+		const int64_t size = GetBusSize(0), live = GetHeapBytes();
+		static int64_t found[4096], alive[4096];
+		int nfound = 0, nlive = 0;
+		int64_t first = -1;
+		uint64_t beyond = 0;
+		for (int64_t at = 0; at < size; at += 65536) {
+			const uint8_t *run = ReadBus(0, at, 65536);
+			if (at >= live) { for (int k = 0; k < 65536; k++) beyond |= run[k]; continue; }
+			for (int k = 0; k + 8 <= 65536; k += 8) {
+				double d; memcpy(&d, run + k, 8);
+				if (d == heapValue && nfound < 4096) found[nfound++] = at + k;
+			}
+		}
+		FrameAdvance(0);
+		for (int k = 0; k < nfound; k++) {
+			double d; uint8_t b[8];
+			for (int j = 0; j < 8; j++) b[j] = (uint8_t)PeekBus(0, (int32_t)(found[k] + j));
+			memcpy(&d, b, 8);
+			if (d == heapValue + 1) { alive[nlive++] = found[k]; if (first < 0) first = found[k]; }
+		}
+		printf("heap: %d bus(es), \"%s\", %lld bytes of it heap now, %lld the most; zeros past the break: %s\n",
+			GetBusCount(), GetBusName(0), (long long)live, (long long)size, beyond ? "NO" : "yes");
+		printf("heap: %.17g at %d place(s); %d of them hold %.17g a frame later (first at 0x%llx)\n",
+			heapValue, nfound, nlive, heapValue + 1, (unsigned long long)(first < 0 ? 0 : first));
+		/* Which of them is the variable, as a person finds out: poke one and
+		 * see whether the movie carries on from the poked value. The others
+		 * are the AVM's own leftovers (its stack), written over next frame. */
+		for (int k = 0; heapPoke && k < nlive; k++) {
+			const double w = heapPokeValue + 1000.0 * k;
+			uint8_t b[8]; memcpy(b, &w, 8);
+			for (int j = 0; j < 8; j++) PokeBus(0, (int32_t)(alive[k] + j), b[j]);
+			FrameAdvance(0);
+			const int64_t tn = GetTtySize();
+			const char *t = (const char *)GetTty();
+			int64_t e = tn; while (e > 0 && (t[e - 1] == '\n' || t[e - 1] == '\r')) e--;
+			int64_t b0 = e; while (b0 > 0 && t[b0 - 1] != '\n') b0--;
+			char line[64] = ""; if (e - b0 < 63) memcpy(line, t + b0, (size_t)(e - b0));
+			if (strtod(line, NULL) == w + 1) {
+				printf("heap: poked %.17g at 0x%llx and the movie went on from it (it says %s)\n", w, (unsigned long long)alive[k], line);
+				break;
+			}
+			printf("heap: poked %.17g at 0x%llx: not the variable (the movie says %s)\n", w, (unsigned long long)alive[k], line);
+		}
+		PokeBus(0, (int32_t)(live + 4096), 0xff); /* past the break: must go nowhere */
+		fflush(stdout);
+	}
 	int64_t n = GetTtySize();
 	const uint8_t *tty = GetTty();
 	if (!quiet && n > 0) fwrite(tty, 1, (size_t)n, stdout);
