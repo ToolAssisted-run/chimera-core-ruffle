@@ -1,0 +1,399 @@
+diff --git a/core/src/avm2/object/script_object.rs b/core/src/avm2/object/script_object.rs
+--- a/core/src/avm2/object/script_object.rs
++++ b/core/src/avm2/object/script_object.rs
+@@ -6,6 +6,7 @@
+ use crate::avm2::error;
+ use crate::avm2::object::array_object::parse_u32_index;
+ use crate::avm2::object::{ArrayObject, ClassObject, FunctionObject, Object, TObject};
++use crate::avm2::property::Property;
+ use crate::avm2::value::Value;
+ use crate::avm2::vtable::VTable;
+ use crate::avm2::{Error, Multiname, QName};
+@@ -177,6 +178,47 @@
+ pub struct ScriptObjectWrapper<'gc>(pub Gc<'gc, ScriptObjectData<'gc>>);
+ 
+ impl<'gc> ScriptObjectWrapper<'gc> {
++    /// chimera: every slot the object has a name for, to `f`: the name, where
++    /// the value is kept, and whether it is a constant (chimera_vars). Nothing
++    /// is called and nothing is made; `f` answers whether to go on.
++    pub fn chimera_slots(
++        &self,
++        mut f: impl FnMut(&crate::string::WStr, *const Value<'gc>, bool) -> bool,
++    ) {
++        for (name, _namespace, property) in self.vtable().resolved_traits().iter() {
++            let (id, constant) = match property {
++                Property::Slot { slot_id } => (*slot_id, false),
++                Property::ConstSlot { slot_id } => (*slot_id, true),
++                _ => continue,
++            };
++            if let Some(slot) = self.0.slots.get(id) {
++                if !f(name.as_wstr(), slot.as_ptr() as *const Value<'gc>, constant) {
++                    return;
++                }
++            }
++        }
++    }
++
++    /// chimera: the object's dynamic properties whose name is text or a
++    /// number, to `f`: the text (or none, and the number) and where the value
++    /// is kept.
++    pub fn chimera_dynamic(
++        &self,
++        mut f: impl FnMut(Option<&crate::string::WStr>, u32, *const Value<'gc>) -> bool,
++    ) {
++        let values = self.0.values.borrow();
++        for (key, property) in values.iter() {
++            let more = match key {
++                DynamicKey::String(name) => f(Some(name.as_wstr()), 0, &property.value),
++                DynamicKey::Uint(index) => f(None, *index, &property.value),
++                DynamicKey::Object(_) => true,
++            };
++            if !more {
++                return;
++            }
++        }
++    }
++
+     /// Retrieve the values stored directly on this ScriptObjectData.
+     pub fn values(&self) -> Ref<'_, DynamicMap<DynamicKey<'gc>, Value<'gc>>> {
+         self.0.values.borrow()
+diff --git a/core/src/chimera_vars.rs b/core/src/chimera_vars.rs
+--- a/core/src/chimera_vars.rs
++++ b/core/src/chimera_vars.rs
+@@ -22,16 +22,24 @@
+ //!
+ //! What has a place: a number (the `f64` in its slot), a boolean, a string's
+ //! characters (read only: a string is shared and never changed in place), and
+-//! a clip's own position and frame. ActionScript 1 and 2 only; a movie in
+-//! ActionScript 3 lists nothing.
++//! a clip's own position and frame.
+ //!
+ //! Names are the ones a script would write: `_root.hero.hp`, `_level2.score`,
+-//! `_global.lives`, `_root.grid[3].owner`. A place is good until the movie
++//! `_global.lives`, `_root.grid[3].owner`. In an ActionScript 3 movie they
++//! start at `root`, the document class's instance: `root.score`,
++//! `root.player.hp`, `root.grid[3]`, `root.player.x`. There a variable is a
++//! slot of its object whatever its namespace - private ones too - or a
++//! dynamic property; a number is an `int` (four bytes) while its value is
++//! whole and a double while it is not, which is how the player keeps it; and
++//! an object that is on the stage is listed where a variable first leads to
++//! it, and under its instance name otherwise. Class (static) variables are
++//! not listed: nothing on the stage leads to them. A place is good until the movie
+ //! runs again: a slot moves when its object gains a property, and is gone
+ //! when the object is. That is why `find` exists - the tool asks again, by
+ //! name, every time it is about to read.
+ 
+ use crate::avm1::{Avm1, NativeObject, Object, Value};
++use crate::avm2::{Object as Object2, TObject as _, Value as Value2};
+ use crate::display_object::{DisplayObject, Stage, TDisplayObject, TDisplayObjectContainer};
+ use crate::string::{Units, WStr};
+ 
+@@ -42,6 +50,8 @@
+     Number,
+     /// A boolean: one byte, 0 or 1.
+     Bool,
++    /// A whole number as ActionScript 3 keeps one: four bytes, signed.
++    Int,
+     /// A string's characters, one byte each (Latin-1).
+     Latin1,
+     /// A string's characters, two bytes each (UTF-16, little endian).
+@@ -311,6 +321,263 @@
+     }
+ }
+ 
++// ---- ActionScript 3 --------------------------------------------------------
++
++/// The place of an ActionScript 3 value that has one.
++fn scalar2(value: &Value2<'_>) -> Option<(Kind, usize, usize, bool)> {
++    match value {
++        Value2::Number(n) => Some((Kind::Number, n as *const f64 as usize, 8, true)),
++        Value2::Integer(i) => Some((Kind::Int, i as *const i32 as usize, 4, true)),
++        Value2::Bool(b) => Some((Kind::Bool, b as *const bool as usize, 1, true)),
++        Value2::String(s) => match s.as_wstr().units() {
++            Units::Bytes(b) if !b.is_empty() => {
++                Some((Kind::Latin1, b.as_ptr() as usize, b.len(), false))
++            }
++            Units::Wide(w) if !w.is_empty() => {
++                Some((Kind::Utf16, w.as_ptr() as usize, w.len() * 2, false))
++            }
++            _ => None,
++        },
++        _ => None,
++    }
++}
++
++impl Path {
++    /// Adds `[n]`.
++    fn push_index(&mut self, index: u32) -> bool {
++        let mut digits = [0u8; 10];
++        let mut n = 0;
++        let mut left = index;
++        loop {
++            digits[n] = b'0' + (left % 10) as u8;
++            n += 1;
++            left /= 10;
++            if left == 0 {
++                break;
++            }
++        }
++        if !self.push_char('[') {
++            return false;
++        }
++        while n > 0 {
++            n -= 1;
++            if !self.push_char(digits[n] as char) {
++                return false;
++            }
++        }
++        self.push_char(']')
++    }
++}
++
++impl Walk<'_> {
++    /// What a variable holds: a place, or an object to go into.
++    fn value2<'gc>(&mut self, value: &Value2<'gc>, constant: bool, depth: usize) {
++        if let Some((kind, addr, len, writable)) = scalar2(value) {
++            self.emit(kind, addr, len, writable && !constant);
++        } else if let Value2::Object(inner) = value {
++            if depth >= MAX_OBJECT_DEPTH {
++                self.complete = false;
++            } else if let Some(clip) = inner.as_display_object() {
++                self.clip2(clip, depth + 1);
++            } else if self.first_visit(inner.as_ptr() as usize) {
++                self.members2(*inner, depth + 1);
++            }
++        }
++    }
++
++    /// An object's slots and its dynamic properties.
++    fn members2<'gc>(&mut self, object: Object2<'gc>, depth: usize) {
++        let base = object.base();
++        base.chimera_slots(|name, place, constant| {
++            let at = self.path.len;
++            if self.path.push_name(name, false) {
++                // SAFETY: a slot lives as long as its object, and nothing runs meanwhile
++                self.value2(unsafe { &*place }, constant, depth);
++            }
++            self.path.len = at;
++            !self.stopped
++        });
++        if self.stopped {
++            return;
++        }
++        base.chimera_dynamic(|name, index, place| {
++            let at = self.path.len;
++            let spelt = match name {
++                Some(name) => self.path.push_name(name, is_index(name)),
++                None => self.path.push_index(index),
++            };
++            if spelt {
++                // SAFETY: the map is borrowed for as long as this runs
++                self.value2(unsafe { &*place }, false, depth);
++            }
++            self.path.len = at;
++            !self.stopped
++        });
++    }
++
++    /// An object on the stage: where it is, what its object holds, and what is
++    /// inside it that no variable led to.
++    fn clip2<'gc>(&mut self, clip: DisplayObject<'gc>, depth: usize) {
++        if self.stopped {
++            return;
++        }
++        let Some(object) = clip.object2() else { return };
++        let object: Object2<'gc> = object.into();
++        if !self.first_visit(object.as_ptr() as usize) {
++            return;
++        }
++        let outer_group = self.group_len;
++        self.group_len = self.path.len;
++
++        let matrix = clip.base().chimera_matrix_place();
++        // SAFETY: only the fields' addresses are taken, nothing is read
++        let (tx, ty) = unsafe {
++            (
++                core::ptr::addr_of!((*matrix).tx) as usize,
++                core::ptr::addr_of!((*matrix).ty) as usize,
++            )
++        };
++        self.builtin("x", Kind::Twips, tx, 4);
++        self.builtin("y", Kind::Twips, ty, 4);
++        if let Some(movie_clip) = clip.as_movie_clip() {
++            let frame = movie_clip.chimera_current_frame_place() as usize;
++            self.builtin("currentFrame", Kind::Frame, frame, 2);
++        }
++
++        self.members2(object, depth);
++
++        if let Some(container) = clip.as_container() {
++            if depth >= MAX_CLIP_DEPTH {
++                self.complete = false;
++            } else {
++                let mut index = 0;
++                while let Some(child) = container.child_by_index(index) {
++                    index += 1;
++                    if self.stopped {
++                        break;
++                    }
++                    let Some(name) = child.name() else { continue };
++                    let at = self.path.len;
++                    if self.path.push_name(name.as_wstr(), false) {
++                        self.clip2(child, depth + 1);
++                    }
++                    self.path.len = at;
++                }
++            }
++        }
++        self.group_len = outer_group;
++    }
++}
++
++/// One step of a path in an ActionScript 3 movie: the member of that name.
++fn step2<'gc>(object: Object2<'gc>, name: &WStr) -> Option<(*const Value2<'gc>, bool)> {
++    let base = object.base();
++    let mut found = None;
++    base.chimera_slots(|slot, place, constant| {
++        if slot == name {
++            found = Some((place, constant));
++        }
++        found.is_none()
++    });
++    if found.is_none() {
++        let index = if is_index(name) { name.parse::<u32>().ok() } else { None };
++        base.chimera_dynamic(|key, number, place| {
++            let same = match key {
++                Some(key) => key == name,
++                None => index == Some(number),
++            };
++            if same {
++                found = Some((place, false));
++            }
++            found.is_none()
++        });
++    }
++    found
++}
++
++/// The first object of that name inside another, in the order they are drawn.
++fn child_named2<'gc>(clip: DisplayObject<'gc>, name: &WStr) -> Option<DisplayObject<'gc>> {
++    let container = clip.as_container()?;
++    let mut index = 0;
++    while let Some(child) = container.child_by_index(index) {
++        index += 1;
++        if child.name().is_some_and(|n| n.as_wstr() == name) && child.object2().is_some() {
++            return Some(child);
++        }
++    }
++    None
++}
++
++/// `find`, for an ActionScript 3 movie: `root`, then members and children.
++fn find2<'gc>(stage: Stage<'gc>, path: &str, sink: &mut dyn FnMut(&Place<'_>)) -> bool {
++    let Some((first, mut at, last)) = next_name(path, 0) else {
++        return false;
++    };
++    if last || first != "root" {
++        return false;
++    }
++    let Some(root) = stage.root_clip() else { return false };
++    let mut clip = Some(root);
++    let mut object: Option<Object2<'gc>> = root.object2().map(Into::into);
++    let mut group_len = first.len();
++    loop {
++        let Some(object_now) = object else { return false };
++        let Some((name, next, is_last)) = next_name(path, at) else {
++            return false;
++        };
++        let name_end = if is_last { path.len() } else { next - usize::from(path.as_bytes()[next - 1] == b'.') };
++
++        let member = with_name(name, |w| step2(object_now, w)).flatten();
++        if let Some((place, constant)) = member {
++            // SAFETY: a slot lives as long as its object, and nothing runs meanwhile
++            let value = unsafe { &*place };
++            if let Some((kind, addr, len, writable)) = scalar2(value) {
++                if !is_last {
++                    return false;
++                }
++                sink(&Place { name: path, group: &path[..group_len], kind, addr, len, writable: writable && !constant });
++                return true;
++            }
++            let Value2::Object(inner) = value else { return false };
++            if is_last {
++                return false;
++            }
++            clip = inner.as_display_object();
++            if clip.is_some() {
++                group_len = name_end;
++            }
++            object = Some(*inner);
++        } else if let Some(c) = clip {
++            if is_last {
++                let matrix = c.base().chimera_matrix_place();
++                // SAFETY: only the fields' addresses are taken
++                let place = unsafe {
++                    match name {
++                        "x" => Some((Kind::Twips, core::ptr::addr_of!((*matrix).tx) as usize, 4)),
++                        "y" => Some((Kind::Twips, core::ptr::addr_of!((*matrix).ty) as usize, 4)),
++                        "currentFrame" => c
++                            .as_movie_clip()
++                            .map(|m| (Kind::Frame, m.chimera_current_frame_place() as usize, 2)),
++                        _ => None,
++                    }
++                };
++                let Some((kind, addr, len)) = place else { return false };
++                sink(&Place { name: path, group: &path[..group_len], kind, addr, len, writable: false });
++                return true;
++            }
++            let Some(child) = with_name(name, |w| child_named2(c, w)).flatten() else {
++                return false;
++            };
++            clip = Some(child);
++            object = child.object2().map(Into::into);
++            group_len = name_end;
++        } else {
++            return false;
++        }
++        at = next;
++    }
++}
++
+ /// `_root` for the first level, `_levelN` for the others.
+ fn push_level(path: &mut Path, level: i32) -> bool {
+     if level == 0 {
+@@ -352,9 +619,7 @@
+     seen: &mut [usize],
+     sink: &mut dyn FnMut(&Place<'_>) -> bool,
+ ) -> bool {
+-    let Some(case_sensitive) = avm1_movie(stage) else {
+-        return true;
+-    };
++    let avm1_case = avm1_movie(stage);
+     let mut walk = Walk {
+         path: Path {
+             bytes: [0; PATH_MAX],
+@@ -368,6 +633,15 @@
+         complete: true,
+     };
+ 
++    let Some(case_sensitive) = avm1_case else {
++        // ActionScript 3: everything starts at the document class's instance
++        if let Some(root) = stage.root_clip() {
++            walk.path.push_str("root");
++            walk.clip2(root, 0);
++        }
++        return walk.complete;
++    };
++
+     let mut index = 0;
+     while let Some(level) = stage.child_by_index(index) {
+         index += 1;
+@@ -503,7 +777,7 @@
+     sink: &mut dyn FnMut(&Place<'_>),
+ ) -> bool {
+     let Some(case_sensitive) = avm1_movie(stage) else {
+-        return false;
++        return find2(stage, path, sink);
+     };
+     let Some((first, mut at, mut last)) = next_name(path, 0) else {
+         return false;

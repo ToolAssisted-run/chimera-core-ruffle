@@ -460,6 +460,13 @@ no_bridge:
 					for (int j = 0; j < 8; j++) PokeBus(0, (int32_t)(at + j), w[j]);
 					printf("var: poked %.17g into %s\n", varPokeValue, varNames[v]);
 				}
+				else if (varPoke && f == 0 && v == 0 && !strncmp(type, "s32", 3)) {
+					/* an ActionScript 3 whole number: four bytes */
+					int32_t whole = (int32_t)varPokeValue;
+					uint8_t w[4]; memcpy(w, &whole, 4);
+					for (int j = 0; j < 4; j++) PokeBus(0, (int32_t)(at + j), w[j]);
+					printf("var: poked %d into %s\n", whole, varNames[v]);
+				}
 			}
 			if (f + 1 < varFrames) FrameAdvance(0);
 		}

@@ -452,7 +452,8 @@ fi
 # that has a place in memory as a game property on that bus
 # (GetGameProperties), and says where one is now when asked by name
 # (GetGameProperty) - a variable moves when its object's table grows. The
-# movie is tests/make-variables-swf.py, whose list is known without running
+# movie is tests/make-variables-swf.py (and make-as3-variables-swf.py for
+# ActionScript 3), whose list is known without running
 # anything, so the legs compare with what the script says and not with what
 # the core said last time:
 #   listed      the list is exactly the movie's: every name, with its type;
@@ -564,8 +565,66 @@ var: _global.lives = 3"
   vkeep=$(vrun vars --frames 20 --quiet --variable _root.WHO --variable _root.SHIP.Fuel --variable _global.LIVES --variable _root.who | grep -c ' = ')
   [ "$vfold" = 3 ] && [ "$vkeep" = 1 ]; vcheck case $? "version 6 found $vfold of 3 names in the other case, version 8 found $vkeep of 4 (1 is right)"
 
-  vas3=$(timeout 120 "$wbx" "$core" "$root/extern/ruffle/tests/tests/swfs/avm2/hello_world/test.swf" --no-gpu --frames 5 --quiet --variables 2>/dev/null | sed -n 's/^vars: \([0-9]*\) listed.*/\1/p')
-  [ "$vas3" = 0 ]; vcheck as3 $? "an ActionScript 3 movie listed '${vas3:-nothing}'"
+  # ActionScript 3 (chimera#216): tests/make-as3-variables-swf.py, a document
+  # class written out as bytecode, whose variables are known without running
+  # it. They start at `root`. A slot is listed whatever its namespace (secret
+  # is private), a dynamic property too (inner.depth), and _needsSoftKeyboard
+  # is the player's own: a private variable of a class the player wrote in
+  # ActionScript, which the instance has like any other.
+  python3 "$root/tests/make-as3-variables-swf.py" "$vtmp/as3.swf"
+  alist=$(vrun as3 --frames 20 --quiet --variables)
+  anames=$(printf '%s\n' "$alist" | sed -n 's/^vars: {/{/p' | python3 -c '
+import json, sys
+for p in json.load(sys.stdin)["properties"]:
+    print(p["name"], p["type"], p.get("group"), "ro" if p.get("writable") is False else "rw")' 2>&1 | sort)
+  awant=$(sort <<'WANT'
+root._needsSoftKeyboard bool root rw
+root.alive bool root rw
+root.count s32 root rw
+root.currentFrame u16 root ro
+root.inner.depth s32 root rw
+root.label string root ro
+root.secret s32 root rw
+root.speed f64 root rw
+root.x s32 root ro
+root.y s32 root ro
+WANT
+)
+  [ "$anames" = "$awant" ]; vcheck 'as3 listed' $? "the list is not the movie's: $(printf '%s' "$anames" | tr '\n' ';' | cut -c1-600)"
+
+  # followed by name, a frame at a time: count goes up by one, speed by a
+  # quarter, and the two say the same number of frames have run
+  afollow=$(vrun as3 --frames 5 --quiet --variable root.count --variable root.speed --variable-frames 40)
+  asteps=$(printf '%s\n' "$afollow" | awk '
+    /^var: root.count = / { c = $4; if (n++ && c != pc + 1) bad++; pc = c }
+    /^var: root.speed = / { if ($4 != 1.5 + 0.25 * (c - 123456789)) bad++ }
+    END { print n + 0, bad + 0 }')
+  [ "$asteps" = "40 0" ]; vcheck 'as3 followed' $? "read at 'count, breaks' = $asteps"
+
+  # a write to the place is the movie's variable: it counts on from 500
+  apoke=$(vrun as3 --frames 5 --variable root.count --variable-frames 3 --variable-poke 500 | grep -v '^var' | tr '\n' ' ')
+  case "$apoke" in *' 501 502 ') vcheck 'as3 poked' 0 ;; *) vcheck 'as3 poked' 1 "after the poke the movie traced: $apoke" ;; esac
+
+  # each by its name: a private slot, a dynamic property of an object a
+  # variable holds, the instance's own place and frame
+  avals=$(vrun as3 --frames 20 --quiet --variable root.alive --variable root.label --variable root.secret \
+    --variable root.inner.depth --variable root.x --variable root.currentFrame | sed 's/ at 0x.*//' | tr '\n' ';')
+  [ "$avals" = 'var: root.alive = true;var: root.label = "hero";var: root.secret = 77;var: root.inner.depth = 2;var: root.x = 0;var: root.currentFrame = 1;' ]
+  vcheck 'as3 named' $? "by name: $avals"
+
+  # names with no place, and ActionScript 3 tells COUNT from count
+  aabsent=$(vrun as3 --frames 20 --quiet --variable root.nothing --variable root.inner --variable root --variable root.COUNT \
+    --variable 'root.count.' --variable _root.count --variable count | grep -c 'is not there')
+  [ "$aabsent" = 7 ]; vcheck 'as3 absent' $? "$aabsent of 7 names with no place got nothing"
+
+  # asking allocates nothing, and a watched run is the unwatched one
+  aall=$(printf '%s\n%s\n' "$alist" "$afollow")
+  acalls=$(printf '%s\n' "$aall" | grep -c 'allocator calls: ')
+  afree=$(printf '%s\n' "$aall" | grep -c 'allocator calls: 0[ )]')
+  [ "$acalls" -ge 80 ] && [ "$acalls" = "$afree" ] && printf '%s\n' "$alist" | grep -q 'the heap is untouched'
+  vcheck 'as3 free' $? "$afree of $acalls answers were free; $(printf '%s\n' "$alist" | sed -n 's/^vars: [0-9]* listed.*; //p')"
+  awatched=$(vrun as3 --frames 5 --variables --variable root.count --variable root.inner.depth --variable-frames 36 | grep -v '^var')
+  [ -n "$awatched" ] && [ "$awatched" = "$(vrun as3 --frames 40)" ]; vcheck 'as3 undisturbed' $? "a watched run's trace is not the unwatched run's"
   rm -rf "$vtmp"
 fi
 

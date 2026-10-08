@@ -1003,7 +1003,49 @@ Gate: "ruffle variables gate", ten legs (run-wbx `--variables`,
 `--variable NAME`, `--variable-frames K`, `--variable-poke W`): listed,
 values, same place, followed, poked, free, undisturbed, absent, case, as3.
 
-Not done: ActionScript 3 (objects hash by address there, so the same rule
-matters even more; slots are reachable through the vtable); a clip's other
-built-ins (`_xscale`, `_rotation`, `_visible`, `_alpha`); text field
-contents.
+Not done: a clip's other built-ins (`_xscale`, `_rotation`, `_visible`,
+`_alpha`); text field contents.
+
+## ActionScript 3 variables too (issue #216, 2026-10-08; user-decided)
+
+The same list, for a movie in ActionScript 3 (extern patch 0007, in
+`chimera_vars.rs` beside the first half). Names start at `root`, the
+document class's instance: `root.score`, `root.player.hp`, `root.grid[3]`,
+`root.player.x`.
+
+- **A variable is a slot** of its object, found through the object's vtable
+  (`chimera_slots`, a new accessor on the script object: the trait's name,
+  the slot's address, whether it is a constant), **whatever its namespace** -
+  a `private var` is as much the game's state as a public one - or a
+  **dynamic property** with a text or number name (`chimera_dynamic`).
+  Getters and methods have no place and are not listed.
+- **A number is four bytes or eight.** The player keeps a whole number as an
+  `int` and any other as a double, and a variable goes from one to the other
+  as its value does. The list says which it is now (`s32` or `f64`); a watch
+  asks again by name before every read, so it follows.
+- **An object on the stage** is listed where a variable first leads to it
+  (`root.player`, which is what the game calls it), and under its instance
+  name inside its parent otherwise. Each object once, to 12 deep.
+- **The same two rules**: nothing is allocated, nothing is called. The trait
+  map and the dynamic map are walked in place.
+- **Names are exact**, as the language is (Chimera's dynamic tables are, since
+  chimera 3e9d999).
+
+Not listed: class (static) variables - nothing on the stage leads to them -
+and whatever only a closure or a Dictionary keyed by objects holds. An
+instance also has the private variables of the classes the player itself
+writes in ActionScript (`root._needsSoftKeyboard`); they are real slots and
+are listed.
+
+Measured on tests/make-as3-variables-swf.py - a document class written out as
+bytecode, since there is no compiler here - whose list is known from its
+source: 10 properties at frame 20, allocator calls 0, the heap untouched;
+`root.count` followed by name over 40 frames, one more each; 500 written
+there and the movie traces 501, 502; the private `root.secret`, the dynamic
+`root.inner.depth`, the instance's `x` and `currentFrame` each by name;
+`root.COUNT` is not there. Seven legs in the variables gate (as3 listed,
+followed, poked, named, absent, free, undisturbed) replace the one that said
+an ActionScript 3 movie lists nothing.
+
+Not verified: a real game (none was run), and the frontend's dialog on an
+ActionScript 3 movie.

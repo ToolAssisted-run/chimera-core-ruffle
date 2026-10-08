@@ -1202,6 +1202,7 @@ mod variables {
         match place.kind {
             Kind::Number => out.put(b",\"type\":\"f64\""),
             Kind::Bool => out.put(b",\"type\":\"bool\""),
+            Kind::Int => out.put(b",\"type\":\"s32\""),
             Kind::Twips => out.put(b",\"type\":\"s32\",\"description\":\"in twips: 20 to a pixel\""),
             Kind::Frame => out.put(b",\"type\":\"u16\""),
             Kind::Latin1 | Kind::Utf16 => {
