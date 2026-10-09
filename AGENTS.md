@@ -27,7 +27,11 @@ the one package works on Linux and on Windows.
   writes `waterbox/guest/src/input_table.rs`; with `--json` it prints the
   `input` section for `waterbox.config`. Edit the table, not its outputs.
 - `waterbox/generated/` - the GPU bridge's generated halves. Never edit them
-  by hand. `waterbox/gl-entry-points.txt` lists the entry points used.
+  by hand. `waterbox/gl-entry-points.txt` lists the entry points used. They
+  are kept in the repository, so a change to miniBox's generator reaches this
+  core only when they are generated again:
+  `python3 <minibox>/source/gl/gen-gl-bridge.py waterbox/extern/glad/include/glad/gl.h <minibox>/source/gl/gl-entry-points.txt waterbox/generated --only waterbox/gl-entry-points.txt`,
+  then read the diff before committing it.
 - `docs/PLAN.md` - the design log. `.github/workflows/chimera.yml` - CI, the
   authoritative build recipe. `build/`, `waterbox/build/`, `*/target/` and
   `tests/work/` are build output.
