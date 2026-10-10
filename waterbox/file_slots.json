@@ -1,5 +1,5 @@
 {
-  "_comment": "The core-declared file form for chimera's project wizard. A Flash project is one movie, plus whatever that movie loads at runtime: a game commonly pulls in more .swf files, images, sounds or data alongside itself. Those must keep the names the movie asks for, because a movie loads them by name relative to itself.",
+  "_comment": "This file lists the kinds of file a Flash project can hold. Chimera's New Project window is built from it. A project is one movie, plus the files that movie loads while it runs. A game often loads more .swf files, images, sounds or data. Those files must keep the names the movie asks for, because the movie finds them by name next to itself.",
   "slots": [
     {
       "id": "movie",
@@ -30,7 +30,7 @@
         "flv",
         "csv"
       ],
-      "help": "Anything the movie loads while it runs (loadMovie, loadSound, loadVariables, URLLoader): further .swf files, images, sounds, data. Keep the names the movie asks for - it looks them up beside itself. A movie that loads nothing needs none of this."
+      "help": "Everything the movie loads while it runs (with loadMovie, loadSound, loadVariables or URLLoader). These are more .swf files, images, sounds and data. Keep the names the movie asks for, because it looks for them next to itself. A movie that loads nothing needs nothing here."
     }
   ]
 }
