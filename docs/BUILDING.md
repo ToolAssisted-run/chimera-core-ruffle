@@ -386,7 +386,10 @@ The legs, each with the list in `tests/` that drives it:
 - input (`input-list.txt`) - upstream's `input.json` streams, replayed as
   per-frame levels, give upstream's trace.
 - sub-frame (`subframe-input-list.txt`) - a raised `fps` setting leaves the
-  movie unchanged and makes a click inside one movie frame expressible.
+  movie unchanged and makes a click inside one movie frame expressible. A
+  movie that changes its own frame rate (`tests/make-frame-rate-swf.py`)
+  runs at the new rate, at the default and with `fps` raised, and each frame
+  holds the sound of its own length.
 - navigator (`navigator-list.txt`) - movies load their associated files from
   the guest's file system; reruns are identical.
 - audio (`audio-list.txt`) - upstream's amplitude assertions hold, native and

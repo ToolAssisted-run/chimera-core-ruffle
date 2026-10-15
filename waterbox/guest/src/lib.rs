@@ -148,37 +148,56 @@ impl LogBackend for CaptureLog {
 struct WaterboxAudio {
     mixer: AudioMixer,
     buffer: Rc<RefCell<Vec<f32>>>,
-    /// The rate a frame of audio is mixed FOR, when it is not the movie's.
-    /// Sound is mixed once per HOST frame, so at a raised frame rate the
-    /// buffer has to be the host's frame worth of samples or every second of
-    /// movie would mix several seconds of sound. None leaves the movie's own
-    /// rate alone, which is what the player sets and what every default run
-    /// has always used.
-    forced_rate: Option<f64>,
+    /// The rate of the HOST frame being mixed for, shared with the machine.
+    /// Sound is mixed once per host frame, so a frame's buffer has to be that
+    /// frame's worth of samples. The player's own set_frame_rate is not that:
+    /// it is the movie's rate, and a movie that changes its rate from
+    /// ActionScript (stage.frameRate) calls it in the middle of a frame whose
+    /// length was already decided. Sizing by it gave a 24 fps movie that set
+    /// 60 two fifths of its sound, and an encode with the sound in charge of
+    /// the timing threw away three video frames in five.
+    host_rate: Rc<Cell<f64>>,
 }
 impl WaterboxAudio {
     const CHANNELS: u8 = 2;
     const RATE: u32 = 44100;
-}
-impl AudioBackend for WaterboxAudio {
-    impl_audio_mixer_backend!(mixer);
-    fn play(&mut self) {}
-    fn pause(&mut self) {}
-    fn set_frame_rate(&mut self, frame_rate: f64) {
-        let frame_rate = self.forced_rate.unwrap_or(frame_rate);
+    fn size_for_host_frame(&mut self) {
         // Whole stereo frames. Ruffle's own harness rounds the INTERLEAVED
         // sample count, which can be odd (24 fps: 88200/24 = 3675, a lone left
         // sample); a host can only take whole frames, and the mixer should not
         // be handed half of one either. Rounding the frame count is at most one
         // sample per frame away from the harness and identical on both sides.
-        let frames = (Self::RATE as f64 / frame_rate).round() as usize;
-        self.buffer.borrow_mut().resize(frames * Self::CHANNELS as usize, 0.0);
+        let frames = (Self::RATE as f64 / self.host_rate.get()).round() as usize;
+        let want = frames * Self::CHANNELS as usize;
+        let mut b = self.buffer.borrow_mut();
+        if b.len() != want {
+            b.resize(want, 0.0);
+        }
+    }
+}
+impl AudioBackend for WaterboxAudio {
+    impl_audio_mixer_backend!(mixer);
+    fn play(&mut self) {}
+    fn pause(&mut self) {}
+    fn set_frame_rate(&mut self, _frame_rate: f64) {
+        self.size_for_host_frame();
     }
     fn tick(&mut self) {
+        self.size_for_host_frame();
         let mut b = self.buffer.borrow_mut();
         if !b.is_empty() {
             self.mixer.mix::<f32>(b.as_mut());
         }
+    }
+}
+
+/// A frame rate as the ratio the engine clocks from. A rate like 23.976 has to
+/// survive as a ratio; a whole number stays whole.
+fn vsync_of(rate: f64) -> (i32, i32) {
+    if (rate - rate.round()).abs() < 1e-6 {
+        (rate.round() as i32, 1)
+    } else {
+        ((rate * 1000.0).round() as i32, 1000)
     }
 }
 
@@ -191,18 +210,34 @@ struct Machine {
     /// What `Date` reads: milliseconds since this machine's fixed epoch, moved
     /// one host frame at a time (see WaterboxLocale).
     clock_millis: Rc<Cell<i64>>,
-    /// The movie's own frame rate, as the SWF stores it: rate = rate_256/256.
-    /// Movie frames are due against this and nothing else, so raising the host
-    /// rate gives more input, not a faster movie.
-    rate_256: u64,
-    /// The host frame rate as a ratio (num/den): the movie's own rate by
-    /// default, the fps setting when it is set.
+    /// The movie's frame rate as it is now, in 1/65536 frames a second: the
+    /// SWF header's at the start (exact, as the header's 8.8 fixed point is),
+    /// then whatever the movie sets stage.frameRate to, which is what Flash
+    /// Player runs it at. With the fps setting raised, movie frames are due
+    /// against this and nothing else, so raising the host rate gives more
+    /// input, not a faster movie.
+    rate_q: u64,
+    /// The host frame rate as a ratio (num/den): the fps setting when it is
+    /// set. Unset, the host frame IS the movie frame and follows its rate
+    /// (follow_rate), and these keep the rate the machine started at.
     host_num: u64,
     host_den: u64,
+    follow_rate: bool,
+    /// The host rate as a number, shared with the audio backend: how much
+    /// sound a host frame holds.
+    host_rate: Rc<Cell<f64>>,
     /// Movie frames run so far. A movie frame is due on the first host frame
     /// that reaches it, and the host frames after it carry input and timers
     /// into the movie frame that is already running.
     movie_frames: u64,
+    /// Where the count of due movie frames starts from: host frames and movie
+    /// frames, both zero until the movie changes its rate. Then the movie
+    /// frame that ran last is the new start, so the next one is due a whole
+    /// frame of the new rate after it.
+    base_frames: u64,
+    base_movie: u64,
+    /// The host frame (counted from 1) in which the last movie frame ran.
+    last_movie_host: u64,
     trace: Rc<RefCell<Vec<u8>>>,
     /// The trace flattened for the host: GetTty hands out a pointer into this,
     /// so it must outlive the call and not move while the host reads it.
@@ -238,7 +273,8 @@ struct Machine {
     /// Whether the frontend is going to look at the frame (SetRenderingEnabled).
     /// Output only: it gates the readback and nothing the machine can observe.
     rendering: bool,
-    /// The movie's declared frame rate, as a ratio the engine can clock from.
+    /// The host frame rate, as a ratio the engine can clock from: the rate of
+    /// the NEXT frame, since the engine asks after each one.
     vsync_num: i32,
     vsync_den: i32,
     /// The host GL context the renderer's objects were built against. wgpu owns
@@ -419,9 +455,10 @@ pub extern "C" fn Init() -> i32 {
     // How often the machine is stepped. A Flash movie has its own frame rate
     // and that is what its timeline runs at; this is how often the HOST gets a
     // frame, which is how often a person (or a movie file) can change what the
-    // input says. Unset, the two are the same and this is exactly what the core
-    // has always done. Raised, the movie still runs at its own rate and the
-    // extra frames carry input, timers and a picture.
+    // input says. Unset, the two are the same, and when the movie changes its
+    // rate the host frame changes with it (FrameAdvance). Raised, the movie
+    // still runs at its own rate and the extra frames carry input, timers and
+    // a picture.
     let fps = cfg.int("fps", 0);
     let (host_num, host_den) = if fps > 0 { (fps as u64, 1u64) } else { (rate_256, 256u64) };
     // host period = den/num seconds. At the default this is 1000.0/frame_rate
@@ -435,14 +472,10 @@ pub extern "C" fn Init() -> i32 {
     let (vw, vh) = (movie.width().to_pixels() as u32, movie.height().to_pixels() as u32);
 
     // What the frontend runs at: the host rate, which is the movie's own unless
-    // the fps setting raised it. A rate like 23.976 has to survive as a ratio;
-    // a whole number stays whole.
+    // the fps setting raised it.
     let host_rate = host_num as f64 / host_den as f64;
-    let (vsync_num, vsync_den) = if (host_rate - host_rate.round()).abs() < 1e-6 {
-        (host_rate.round() as i32, 1)
-    } else {
-        ((host_rate * 1000.0).round() as i32, 1000)
-    };
+    let (vsync_num, vsync_den) = vsync_of(host_rate);
+    let host_rate_cell = Rc::new(Cell::new(host_rate));
 
     let _ = tracing::subscriber::set_global_default(WarnToStderr);
     let trace = Rc::new(RefCell::new(Vec::new()));
@@ -485,9 +518,7 @@ pub extern "C" fn Init() -> i32 {
         .with_audio(WaterboxAudio {
             mixer: AudioMixer::new(WaterboxAudio::CHANNELS, WaterboxAudio::RATE),
             buffer: audio_f32.clone(),
-            // only when the rate was raised: at the default the player's own
-            // call is already the movie's rate, and nothing changes
-            forced_rate: if fps > 0 { Some(host_rate) } else { None },
+            host_rate: host_rate_cell.clone(),
         })
         .with_navigator(GuestNavigator { tasks: tasks.clone() })
         .with_autoplay(true)
@@ -558,7 +589,10 @@ pub extern "C" fn Init() -> i32 {
     unsafe {
         *core::ptr::addr_of_mut!(MACHINE) =
             Some(Machine {
-                player, frame_time, clock_millis, rate_256, host_num, host_den, movie_frames: 0,
+                player, frame_time, clock_millis,
+                rate_q: rate_256 * 256, host_num, host_den, follow_rate: fps <= 0,
+                host_rate: host_rate_cell, movie_frames: 0,
+                base_frames: 0, base_movie: 0, last_movie_host: 0,
                 trace, tty: Vec::new(), frames: 0,
                 buttons: [0; BUTTON_COUNT], prev_buttons: [0; BUTTON_COUNT],
                 mouse: (0, 0), prev_mouse: (0, 0), live_pointer: false, text_input: true,
@@ -693,18 +727,23 @@ pub extern "C" fn FrameAdvance(_input: u64) {
         // the same step for the same reason, so `Date` and getTimer() agree
         m.clock_millis
             .set(m.clock_millis.get() + m.frame_time.as_millis().round() as i64);
-        // How many movie frames should have run by the end of this host frame:
-        // ceil(host frames so far * movie rate / host rate), in integers so it
-        // cannot drift over a long run and cannot differ between two machines.
-        // At the default rate this is exactly one per host frame, which is what
-        // it has always been; above it, the movie frame lands on the FIRST host
-        // frame that reaches it and the host frames after it belong to the
-        // movie frame already running.
-        let due = {
-            let n = (m.frames + 1) * m.rate_256 * m.host_den;
-            let d = 256 * m.host_num;
-            (n + d - 1) / d
+        // How many movie frames should have run by the end of this host frame.
+        // At the default rate it is exactly one per host frame, whatever the
+        // movie's rate is now. Above it: ceil(host frames since the base *
+        // movie rate / host rate), in integers so it cannot drift over a long
+        // run and cannot differ between two machines; the movie frame lands on
+        // the FIRST host frame that reaches it and the host frames after it
+        // belong to the movie frame already running.
+        let due = if m.follow_rate {
+            m.movie_frames + 1
+        } else {
+            let n = (m.frames + 1 - m.base_frames) * m.rate_q * m.host_den;
+            let d = 65536 * m.host_num;
+            m.base_movie + (n + d - 1) / d
         };
+        if m.movie_frames < due {
+            m.last_movie_host = m.frames + 1;
+        }
         while m.movie_frames < due {
             // BEFORE the frame, every frame - not once at startup. preload is what
             // processes a movie whose bytes have just arrived, so a child SWF that
@@ -721,6 +760,41 @@ pub extern "C" fn FrameAdvance(_input: u64) {
         }
         p.update_timers(m.frame_time);
         p.audio_mut().tick();
+        // The movie may have changed its rate in this frame (stage.frameRate,
+        // ActionScript 3 only). Flash Player runs it at the new rate from the
+        // next frame on, and so does this machine: at the default rate the
+        // next host frame is a movie frame of the new length - its timers, its
+        // clock, its sound - and the engine is told the new rate, so the
+        // window and an encode both run at the movie's speed. With the fps
+        // setting the host frame stays and the movie frames are counted again
+        // from the last one that ran.
+        let live = p.frame_rate();
+        if live.is_finite() && live > 0.0 {
+            if m.follow_rate {
+                if live != m.host_rate.get() {
+                    m.host_rate.set(live);
+                    // 1000/rate, the same number the start computed for the
+                    // header's rate, so a movie that sets its own rate again
+                    // changes nothing
+                    m.frame_time = FloatDuration::from_millis(1000.0 / live);
+                    (m.vsync_num, m.vsync_den) = vsync_of(live);
+                }
+            } else {
+                let q = ((live * 65536.0).round() as u64).max(1);
+                if q != m.rate_q {
+                    // the movie frame that ran last starts the new count: due
+                    // again one whole new frame after it
+                    if m.movie_frames > 0 {
+                        m.base_frames = m.last_movie_host - 1;
+                        m.base_movie = m.movie_frames - 1;
+                    } else {
+                        m.base_frames = m.frames + 1;
+                        m.base_movie = 0;
+                    }
+                    m.rate_q = q;
+                }
+            }
+        }
         drop(p);
         run_tasks(&m.tasks); // resolve any loadMovie/loadSound the frame kicked off
         let mut p = m.player.lock().unwrap();

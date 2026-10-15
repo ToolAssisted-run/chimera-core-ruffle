@@ -33,7 +33,9 @@
 #                  a click that begins and ends inside one of the movie's
 #                  frames becomes an ordinary level stream. Same bar - ruffle's
 #                  own output.txt, byte for byte - and the same movie must run
-#                  the same movie frames it always did.
+#                  the same movie frames it always did. A movie that changes
+#                  its own frame rate runs at the new one, by default and with
+#                  the fps setting, with the sound a frame holds to match.
 #
 # The oracle list holds only tests the null-backend player can fully serve
 # (trace + frame stepping); tests needing input, a navigator or fonts arrive
@@ -135,6 +137,35 @@ if [ "$have_sandbox" = 1 ] && [ -f "$flist" ]; then
     else
       fbad=$((fbad+1)); echo "  subframe unchanged-movie: 12 frames at 48fps gave $got/$vs, 6 at 24 gave $base/24-1"
     fi
+  fi
+  # a movie that changes its own rate: tests/make-frame-rate-swf.py says 24 in
+  # its header and sets stage.frameRate = 60 in its first frame, which Flash
+  # Player then runs it at. By default each frame after the first is a 60th of
+  # a second: the engine is told 60/1, and the frame holds 735 stereo samples
+  # (the first, at 24, 1838) - an encode with the sound in charge of the
+  # timing kept two video frames in five when the sound was sized by the
+  # movie and the frame by the header. At fps 120 the machine stays at 120 and
+  # the movie's frames come 60 times a second among them: 59 enterFrame
+  # traces in 120 frames (the first comes with the second movie frame), and
+  # 368 samples a frame.
+  if python3 "$root/tests/make-frame-rate-swf.py" "$ftmp/rate.swf" 2>/dev/null; then
+    rate_case() { # name settings frames want-vsync want-traces want-audio-bytes
+      ftotal=$((ftotal+1))
+      printf '%s' "$2" > "$ftmp/r.json"
+      out=$(timeout 60 "$wbx" "$core" "$ftmp/rate.swf" --frames "$3" --file "settings=$ftmp/r.json" 2>"$ftmp/r.err")
+      vs=$(grep -oP 'vsync=\K[0-9]+/[0-9]+' "$ftmp/r.err")
+      ab=$(grep -oP 'audioBytes=\K[0-9]+' "$ftmp/r.err")
+      tr=$(printf '%s\n' "$out" | grep -c '^[0-9][0-9]*$')
+      if [ "$vs" = "$4" ] && [ "$tr" = "$5" ] && [ "$ab" = "$6" ]; then
+        fok=$((fok+1))
+      else
+        fbad=$((fbad+1)); echo "  subframe $1: rate $vs, $tr movie frames traced, $ab bytes of sound; wanted $4, $5, $6"
+      fi
+    }
+    rate_case "rate-change"        '{}'          48  60/1  47 $(( (1838 + 47 * 735) * 4 ))
+    rate_case "rate-change-fps120" '{"fps":120}' 120 120/1 59 $(( 120 * 368 * 4 ))
+  else
+    ftotal=$((ftotal+1)); fbad=$((fbad+1)); echo "  subframe rate-change: tests/make-frame-rate-swf.py failed"
   fi
   while IFS='|' read -r rel nf sub; do
     [ -n "$rel" ] || continue
@@ -637,7 +668,7 @@ if [ "$have_sandbox" = 1 ]; then
   echo "ruffle navigator gate: $nok/$ntotal movies load their associated files (loadMovie/loadSound/loadVariables/URLLoader) with the trace ruffle expects, reruns identical; $nbad failures"
   echo "ruffle audio gate: $aok/$atotal sound movies: ruffle's amplitude assertions hold, native == sandbox byte for byte, reruns identical; $abad failures"
   echo "ruffle input gate: $iok/$itotal input.json streams replayed as levels, trace identical to ruffle; $ibad failures"
-  echo "ruffle sub-frame gate: $fok/$ftotal a raised frame rate leaves the movie alone and makes a click inside one movie frame expressible, trace identical to ruffle; $fbad failures"
+  echo "ruffle sub-frame gate: $fok/$ftotal a raised frame rate leaves the movie alone and makes a click inside one movie frame expressible, trace identical to ruffle, and a movie that changes its own rate runs at it; $fbad failures"
   echo "ruffle gate: $ok/$total trace-identical to ruffle, deterministic, and IDENTICAL IN THE SANDBOX; $bad correctness, $nondet determinism, $sbad sandbox failures"
 else
   echo "ruffle gate: $ok/$total trace-identical to ruffle AND deterministic; $bad correctness, $nondet determinism failures (sandbox SKIPPED: build waterbox/build/core.wbx with build-guest.sh)"

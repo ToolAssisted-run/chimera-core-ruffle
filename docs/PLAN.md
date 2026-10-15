@@ -256,7 +256,9 @@ What the engine needed that the core did not have:
     half lives in whatever runs it. 169 entry points a wgpu renderer names
     were appended there (append-only), and the core now generates against it.
   * **the frame rate per movie.** A SWF carries its own, and it is not always
-    whole, so GetVsyncNumerator/Denominator report a ratio.
+    whole, so GetVsyncNumerator/Denominator report a ratio. A movie can also
+    change it from ActionScript 3; see "A movie that changes its frame rate"
+    (2026-10-15).
   * **the pointer, normalised.** The frontend sends a position across the
     range the config declares and the core scales it to the movie's stage,
     which is the same shape as a light gun's screen axes on other cores. The
@@ -1063,3 +1065,48 @@ so those controls shipped unbound on the keyboard. Checked on Xvfb: with 1,
 Return, left Shift and Up held, Chimera reports Number1, Enter, Shift and Up.
 Left and right names stay beside the merged one, for a setup with the merging
 off.
+
+## A movie that changes its frame rate (2026-10-15)
+
+The owner's report: Corporate Climber played right, but its encode ran far
+too fast. The SWF header says 24 frames a second and the game sets
+`stage.frameRate` from ActionScript 3, which Flash Player obeys from the
+next frame on. The core did not. It stepped the movie by the header's rate
+and told the engine that rate, while ruffle resized the sound buffer to the
+new one (it calls the audio backend's set_frame_rate whenever the rate
+changes). A test movie of our own (`tests/make-frame-rate-swf.py`, 24 in the
+header, 60 set in its first frame) measured: the engine told 24/1, one movie
+frame per host frame, and 735 stereo samples a frame where a 24th of a
+second is 1838. That is two fifths of the sound. Chimera's encoder, with the
+sound in charge of the timing, keeps a video frame only when enough sound
+has come, so it kept two in five and the file played 2.5 times too fast.
+
+What the owner chose: follow the live rate, as Flash Player does.
+
+- At the default (`fps` 0) each host frame is still one movie frame, and
+  after a change it is a frame of the new length: the timers, the clock and
+  `getTimer` move by it, the frame holds that much sound, and
+  GetVsyncNumerator/Denominator report the new rate, which the engine reads
+  after every shown frame. The window and an encode then both run at the
+  game's real speed.
+- With `fps` raised, the host frame stays and the movie frames are counted
+  again from the last one that ran: the next is due one whole frame of the
+  new rate after it.
+- The sound is sized by the host frame it is mixed for, never by the
+  player's call, so a change made in the middle of a frame does not change
+  that frame's sound.
+
+A movie that never changes its rate runs exactly as before: the same frame
+length to the last bit, the same sound per frame, the same movie frames
+(every existing test passes unchanged). A project recorded in a game that
+does change its rate may go out of sync, because its timers now advance by
+the new frame length.
+
+Measured on the test movie, 48 frames at the default: rate 60/1 after the
+first frame, 47 movie frames traced, 1838 + 47 x 735 = 36383 stereo
+samples. At `fps` 120 for 120 frames: rate 120/1, 59 movie frames traced
+(the old core ran 23, still at 24 a second), 368 samples a frame. Both run
+in the gate's sub-frame leg, and both failed against the core from before
+the change. The whole gate: 120/120 trace-identical, image 394/394 on both
+renderers, state 30/30, sub-frame 13/13, every other leg passing, no
+failures.
