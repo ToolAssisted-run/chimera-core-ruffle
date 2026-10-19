@@ -7,12 +7,65 @@
 #include <glad/gl.h>
 #include <cstdint>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 
 #include "gl-bridge.h"
 #include "gl-bridge-ops.h"
 
 static chimera_gl_bridge_fn g_bridge;
+
+/* The shadows of mapped buffers (SHADOWED_MAPS in the generator): memory of
+ * the guest's own, aligned as a driver's mapping is. */
+static bool chimera_gl_shadows(GLbitfield access)
+{
+	if ((access & GL_MAP_PERSISTENT_BIT) == 0) return true;   /* unmapped before it is used */
+	/* persistent: shadowed only when its writes are flushed explicitly */
+	return (access & GL_MAP_COHERENT_BIT) == 0 && (access & GL_MAP_FLUSH_EXPLICIT_BIT) != 0 && (access & GL_MAP_WRITE_BIT) != 0;
+}
+/* A shadow's size is kept in the 64 bytes before it. One freed shadow is kept
+ * for the next map of a like size: a renderer that maps and unmaps every frame
+ * would otherwise be given new memory each time, and fault in every page of
+ * it. It is the guest's memory, so a state holds it like any other. */
+static void *chimera_gl_spare;
+static uint64_t chimera_gl_shadow_size(void *p)
+{
+	return *(uint64_t *)((char *)p - 64);
+}
+static void *chimera_gl_shadow_new(uint64_t size)
+{
+	const uint64_t need = (size + 63) & ~(uint64_t)63;
+	if (chimera_gl_spare != nullptr)
+	{
+		const uint64_t has = chimera_gl_shadow_size(chimera_gl_spare);
+		if (has >= need && has / 2 <= need)
+		{
+			void *p = chimera_gl_spare;
+			chimera_gl_spare = nullptr;
+			return p;
+		}
+	}
+	void *base = nullptr;
+	if (posix_memalign(&base, 64, (size_t)(need + 64)) != 0) return nullptr;
+	*(uint64_t *)base = need;
+	return (char *)base + 64;
+}
+static void chimera_gl_shadow_free(void *p)
+{
+	if (p == nullptr) return;
+	if (chimera_gl_spare == nullptr)
+	{
+		chimera_gl_spare = p;
+		return;
+	}
+	void *drop = p;
+	if (chimera_gl_shadow_size(p) > chimera_gl_shadow_size(chimera_gl_spare))
+	{
+		drop = chimera_gl_spare;   /* the larger one is kept */
+		chimera_gl_spare = p;
+	}
+	std::free((char *)drop - 64);
+}
 
 /* Where the strings glGetString and glGetStringi answer with are kept.
  *
@@ -949,7 +1002,10 @@ static void GLAD_API_PTR w_glGetShaderPrecisionFormat(GLenum shadertype, GLenum 
 
 static const GLubyte *GLAD_API_PTR w_glGetString(GLenum name)
 {
-	static char buffer[4096];
+	/* 64 KiB: an extension list is longer than 4 KiB on a desktop driver
+	 * (NVIDIA's runs to 10 KB and more), and was cut at 4095 bytes - the
+	 * extensions past the cut were simply not there (2026-10-18) */
+	static char buffer[65536];
 	const char *kept;
 	struct ChimeraGlArgs_glGetString chimera_a;
 	chimera_a.name = name;
@@ -962,7 +1018,10 @@ static const GLubyte *GLAD_API_PTR w_glGetString(GLenum name)
 
 static const GLubyte *GLAD_API_PTR w_glGetStringi(GLenum name, GLuint index)
 {
-	static char buffer[4096];
+	/* 64 KiB: an extension list is longer than 4 KiB on a desktop driver
+	 * (NVIDIA's runs to 10 KB and more), and was cut at 4095 bytes - the
+	 * extensions past the cut were simply not there (2026-10-18) */
+	static char buffer[65536];
 	const char *kept;
 	struct ChimeraGlArgs_glGetStringi chimera_a;
 	chimera_a.name = name;
@@ -1051,7 +1110,13 @@ static void * GLAD_API_PTR w_glMapBufferRange(GLenum target, GLintptr offset, GL
 	chimera_a.offset = offset;
 	chimera_a.length = length;
 	chimera_a.access = access;
-	return (void *)g_bridge(CHIMERA_GL_OP_glMapBufferRange, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+	const uint64_t chimera_size = chimera_gl_shadows(access) ? (uint64_t)length : 0;
+	void *chimera_shadow = chimera_size != 0 ? chimera_gl_shadow_new(chimera_size) : nullptr;
+	const uint64_t chimera_r = g_bridge(CHIMERA_GL_OP_glMapBufferRange, (uint64_t)(uintptr_t)&chimera_a,
+		(uint64_t)(uintptr_t)chimera_shadow, chimera_shadow ? chimera_size : 0, 0, 0);
+	if (chimera_shadow != nullptr && chimera_r != (uint64_t)(uintptr_t)chimera_shadow)
+		chimera_gl_shadow_free(chimera_shadow);   /* not taken: a host that does not shadow, or a refused map */
+	return (void *)(uintptr_t)chimera_r;
 }
 
 static void GLAD_API_PTR w_glMemoryBarrier(GLbitfield barriers)
@@ -1552,8 +1617,13 @@ static void GLAD_API_PTR w_glUniformMatrix4fv(GLint location, GLsizei count, GLb
 static GLboolean GLAD_API_PTR w_glUnmapBuffer(GLenum target)
 {
 	struct ChimeraGlArgs_glUnmapBuffer chimera_a;
+	uint64_t chimera_shadow = 0;
 	chimera_a.target = target;
-	return (GLboolean)g_bridge(CHIMERA_GL_OP_glUnmapBuffer, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+	const GLboolean chimera_r = (GLboolean)g_bridge(CHIMERA_GL_OP_glUnmapBuffer, (uint64_t)(uintptr_t)&chimera_a,
+		(uint64_t)(uintptr_t)&chimera_shadow, 0, 0, 0);
+	if (chimera_shadow != 0)
+		chimera_gl_shadow_free((void *)(uintptr_t)chimera_shadow);
+	return chimera_r;
 }
 
 static void GLAD_API_PTR w_glUseProgram(GLuint program)
@@ -3658,7 +3728,13 @@ static void * GLAD_API_PTR w_glMapBuffer(GLenum target, GLenum access)
 	struct ChimeraGlArgs_glMapBuffer chimera_a;
 	chimera_a.target = target;
 	chimera_a.access = access;
-	return (void *)g_bridge(CHIMERA_GL_OP_glMapBuffer, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+	const uint64_t chimera_size = true ? g_bridge(GL_OP_BUFFER_SIZE, (uint64_t)target, 0, 0, 0, 0) : 0;
+	void *chimera_shadow = chimera_size != 0 ? chimera_gl_shadow_new(chimera_size) : nullptr;
+	const uint64_t chimera_r = g_bridge(CHIMERA_GL_OP_glMapBuffer, (uint64_t)(uintptr_t)&chimera_a,
+		(uint64_t)(uintptr_t)chimera_shadow, chimera_shadow ? chimera_size : 0, 0, 0);
+	if (chimera_shadow != nullptr && chimera_r != (uint64_t)(uintptr_t)chimera_shadow)
+		chimera_gl_shadow_free(chimera_shadow);   /* not taken: a host that does not shadow, or a refused map */
+	return (void *)(uintptr_t)chimera_r;
 }
 
 static void * GLAD_API_PTR w_glMapNamedBuffer(GLuint buffer, GLenum access)
@@ -3666,7 +3742,13 @@ static void * GLAD_API_PTR w_glMapNamedBuffer(GLuint buffer, GLenum access)
 	struct ChimeraGlArgs_glMapNamedBuffer chimera_a;
 	chimera_a.buffer = buffer;
 	chimera_a.access = access;
-	return (void *)g_bridge(CHIMERA_GL_OP_glMapNamedBuffer, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+	const uint64_t chimera_size = true ? g_bridge(GL_OP_BUFFER_SIZE, (uint64_t)buffer, 1, 0, 0, 0) : 0;
+	void *chimera_shadow = chimera_size != 0 ? chimera_gl_shadow_new(chimera_size) : nullptr;
+	const uint64_t chimera_r = g_bridge(CHIMERA_GL_OP_glMapNamedBuffer, (uint64_t)(uintptr_t)&chimera_a,
+		(uint64_t)(uintptr_t)chimera_shadow, chimera_shadow ? chimera_size : 0, 0, 0);
+	if (chimera_shadow != nullptr && chimera_r != (uint64_t)(uintptr_t)chimera_shadow)
+		chimera_gl_shadow_free(chimera_shadow);   /* not taken: a host that does not shadow, or a refused map */
+	return (void *)(uintptr_t)chimera_r;
 }
 
 static void * GLAD_API_PTR w_glMapNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length, GLbitfield access)
@@ -3676,7 +3758,13 @@ static void * GLAD_API_PTR w_glMapNamedBufferRange(GLuint buffer, GLintptr offse
 	chimera_a.offset = offset;
 	chimera_a.length = length;
 	chimera_a.access = access;
-	return (void *)g_bridge(CHIMERA_GL_OP_glMapNamedBufferRange, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+	const uint64_t chimera_size = chimera_gl_shadows(access) ? (uint64_t)length : 0;
+	void *chimera_shadow = chimera_size != 0 ? chimera_gl_shadow_new(chimera_size) : nullptr;
+	const uint64_t chimera_r = g_bridge(CHIMERA_GL_OP_glMapNamedBufferRange, (uint64_t)(uintptr_t)&chimera_a,
+		(uint64_t)(uintptr_t)chimera_shadow, chimera_shadow ? chimera_size : 0, 0, 0);
+	if (chimera_shadow != nullptr && chimera_r != (uint64_t)(uintptr_t)chimera_shadow)
+		chimera_gl_shadow_free(chimera_shadow);   /* not taken: a host that does not shadow, or a refused map */
+	return (void *)(uintptr_t)chimera_r;
 }
 
 static void GLAD_API_PTR w_glMemoryBarrierByRegion(GLbitfield barriers)
@@ -4467,8 +4555,13 @@ static void GLAD_API_PTR w_glUniformMatrix4x3fv(GLint location, GLsizei count, G
 static GLboolean GLAD_API_PTR w_glUnmapNamedBuffer(GLuint buffer)
 {
 	struct ChimeraGlArgs_glUnmapNamedBuffer chimera_a;
+	uint64_t chimera_shadow = 0;
 	chimera_a.buffer = buffer;
-	return (GLboolean)g_bridge(CHIMERA_GL_OP_glUnmapNamedBuffer, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+	const GLboolean chimera_r = (GLboolean)g_bridge(CHIMERA_GL_OP_glUnmapNamedBuffer, (uint64_t)(uintptr_t)&chimera_a,
+		(uint64_t)(uintptr_t)&chimera_shadow, 0, 0, 0);
+	if (chimera_shadow != 0)
+		chimera_gl_shadow_free((void *)(uintptr_t)chimera_shadow);
+	return chimera_r;
 }
 
 static void GLAD_API_PTR w_glVertexArrayAttribBinding(GLuint vaobj, GLuint attribindex, GLuint bindingindex)

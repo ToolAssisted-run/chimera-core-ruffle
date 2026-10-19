@@ -117,7 +117,7 @@ exports="-Wl,-u,GetMemoryDomainCount -Wl,-u,GetMemoryDomainName -Wl,-u,GetMemory
   "$minibox/source/guest/cxxglue.c" "$mb/source/guest/emulibc.c.o" \
   "$a" "$here/build/unwind-stubs.o" "$here/build/libgcc-builtins.o" \
   "$here/build/gl-bridge-guest.o" "$here/build/gl-map.o" "$here/build/gl-osmesa.o" \
-  "$here/build/glad.o" $mesa_link -lm
+  "$here/build/glad.o" $mesa_link -L"$cppsys/lib" -lstdc++ -lm
 echo "built: $here/build/core.wbx"
 
 # the frontend-free runner, against the same miniBox host the gates use
