@@ -29,7 +29,7 @@ from importlib import util
 spec = util.spec_from_file_location("it", os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "waterbox", "input-table.py"))
 it = util.module_from_spec(spec); spec.loader.exec_module(it)
 
-NAMES = [n for n, _, _ in it.T]
+NAMES = list(it.LISTED)  # the order SetButton takes them in (waterbox.config)
 IDX = {n: i for i, n in enumerate(NAMES)}
 MOUSE = {"Left": IDX["Mouse Left Button"], "Middle": IDX["Mouse Middle Button"], "Right": IDX["Mouse Right Button"]}
 NAMED = {"Enter": "Key Enter", "Escape": "Key Escape", "Tab": "Key Tab", "Backspace": "Key Backspace",

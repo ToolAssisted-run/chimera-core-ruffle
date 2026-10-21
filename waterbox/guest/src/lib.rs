@@ -40,7 +40,7 @@ use ruffle_core::{FloatDuration, Player, PlayerBuilder, PlayerEvent};
 mod input_table;
 mod navigator;
 mod renderer;
-use input_table::{Btn, BUTTONS, BUTTON_COUNT, SHIFT_LEFT, SHIFT_RIGHT};
+use input_table::{Btn, BUTTONS, BUTTON_COUNT, LISTED_BUTTON, SHIFT_LEFT, SHIFT_RIGHT};
 use navigator::{read_whole, run_tasks, GuestNavigator, Tasks};
 use renderer::GuestRenderer;
 
@@ -977,7 +977,7 @@ pub extern "C" fn SetButton(index: i32, state: i32) {
     unsafe {
         if let Some(m) = &mut *core::ptr::addr_of_mut!(MACHINE) {
             if index >= 0 && (index as usize) < BUTTON_COUNT {
-                m.buttons[index as usize] = if state != 0 { 1 } else { 0 };
+                m.buttons[LISTED_BUTTON[index as usize]] = if state != 0 { 1 } else { 0 };
             }
         }
     }

@@ -120,3 +120,110 @@ pub static BUTTONS: [Btn; BUTTON_COUNT] = [
     Btn::NumChar('.', PhysicalKey::NumpadDecimal), // Numpad Decimal
     Btn::Named(NamedKey::Enter, PhysicalKey::NumpadEnter, KeyLocation::Numpad), // Numpad Enter
 ];
+
+/// waterbox.config's order (row by row) -> the place in BUTTONS
+pub static LISTED_BUTTON: [usize; BUTTON_COUNT] = [
+    0, // Mouse Left Button
+    1, // Mouse Middle Button
+    2, // Mouse Right Button
+    41, // Key Escape
+    64, // Key F1
+    65, // Key F2
+    66, // Key F3
+    67, // Key F4
+    68, // Key F5
+    69, // Key F6
+    70, // Key F7
+    71, // Key F8
+    72, // Key F9
+    73, // Key F10
+    74, // Key F11
+    75, // Key F12
+    62, // Key Scroll Lock
+    63, // Key Pause
+    86, // Key Backquote
+    29, // Key 1
+    30, // Key 2
+    31, // Key 3
+    32, // Key 4
+    33, // Key 5
+    34, // Key 6
+    35, // Key 7
+    36, // Key 8
+    37, // Key 9
+    38, // Key 0
+    76, // Key Minus
+    77, // Key Equals
+    43, // Key Backspace
+    42, // Key Tab
+    19, // Key Q
+    25, // Key W
+    7, // Key E
+    20, // Key R
+    22, // Key T
+    27, // Key Y
+    23, // Key U
+    11, // Key I
+    17, // Key O
+    18, // Key P
+    78, // Key Left Bracket
+    79, // Key Right Bracket
+    80, // Key Backslash
+    60, // Key Caps Lock
+    3, // Key A
+    21, // Key S
+    6, // Key D
+    8, // Key F
+    9, // Key G
+    10, // Key H
+    12, // Key J
+    13, // Key K
+    14, // Key L
+    81, // Key Semicolon
+    82, // Key Quote
+    40, // Key Enter
+    54, // Key Left Shift
+    28, // Key Z
+    26, // Key X
+    5, // Key C
+    24, // Key V
+    4, // Key B
+    16, // Key N
+    15, // Key M
+    83, // Key Comma
+    84, // Key Period
+    85, // Key Slash
+    55, // Key Right Shift
+    56, // Key Left Control
+    58, // Key Left Alt
+    39, // Key Space
+    59, // Key Right Alt
+    57, // Key Right Control
+    45, // Key Insert
+    46, // Key Home
+    48, // Key Page Up
+    44, // Key Delete
+    47, // Key End
+    49, // Key Page Down
+    50, // Key Up
+    52, // Key Left
+    51, // Key Down
+    53, // Key Right
+    61, // Key Num Lock
+    100, // Numpad Divide
+    99, // Numpad Multiply
+    98, // Numpad Subtract
+    94, // Numpad 7
+    95, // Numpad 8
+    96, // Numpad 9
+    97, // Numpad Add
+    91, // Numpad 4
+    92, // Numpad 5
+    93, // Numpad 6
+    88, // Numpad 1
+    89, // Numpad 2
+    90, // Numpad 3
+    102, // Numpad Enter
+    87, // Numpad 0
+    101, // Numpad Decimal
+];
