@@ -1,0 +1,434 @@
+diff --git a/render/wgpu/src/context3d/mod.rs b/render/wgpu/src/context3d/mod.rs
+index 588b6c64..9afc9245 100644
+--- a/render/wgpu/src/context3d/mod.rs
++++ b/render/wgpu/src/context3d/mod.rs
+@@ -6,7 +6,7 @@ use ruffle_render::backend::{
+ use ruffle_render::bitmap::BitmapHandle;
+ use ruffle_render::error::Error;
+ use std::any::Any;
+-use std::cell::{Cell, RefCell};
++use std::cell::RefCell;
+ use swf::{Rectangle, Twips};
+ 
+ use wgpu::util::StagingBelt;
+@@ -110,14 +110,7 @@ impl WgpuContext3D {
+                 usage: wgpu::TextureUsages::COPY_SRC,
+             });
+ 
+-            BitmapHandle(Arc::new(Texture {
+-                repeating_linear: Default::default(),
+-                repeating_nearest: Default::default(),
+-                clamped_linear: Default::default(),
+-                clamped_nearest: Default::default(),
+-                texture: dummy_texture,
+-                copy_count: Cell::new(0),
+-            }))
++            BitmapHandle(Arc::new(Texture::new(dummy_texture)))
+         };
+ 
+         let back_buffer_raw_texture_handle = make_dummy_handle();
+@@ -645,42 +638,18 @@ impl Context3D for WgpuContext3D {
+                     // We always use a non-multisampled texture as our raw texture handle,
+                     // which is what the Stage rendering code expects. In multisample mode,
+                     // this is our resolve texture.
+-                    self.back_buffer_raw_texture_handle = BitmapHandle(Arc::new(Texture {
+-                        texture: back_buffer_resolve_texture.unwrap(),
+-                        repeating_linear: Default::default(),
+-                        repeating_nearest: Default::default(),
+-                        clamped_linear: Default::default(),
+-                        clamped_nearest: Default::default(),
+-                        copy_count: Cell::new(0),
+-                    }));
+-                    self.front_buffer_raw_texture_handle = BitmapHandle(Arc::new(Texture {
+-                        texture: front_buffer_resolve_texture.unwrap(),
+-                        repeating_linear: Default::default(),
+-                        repeating_nearest: Default::default(),
+-                        clamped_linear: Default::default(),
+-                        clamped_nearest: Default::default(),
+-                        copy_count: Cell::new(0),
+-                    }));
++                    self.back_buffer_raw_texture_handle =
++                        BitmapHandle(Arc::new(Texture::new(back_buffer_resolve_texture.unwrap())));
++                    self.front_buffer_raw_texture_handle =
++                        BitmapHandle(Arc::new(Texture::new(front_buffer_resolve_texture.unwrap())));
+                 } else {
+                     // In non-multisample mode, we don't have a separate resolve buffer,
+                     // so our main texture gets used as the raw texture handle.
+ 
+-                    self.back_buffer_raw_texture_handle = BitmapHandle(Arc::new(Texture {
+-                        texture: back_buffer_texture,
+-                        repeating_linear: Default::default(),
+-                        repeating_nearest: Default::default(),
+-                        clamped_linear: Default::default(),
+-                        clamped_nearest: Default::default(),
+-                        copy_count: Cell::new(0),
+-                    }));
+-                    self.front_buffer_raw_texture_handle = BitmapHandle(Arc::new(Texture {
+-                        texture: front_buffer_texture,
+-                        repeating_linear: Default::default(),
+-                        repeating_nearest: Default::default(),
+-                        clamped_linear: Default::default(),
+-                        clamped_nearest: Default::default(),
+-                        copy_count: Cell::new(0),
+-                    }));
++                    self.back_buffer_raw_texture_handle =
++                        BitmapHandle(Arc::new(Texture::new(back_buffer_texture)));
++                    self.front_buffer_raw_texture_handle =
++                        BitmapHandle(Arc::new(Texture::new(front_buffer_texture)));
+                     self.current_texture_resolve_view = None;
+                 }
+ 
+diff --git a/render/wgpu/src/lib.rs b/render/wgpu/src/lib.rs
+index 1787a84b..c48d6539 100644
+--- a/render/wgpu/src/lib.rs
++++ b/render/wgpu/src/lib.rs
+@@ -267,8 +267,14 @@ impl QueueSyncHandle {
+     }
+ }
+ 
++/// A bitmap handle's texture. Its GPU objects can be taken back by the
++/// backend that made it (see `Releasable`); everything else reaches them
++/// through `Deref`, as it reached the fields before.
+ #[derive(Debug)]
+-pub struct Texture {
++pub struct Texture(Releasable<TextureParts>);
++
++#[derive(Debug)]
++pub struct TextureParts {
+     pub(crate) texture: wgpu::Texture,
+     repeating_linear: OnceCell<BitmapBinds>,
+     repeating_nearest: OnceCell<BitmapBinds>,
+@@ -278,6 +284,81 @@ pub struct Texture {
+ }
+ 
+ impl Texture {
++    pub(crate) fn new(texture: wgpu::Texture) -> Self {
++        Texture(Releasable::new(TextureParts {
++            texture,
++            repeating_linear: Default::default(),
++            repeating_nearest: Default::default(),
++            clamped_linear: Default::default(),
++            clamped_nearest: Default::default(),
++            copy_count: Cell::new(0),
++        }))
++    }
++
++    /// Drops the GPU objects now. Safety: as `Releasable::release`.
++    pub(crate) unsafe fn release(&self) {
++        unsafe { self.0.release() }
++    }
++}
++
++impl std::ops::Deref for Texture {
++    type Target = TextureParts;
++
++    fn deref(&self) -> &TextureParts {
++        self.0.get()
++    }
++}
++
++/// GPU objects that the backend which made them can drop before the handle
++/// holding them goes.
++///
++/// Every wgpu object keeps its device alive, and with it everything the device
++/// owns. When a savestate is loaded into a new GL context, the core builds a
++/// new backend and drops the old one, but ruffle_core lets go of its old
++/// handles only when it next draws them: a shape not drawn since, or a
++/// BitmapData that is garbage the collector has not reached yet, kept the old
++/// device and its resources. Corporate Climber with a rebuild before each of
++/// 600 frames ended with 207 old devices alive and 35 MB more guest memory,
++/// and a long TAStudio session of loads ran the guest out of memory at frame
++/// 48775. So a backend that is dropped takes back the GPU objects of every
++/// handle it issued (`Issued` in backend.rs), and a handle that outlives it
++/// is an empty shell until its holder registers it again.
++///
++/// Nothing reaches a released handle: every cache in ruffle_core compares the
++/// render epoch first and re-registers. A use that slips past that check
++/// panics with the message below, rather than draw with another backend's
++/// objects.
++pub(crate) struct Releasable<T>(std::cell::UnsafeCell<Option<T>>);
++
++impl<T> Releasable<T> {
++    pub(crate) fn new(value: T) -> Self {
++        Releasable(std::cell::UnsafeCell::new(Some(value)))
++    }
++
++    pub(crate) fn get(&self) -> &T {
++        // Safety: `release` is the only writer, and its caller promises no
++        // reference from here is alive.
++        unsafe { (*self.0.get()).as_ref() }
++            .expect("a GPU object was used after the renderer that made it was replaced")
++    }
++
++    /// Safety: no reference returned by `get` may be alive. The backend calls
++    /// this only while it is being dropped, between frames.
++    pub(crate) unsafe fn release(&self) {
++        drop(unsafe { (*self.0.get()).take() });
++    }
++}
++
++impl<T: std::fmt::Debug> std::fmt::Debug for Releasable<T> {
++    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
++        match unsafe { (*self.0.get()).as_ref() } {
++            Some(value) => value.fmt(f),
++            None => f.write_str("(released)"),
++        }
++    }
++}
++
++impl TextureParts {
+     pub fn bind_group(
+         &self,
+         repeating: bool,
+diff --git a/render/wgpu/src/mesh.rs b/render/wgpu/src/mesh.rs
+index f733f23f..70b0bead 100644
+--- a/render/wgpu/src/mesh.rs
++++ b/render/wgpu/src/mesh.rs
+@@ -1,6 +1,6 @@
+ use crate::backend::WgpuRenderBackend;
+ use crate::target::RenderTarget;
+-use crate::{Descriptors, GradientUniforms, PosColorVertex, PosUvVertex, as_texture};
++use crate::{Descriptors, GradientUniforms, PosColorVertex, PosUvVertex, Releasable, as_texture};
+ use std::any::Any;
+ use std::ops::Range;
+ use wgpu::util::DeviceExt;
+@@ -14,13 +14,37 @@ use swf::{CharacterId, GradientInterpolation};
+ /// How big to make gradient textures. Larger will keep more detail, but be slower and use more memory.
+ const GRADIENT_SIZE: usize = 256;
+ 
++/// A shape handle's mesh; its GPU objects can be taken back by the backend
++/// that made it, like a `Texture`'s (see `Releasable`).
+ #[derive(Debug)]
+-pub struct Mesh {
++pub struct Mesh(Releasable<MeshParts>);
++
++#[derive(Debug)]
++pub struct MeshParts {
+     pub draws: Vec<Draw>,
+     pub vertex_buffer: wgpu::Buffer,
+     pub index_buffer: wgpu::Buffer,
+ }
+ 
++impl Mesh {
++    pub fn new(parts: MeshParts) -> Self {
++        Mesh(Releasable::new(parts))
++    }
++
++    /// Drops the GPU objects now. Safety: as `Releasable::release`.
++    pub(crate) unsafe fn release(&self) {
++        unsafe { self.0.release() }
++    }
++}
++
++impl std::ops::Deref for Mesh {
++    type Target = MeshParts;
++
++    fn deref(&self) -> &MeshParts {
++        self.0.get()
++    }
++}
++
+ impl ShapeHandleImpl for Mesh {}
+ 
+ pub fn as_mesh(handle: &ShapeHandle) -> &Mesh {
+diff --git a/render/wgpu/src/pixel_bender.rs b/render/wgpu/src/pixel_bender.rs
+index ea1e1e38..82b180ac 100644
+--- a/render/wgpu/src/pixel_bender.rs
++++ b/render/wgpu/src/pixel_bender.rs
+@@ -2,7 +2,7 @@ use std::any::Any;
+ use std::cell::RefCell;
+ use std::collections::HashMap;
+ use std::num::NonZeroU64;
+-use std::{borrow::Cow, cell::Cell, sync::Arc};
++use std::{borrow::Cow, sync::Arc};
+ 
+ use indexmap::IndexMap;
+ use ruffle_render::bitmap::BitmapHandle;
+@@ -481,14 +481,7 @@ pub(super) fn run_pixelbender_shader_impl(
+                             extent,
+                         );
+ 
+-                        BitmapHandle(Arc::new(Texture {
+-                            texture: fresh_texture,
+-                            repeating_linear: Default::default(),
+-                            repeating_nearest: Default::default(),
+-                            clamped_linear: Default::default(),
+-                            clamped_nearest: Default::default(),
+-                            copy_count: Cell::new(0),
+-                        }))
++                        BitmapHandle(Arc::new(Texture::new(fresh_texture)))
+                     });
+                     *texture = Some(cached_fresh_handle.clone().into());
+                 }
+diff --git a/render/wgpu/src/backend.rs b/render/wgpu/src/backend.rs
+index 41e8763..25ebeed 100644
+--- a/render/wgpu/src/backend.rs
++++ b/render/wgpu/src/backend.rs
+@@ -3,7 +3,7 @@ use crate::buffer_pool::{BufferPool, TexturePool};
+ use crate::context3d::WgpuContext3D;
+ use crate::dynamic_transforms::DynamicTransforms;
+ use crate::filters::FilterSource;
+-use crate::mesh::{CommonGradient, Mesh, PendingDraw};
++use crate::mesh::{CommonGradient, Mesh, MeshParts, PendingDraw};
+ use crate::pixel_bender::{ShaderMode, run_pixelbender_shader_impl};
+ use crate::surface::{LayerRef, Surface};
+ use crate::target::{MaybeOwnedBuffer, TextureTarget};
+@@ -31,9 +31,8 @@ use ruffle_render::shape_utils::DistilledShape;
+ use ruffle_render::tessellator::ShapeTessellator;
+ use std::any::Any;
+ use std::borrow::Cow;
+-use std::cell::Cell;
+ use std::num::NonZeroU32;
+-use std::sync::Arc;
++use std::sync::{Arc, Weak};
+ use swf::Color;
+ use tracing::instrument;
+ use wgpu::SubmissionIndex;
+@@ -83,6 +82,59 @@ pub struct WgpuRenderBackend<T: RenderTarget> {
+     dynamic_transforms: DynamicTransforms,
+     active_frame: ActiveFrame,
+     profiler: GpuProfiler,
++    issued: Issued,
++}
++
++/// Every texture and mesh this backend handed out, held weakly, so that
++/// dropping the backend can take back their GPU objects (see `Releasable` in
++/// lib.rs). The dead entries are pruned whenever the list has doubled, so it
++/// stays within twice the handles alive.
++#[derive(Default)]
++struct Issued {
++    textures: Vec<Weak<Texture>>,
++    meshes: Vec<Weak<Mesh>>,
++    prune_at: usize,
++}
++
++impl Issued {
++    fn texture(&mut self, texture: Texture) -> BitmapHandle {
++        let texture = Arc::new(texture);
++        self.textures.push(Arc::downgrade(&texture));
++        self.prune();
++        BitmapHandle(texture)
++    }
++
++    fn mesh(&mut self, mesh: Mesh) -> ShapeHandle {
++        let mesh = Arc::new(mesh);
++        self.meshes.push(Arc::downgrade(&mesh));
++        self.prune();
++        ShapeHandle(mesh)
++    }
++
++    fn prune(&mut self) {
++        if self.textures.len() + self.meshes.len() < self.prune_at {
++            return;
++        }
++        self.textures.retain(|t| t.strong_count() > 0);
++        self.meshes.retain(|m| m.strong_count() > 0);
++        self.prune_at = 2 * (self.textures.len() + self.meshes.len()).max(256);
++    }
++}
++
++impl<T: RenderTarget> Drop for WgpuRenderBackend<T> {
++    fn drop(&mut self) {
++        // Between frames: nothing holds a reference into these.
++        for texture in self.issued.textures.drain(..) {
++            if let Some(texture) = texture.upgrade() {
++                unsafe { texture.release() };
++            }
++        }
++        for mesh in self.issued.meshes.drain(..) {
++            if let Some(mesh) = mesh.upgrade() {
++                unsafe { mesh.release() };
++            }
++        }
++    }
+ }
+ 
+ impl WgpuRenderBackend<SwapChainTarget> {
+@@ -280,6 +332,7 @@ impl<T: RenderTarget> WgpuRenderBackend<T> {
+             dynamic_transforms: transforms,
+             active_frame,
+             profiler,
++            issued: Issued::default(),
+         })
+     }
+ 
+@@ -344,11 +397,11 @@ impl<T: RenderTarget> WgpuRenderBackend<T> {
+             .map(|d| d.finish(&self.descriptors, &uniform_buffer, &gradients))
+             .collect();
+ 
+-        Mesh {
++        Mesh::new(MeshParts {
+             draws,
+             vertex_buffer,
+             index_buffer,
+-        }
++        })
+     }
+ 
+     fn clamp_bitmap(&self, bitmap: &mut Bitmap) -> bool {
+@@ -525,7 +578,7 @@ impl<T: RenderTarget + 'static> RenderBackend for WgpuRenderBackend<T> {
+         bitmap_source: &dyn BitmapSource,
+     ) -> ShapeHandle {
+         let mesh = self.register_shape_internal(shape, bitmap_source, 1.0);
+-        ShapeHandle(Arc::new(mesh))
++        self.issued.mesh(mesh)
+     }
+ 
+     #[instrument(level = "debug", skip_all)]
+@@ -536,7 +589,7 @@ impl<T: RenderTarget + 'static> RenderBackend for WgpuRenderBackend<T> {
+         scale: f32,
+     ) -> ShapeHandle {
+         let mesh = self.register_shape_internal(shape, bitmap_source, scale);
+-        ShapeHandle(Arc::new(mesh))
++        self.issued.mesh(mesh)
+     }
+ 
+     #[instrument(level = "debug", skip_all)]
+@@ -727,14 +780,7 @@ impl<T: RenderTarget + 'static> RenderBackend for WgpuRenderBackend<T> {
+             extent,
+         );
+ 
+-        let handle = BitmapHandle(Arc::new(Texture {
+-            texture,
+-            repeating_linear: Default::default(),
+-            repeating_nearest: Default::default(),
+-            clamped_linear: Default::default(),
+-            clamped_nearest: Default::default(),
+-            copy_count: Cell::new(0),
+-        }));
++        let handle = self.issued.texture(Texture::new(texture));
+ 
+         Ok(handle)
+     }
+@@ -1005,14 +1051,7 @@ impl<T: RenderTarget + 'static> RenderBackend for WgpuRenderBackend<T> {
+                             | wgpu::TextureUsages::RENDER_ATTACHMENT
+                             | wgpu::TextureUsages::COPY_SRC,
+                     });
+-                BitmapHandle(Arc::new(Texture {
+-                    texture,
+-                    repeating_linear: Default::default(),
+-                    repeating_nearest: Default::default(),
+-                    clamped_linear: Default::default(),
+-                    clamped_nearest: Default::default(),
+-                    copy_count: Cell::new(0),
+-                }))
++                self.issued.texture(Texture::new(texture))
+             }
+         };
+ 
+@@ -1165,14 +1204,7 @@ impl<T: RenderTarget + 'static> RenderBackend for WgpuRenderBackend<T> {
+                     | wgpu::TextureUsages::RENDER_ATTACHMENT
+                     | wgpu::TextureUsages::COPY_SRC,
+             });
+-        Ok(BitmapHandle(Arc::new(Texture {
+-            texture,
+-            repeating_linear: Default::default(),
+-            repeating_nearest: Default::default(),
+-            clamped_linear: Default::default(),
+-            clamped_nearest: Default::default(),
+-            copy_count: Cell::new(0),
+-        })))
++        Ok(self.issued.texture(Texture::new(texture)))
+     }
+ 
+     fn resolve_sync_handle(

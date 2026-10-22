@@ -1110,3 +1110,89 @@ in the gate's sub-frame leg, and both failed against the core from before
 the change. The whole gate: 120/120 trace-identical, image 394/394 on both
 renderers, state 30/30, sub-frame 13/13, every other leg passing, no
 failures.
+
+## A rebuilt renderer kept the old one alive (Corporate Climber, 2026-10-22)
+
+The owner's Corporate Climber project stopped at frame 48775 with "the core
+aborted. It said: memory allocation of 12800000 bytes failed". The log
+(`minibox-diag.log` beside Chimera) showed it three times, each right after
+the renderer was rebuilt for a load, and the sandbox's area for large blocks
+full: 512 MiB, 80 MiB free, no free run longer than 11 MiB. The ordinary heap
+(256 MiB) was full too, which is why small blocks had spilled into that area
+and cut it into pieces.
+
+The game alone does not need that much. Played straight to the end, without
+a single load, it peaks at 354 MB of live Rust memory, the ordinary heap stays
+under its limit and the large blocks reach 203 MB.
+
+What filled it: a load in a new GL context makes the core build a new
+renderer and drop the old one, but every wgpu object keeps its device alive,
+and ruffle_core lets go of its old handles only when it draws them again. A
+shape not drawn since the load, or a BitmapData that is garbage the collector
+has not reached yet, kept the whole old device and what it owned. Measured
+with a rebuild forced before each of 600 frames: 207 old devices still alive
+at the end, held by 824 old textures from `register_bitmap` (384 of them the
+same 261x15 bitmap, garbage waiting for collection) and about 600 old meshes;
+35 MB more live memory than the run without rebuilds. Building and dropping a
+renderer on its own leaks nothing (the same run with a spare renderer built
+and dropped every frame is identical byte for byte), polling the old device
+before dropping it changes nothing, and wgpu's `Device::destroy` only marks
+the device invalid.
+
+A full garbage collection after each rebuild did free it (60 MB below the
+straight run, which carries garbage of its own), but it is not the fix: Flash
+clears weak references (ActionScript 3 weak dictionaries and listeners) when
+the collector runs, so collecting at a different time could change what a
+movie does after a load, and a replay must not change.
+
+Patch 0008 instead has a dropped renderer take back the GPU objects of every
+texture and mesh it made. Each `Texture` and `Mesh` keeps them in a
+`Releasable`; the backend keeps a weak list of what it issued (pruned when it
+has doubled) and empties every live one when it is dropped. A handle that
+outlives its renderer is an empty shell until its holder registers it again,
+which every cache does first, on the render epoch. A use that slipped past
+that check would panic with "a GPU object was used after the renderer that
+made it was replaced" - where before it drew with another device's objects,
+which wgpu also refuses. Nothing here allocates on the collector's heap, so
+the collector runs exactly when it did.
+
+With the fix, the 600 forced rebuilds leave 1.5 MB more live memory than the
+straight run, flat after the first 150 frames, against 34.9 MB and climbing.
+
+The new test is `engine:rebuild-frees` in `tests/run-frontend.sh`. A movie of
+our own (`tests/make-shapes-swf.py`) shows a different shape on every one of
+240 frames, each only once, and chimera-run plays it twice, drawing every
+frame: once straight and once with a state loaded before every frame. The
+size of a saved state is the guest's memory. Building a second renderer costs
+about a megabyte once, so the test compares how much the state grows over the
+last 120 frames: 0 KiB with the loads and 0 KiB without on the fixed core,
+11,684 KiB with the loads on the owner's package (0b2b5dd), and 11,628 KiB
+with the fix built but its release switched off.
+
+On the GTX 1060 (Chimera 4fb2b73), Corporate Climber, 600 frames each drawn,
+a state loaded before every frame: the state at frame 599 is 33,184 KiB
+larger than the straight run's with the owner's package and 3,900 KiB smaller
+with the fixed one. The last picture is the straight run's in both, the
+straight pictures of the two packages are the same, and five rewinds to frame
+2000 of a 3000-frame run end on the straight run's picture.
+
+The core's test script, all of it, passes: 120/120 traces identical in the
+sandbox, pictures 394/394 on both renderers, states 30/30, navigator 92/92,
+audio 2/2, input 17/17, sub-frame 13/13. The frontend tests pass 6/6 and
+Chimera's package contract tests 22/22.
+
+On the GTX 1060, 3000 frames each drawn with a state loaded before every
+frame: the state is 418, 429 and 442 MB at frames 1000, 2000 and 2999 with the
+owner's package (and the ordinary heap ran full), and 373, 375 and 378 MB with
+the fixed one; the last pictures are the same. The owner's package keeps
+growing with every load, at about 12 MB a thousand loads here; the fixed one
+grows 4 MB over the same 2000 frames. On llvmpipe the owner's package grows far less
+per load (the state stays at 457-461 MB over 3000 loads from frame 47000), so
+the GPU's own driver is where each kept renderer costs the most.
+
+Not tested: the abort itself. It came at the end of the owner's TAStudio
+session, which cannot be played again as it happened, and at the rate
+measured it would take about 20,000 loads to reach. Also not tested: a movie
+that draws through the paths named above as not covered (`beginBitmapFill`,
+a displacement map, Pixel Bender, Stage3D) across a rebuild, which panicked
+before and now panics with the message above.

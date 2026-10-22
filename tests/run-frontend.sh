@@ -200,6 +200,63 @@ else
 	fi
 fi
 
+# --- a renderer rebuilt after a load lets go of the old one ---
+#
+# A load in a new GL context makes the core build a new renderer. The old one
+# used to stay alive as long as anything still held a shape or bitmap it had
+# made, and ruffle_core lets go of those only when it next draws them - so a
+# shape drawn once and never again kept a whole old renderer in the guest's
+# memory. Over a long TAStudio session that filled the sandbox: Corporate
+# Climber died at frame 48775 with "memory allocation of 12800000 bytes
+# failed" (2026-10-22). Patch 0008 has a dropped renderer take back the GPU
+# objects of every handle it made.
+#
+# The movie shows a different shape on every frame, each only once, and the
+# run loads a state before every frame, so every frame's renderer is left
+# holding one shape nobody draws again. A state's size is the guest's memory.
+# Building a second renderer costs about a megabyte once; what must not happen
+# is growth with every rebuild, so the test compares how much the state grows
+# over the last 120 frames - 120 more rebuilds - with and without the loads.
+if [ ! -x "$crun" ]; then
+	report "engine:rebuild-frees" SKIP "chimera-run not built"
+elif [ ! -f "$package" ]; then
+	report "engine:rebuild-frees" SKIP "no package"
+else
+	rf="$work/rebuild-frees"
+	mkdir -p "$rf"
+	python3 "$here/make-shapes-swf.py" "$rf/shapes.swf" 240
+	printf '[Input]\nLogKey:#\n' > "$rf/none.txt"
+	rfrun() { # <movie> <out> <extra args...>
+		rfmovie="$1"; rfout="$2"; shift 2
+		( cd "$chimera_root" && timeout 900 "$crun" "$package" "$rf/shapes.swf" "$rfmovie" \
+			--settings '{"renderer":"opengl-hw"}' --frames 240 --gpu "$@" \
+		) > "$rfout" 2>&1 || true
+	}
+	rfrun "$rf/none.txt" "$rf/record.log" --record "$rf/movie.txt"
+	rfrun "$rf/movie.txt" "$rf/plain.log" --render-every-frame \
+		--save-state "119=$rf/plain-119.state" --save-state "239=$rf/plain-239.state"
+	rfrun "$rf/movie.txt" "$rf/loads.log" --render-every-frame --rerecord \
+		--save-state "119=$rf/loads-119.state" --save-state "239=$rf/loads-239.state"
+	rebuilds=$(grep -c "rebuilt the renderer" "$rf/loads.log")
+	size() { stat -c %s "$1" 2>/dev/null || echo 0; }
+	if grep -q "^chimera gl: no context" "$rf/plain.log"; then
+		report "engine:rebuild-frees" SKIP "this machine gives the bridge no GL context"
+	elif [ ! -s "$rf/plain-239.state" ] || [ ! -s "$rf/loads-239.state" ]; then
+		report "engine:rebuild-frees" FAIL "no state written (see $rf)"
+	elif [ "$rebuilds" -lt 200 ]; then
+		report "engine:rebuild-frees" FAIL "a load before every frame rebuilt the renderer only $rebuilds times in 240 frames (see $rf/loads.log)"
+	else
+		plain=$(( ($(size "$rf/plain-239.state") - $(size "$rf/plain-119.state")) / 1024 ))
+		loads=$(( ($(size "$rf/loads-239.state") - $(size "$rf/loads-119.state")) / 1024 ))
+		# kept renderers grew it by about 100 KiB a rebuild
+		if [ $((loads - plain)) -gt 512 ]; then
+			report "engine:rebuild-frees" FAIL "over the last 120 frames the state grew $loads KiB with a load before every frame and $plain KiB without: old renderers are kept"
+		else
+			report "engine:rebuild-frees" PASS "over the last 120 frames the state grew $loads KiB with a load before every frame and $plain KiB without ($rebuilds rebuilds)"
+		fi
+	fi
+fi
+
 echo
 echo "$ok ok, $failed failed"
 [ "$failed" -eq 0 ]
