@@ -257,6 +257,35 @@ else
 	fi
 fi
 
+# --- a movie that needs more memory than the core used to have ---
+#
+# Corporate Climber stopped at frame 55836 (2026-10-23) on plain playback,
+# with no loads at all: its heap needs 315 MiB, the sandbox gave the core 256,
+# and the rest spilled into the 512 MiB area where large blocks go and broke
+# it into pieces too small for the next 12.8 MB picture. The core now has
+# 1 GiB of each (waterbox.config, memoryLayoutMiB). This movie keeps 20
+# pictures of 12.8 MB on the stage, about 490 MiB of large blocks with the
+# in-sandbox renderer; the old 512 MiB area stops before the 15th.
+if [ ! -x "$crun" ]; then
+	report "engine:big-movie" SKIP "chimera-run not built"
+elif [ ! -f "$package" ]; then
+	report "engine:big-movie" SKIP "no package"
+else
+	bm="$work/big-movie"
+	mkdir -p "$bm"
+	python3 "$here/make-bitmaps-swf.py" "$bm/bitmaps.swf" 20 30
+	printf '[Input]\nLogKey:#\n' > "$bm/none.txt"
+	( cd "$chimera_root" && timeout 900 "$crun" "$package" "$bm/bitmaps.swf" "$bm/none.txt" \
+		--settings '{"renderer":"software"}' --record "$bm/movie.txt" --frames 30 \
+	) > "$bm/run.log" 2>&1
+	rc=$?
+	if [ $rc -eq 0 ] && grep -q "^frames=30" "$bm/run.log"; then
+		report "engine:big-movie" PASS "20 pictures of 12.8 MB kept on the stage, all 30 frames played"
+	else
+		report "engine:big-movie" FAIL "exit $rc: $(grep -a -m1 "the core stopped\|memory allocation" "$bm/run.log" | cut -c1-160) (see $bm/run.log)"
+	fi
+fi
+
 echo
 echo "$ok ok, $failed failed"
 [ "$failed" -eq 0 ]

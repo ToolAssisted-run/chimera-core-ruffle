@@ -121,8 +121,10 @@ int main(int argc, char **argv) {
 	FILE *cf = fopen(corepath, "rb");
 	if (!cf) { perror(corepath); return 1; }
 	/* Ruffle is a Rust guest: std's allocator wants a real heap, and a movie's
-	 * display list plus its decoded assets live on it. */
-	mb_memory_layout_template layout = { 256u << 20, 16u << 20, 16u << 20, 64u << 20, 512u << 20 };
+	 * display list plus its decoded assets live on it. The same sizes as the
+	 * package's memoryLayoutMiB (waterbox.config), so a test runs the machine
+	 * Chimera runs. */
+	mb_memory_layout_template layout = { 1024u << 20, 16u << 20, 16u << 20, 64u << 20, 1024u << 20 };
 	freader fr = { cf };
 	mb_return r;
 	wbx_create_host(&layout, "core.wbx", file_read, (uintptr_t)&fr, &r);

@@ -881,11 +881,12 @@ What is published: one bus, "Heap" - the program break's heap, from the
 sbrk arena's start (the sandbox's layout, `__wbxsysinfo`) to the break. Not a
 memory domain: a domain is a pointer and a length the host reads by itself,
 its length is taken once, and the heap grows; the pages past the break are
-not there to be read. So the bus is as long as the arena can get (256 MiB),
-reads zeros past the break and ignores writes there, and is writable below
-it. A run inside the heap is answered with a pointer into it, so reading
-copies nothing and dirties nothing; the one buffer used for a run across the
-break is invisible to savestates. `GetMemoryDomainCount` stays 0.
+not there to be read. So the bus is as long as the arena can get (1 GiB;
+256 MiB until 2026-10-23), reads zeros past the break and ignores writes
+there, and is writable below it. A run inside the heap is answered with a
+pointer into it, so reading copies nothing and dirties nothing; the one
+buffer used for a run across the break is invisible to savestates.
+`GetMemoryDomainCount` stays 0.
 
 What a person finds there, measured with a three-frame counter movie
 (`tests/make-counter-swf.py`: `v = v + 1; trace(v)` once a frame) at frame
@@ -1196,3 +1197,52 @@ measured it would take about 20,000 loads to reach. Also not tested: a movie
 that draws through the paths named above as not covered (`beginBitmapFill`,
 a displacement map, Pixel Bender, Stage3D) across a rebuild, which panicked
 before and now panics with the message above.
+
+## Corporate Climber ran out of room at frame 55836 (2026-10-23)
+
+With the fix above (62db567), the owner's Corporate Climber project stopped
+at frame 55836, every time: "memory allocation of 12800000 bytes failed".
+
+This time nothing was kept that should have gone. A replay of the whole
+movie on the GTX 1060 (Chimera 4fb2b73, every frame drawn, no state loaded)
+stopped at the same click, there with "Failed to decode BitmapData: ...
+OutOfMemory". States saved along the way show why. The sandbox gives the core
+two places for its memory: the ordinary heap (256 MiB) and an area for large
+blocks (512 MiB). The heap was full by frame 20000. From then on the C
+library's allocator grew the heap inside the large-block area, in pieces it
+never gives back, between large blocks that come and go (a 2000 by 1600
+picture is one of 12.8 MB). The large-block area in use: 154 MiB at frame
+10000, 211 at 20000, 209 at 30000, 255 at 40000, 240 at 48000, 277 at 52000
+and 288 at 55000. At frame 55835 it had 224 MiB free, but no free run longer
+than 31 MiB, and the click opens the "13th Floor" screen, which needs about
+100 MiB of new pictures at once.
+
+The fix gives the core 1 GiB of heap and 1 GiB for large blocks
+(`memoryLayoutMiB` in waterbox.config, and run-wbx.c to match, so the tests
+run the machine Chimera runs). The guest program is the same, byte for byte.
+The sandbox only spends memory on the pages a movie touches: a whole state at
+frame 55000 is 541 MB before and 539 MB after. With it the same replay plays
+all 55848 frames of the movie: the heap reaches 315 MiB, and the large blocks
+222 MiB by frame 55835 and 320 MiB after the click. The states each package
+saved at frame 55000 give the same pictures 0, 1, 100, 400 and 834 frames
+later.
+
+The "Heap" bus is now 1 GiB long. Its offsets have not moved (they count from
+the heap's start), and a variable on a heap that used to spill is now on the
+bus. RAM Search keeps about a byte for every byte of a bus, so searching the
+Heap costs about 1.1 GB while it is open, rather than about 290 MB.
+
+The new test is `engine:big-movie` in `tests/run-frontend.sh`: a movie of our
+own (`tests/make-bitmaps-swf.py`) keeps 20 pictures of 12.8 MB on the stage,
+about 490 MiB of large blocks with the in-sandbox renderer, and must play all
+30 frames. The old layout stops before the 15th picture ("memory allocation of
+12800000 bytes failed", seen in the test with the old layout put back); the
+new one holds 30 and stops by 35.
+
+Tested: the core's test script, all of it (120/120 traces identical in the
+sandbox, pictures 394/394 on both renderers, states 30/30, navigator 92/92,
+audio 2/2, input 17/17, sub-frame 13/13, heap 6/6, variables 16/16, settings
+19/19), the frontend tests 7/7, and Chimera's package contract tests 26/26.
+
+Not tested: the owner's movie past frame 55848, where its input ends, and
+Chimera's own window (the 1060 runs used chimera-run.exe, the same engine).
