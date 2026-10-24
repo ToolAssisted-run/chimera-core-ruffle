@@ -50,6 +50,17 @@ static void *chimera_gl_shadow_new(uint64_t size)
 	*(uint64_t *)base = need;
 	return (char *)base + 64;
 }
+/* The highest name of each kind the driver has handed this guest
+ * (GL_OP_NAME_MARKS): guest memory, so every state holds it, and the host
+ * reads it after a load to keep those numbers from new objects. */
+static struct ChimeraGlNameMarks g_name_marks = { CHIMERA_GL_NAME_MARKS_MAGIC, CHIMERA_GL_NAME_KINDS, { 0 } };
+static void chimera_gl_mark(unsigned kind, const GLuint *names, GLsizei n)
+{
+	if (names == nullptr || kind >= CHIMERA_GL_NAME_KINDS) return;
+	for (GLsizei i = 0; i < n; i++)
+		if (names[i] > g_name_marks.high[kind]) g_name_marks.high[kind] = names[i];
+}
+
 static void chimera_gl_shadow_free(void *p)
 {
 	if (p == nullptr) return;
@@ -559,7 +570,9 @@ static void GLAD_API_PTR w_glCopyTextureSubImage2D(GLuint texture, GLint level, 
 
 static GLuint GLAD_API_PTR w_glCreateProgram(void)
 {
-	return (GLuint)g_bridge(CHIMERA_GL_OP_glCreateProgram, 0, 0, 0, 0, 0);
+	const GLuint chimera_r = (GLuint)g_bridge(CHIMERA_GL_OP_glCreateProgram, 0, 0, 0, 0, 0);
+	chimera_gl_mark(CHIMERA_GL_NAME_PROGRAM, &chimera_r, 1);
+	return (GLuint)chimera_r;
 }
 
 static void GLAD_API_PTR w_glCreateSamplers(GLsizei n, GLuint * samplers)
@@ -568,13 +581,16 @@ static void GLAD_API_PTR w_glCreateSamplers(GLsizei n, GLuint * samplers)
 	chimera_a.n = n;
 	chimera_a.samplers = samplers;
 	g_bridge(CHIMERA_GL_OP_glCreateSamplers, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+	chimera_gl_mark(CHIMERA_GL_NAME_SAMPLER, samplers, n);
 }
 
 static GLuint GLAD_API_PTR w_glCreateShader(GLenum type)
 {
 	struct ChimeraGlArgs_glCreateShader chimera_a;
 	chimera_a.type = type;
-	return (GLuint)g_bridge(CHIMERA_GL_OP_glCreateShader, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+	const GLuint chimera_r = (GLuint)g_bridge(CHIMERA_GL_OP_glCreateShader, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+	chimera_gl_mark(CHIMERA_GL_NAME_PROGRAM, &chimera_r, 1);
+	return (GLuint)chimera_r;
 }
 
 static void GLAD_API_PTR w_glCreateTextures(GLenum target, GLsizei n, GLuint * textures)
@@ -584,6 +600,7 @@ static void GLAD_API_PTR w_glCreateTextures(GLenum target, GLsizei n, GLuint * t
 	chimera_a.n = n;
 	chimera_a.textures = textures;
 	g_bridge(CHIMERA_GL_OP_glCreateTextures, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+	chimera_gl_mark(CHIMERA_GL_NAME_TEXTURE, textures, n);
 }
 
 static void GLAD_API_PTR w_glCullFace(GLenum mode)
@@ -838,6 +855,7 @@ static void GLAD_API_PTR w_glGenBuffers(GLsizei n, GLuint * buffers)
 	chimera_a.n = n;
 	chimera_a.buffers = buffers;
 	g_bridge(CHIMERA_GL_OP_glGenBuffers, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+	chimera_gl_mark(CHIMERA_GL_NAME_BUFFER, buffers, n);
 }
 
 static void GLAD_API_PTR w_glGenerateMipmap(GLenum target)
@@ -860,6 +878,7 @@ static void GLAD_API_PTR w_glGenFramebuffers(GLsizei n, GLuint * framebuffers)
 	chimera_a.n = n;
 	chimera_a.framebuffers = framebuffers;
 	g_bridge(CHIMERA_GL_OP_glGenFramebuffers, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+	chimera_gl_mark(CHIMERA_GL_NAME_FRAMEBUFFER, framebuffers, n);
 }
 
 static void GLAD_API_PTR w_glGenQueries(GLsizei n, GLuint * ids)
@@ -868,6 +887,7 @@ static void GLAD_API_PTR w_glGenQueries(GLsizei n, GLuint * ids)
 	chimera_a.n = n;
 	chimera_a.ids = ids;
 	g_bridge(CHIMERA_GL_OP_glGenQueries, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+	chimera_gl_mark(CHIMERA_GL_NAME_QUERY, ids, n);
 }
 
 static void GLAD_API_PTR w_glGenRenderbuffers(GLsizei n, GLuint * renderbuffers)
@@ -876,6 +896,7 @@ static void GLAD_API_PTR w_glGenRenderbuffers(GLsizei n, GLuint * renderbuffers)
 	chimera_a.n = n;
 	chimera_a.renderbuffers = renderbuffers;
 	g_bridge(CHIMERA_GL_OP_glGenRenderbuffers, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+	chimera_gl_mark(CHIMERA_GL_NAME_RENDERBUFFER, renderbuffers, n);
 }
 
 static void GLAD_API_PTR w_glGenSamplers(GLsizei count, GLuint * samplers)
@@ -884,6 +905,7 @@ static void GLAD_API_PTR w_glGenSamplers(GLsizei count, GLuint * samplers)
 	chimera_a.count = count;
 	chimera_a.samplers = samplers;
 	g_bridge(CHIMERA_GL_OP_glGenSamplers, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+	chimera_gl_mark(CHIMERA_GL_NAME_SAMPLER, samplers, count);
 }
 
 static void GLAD_API_PTR w_glGenTextures(GLsizei n, GLuint * textures)
@@ -892,6 +914,7 @@ static void GLAD_API_PTR w_glGenTextures(GLsizei n, GLuint * textures)
 	chimera_a.n = n;
 	chimera_a.textures = textures;
 	g_bridge(CHIMERA_GL_OP_glGenTextures, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+	chimera_gl_mark(CHIMERA_GL_NAME_TEXTURE, textures, n);
 }
 
 static void GLAD_API_PTR w_glGenVertexArrays(GLsizei n, GLuint * arrays)
@@ -900,6 +923,7 @@ static void GLAD_API_PTR w_glGenVertexArrays(GLsizei n, GLuint * arrays)
 	chimera_a.n = n;
 	chimera_a.arrays = arrays;
 	g_bridge(CHIMERA_GL_OP_glGenVertexArrays, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+	chimera_gl_mark(CHIMERA_GL_NAME_VERTEX_ARRAY, arrays, n);
 }
 
 static GLenum GLAD_API_PTR w_glGetError(void)
@@ -2307,6 +2331,7 @@ static void GLAD_API_PTR w_glCreateBuffers(GLsizei n, GLuint * buffers)
 	chimera_a.n = n;
 	chimera_a.buffers = buffers;
 	g_bridge(CHIMERA_GL_OP_glCreateBuffers, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+	chimera_gl_mark(CHIMERA_GL_NAME_BUFFER, buffers, n);
 }
 
 static void GLAD_API_PTR w_glCreateFramebuffers(GLsizei n, GLuint * framebuffers)
@@ -2315,6 +2340,7 @@ static void GLAD_API_PTR w_glCreateFramebuffers(GLsizei n, GLuint * framebuffers
 	chimera_a.n = n;
 	chimera_a.framebuffers = framebuffers;
 	g_bridge(CHIMERA_GL_OP_glCreateFramebuffers, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+	chimera_gl_mark(CHIMERA_GL_NAME_FRAMEBUFFER, framebuffers, n);
 }
 
 static void GLAD_API_PTR w_glCreateProgramPipelines(GLsizei n, GLuint * pipelines)
@@ -2323,6 +2349,7 @@ static void GLAD_API_PTR w_glCreateProgramPipelines(GLsizei n, GLuint * pipeline
 	chimera_a.n = n;
 	chimera_a.pipelines = pipelines;
 	g_bridge(CHIMERA_GL_OP_glCreateProgramPipelines, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+	chimera_gl_mark(CHIMERA_GL_NAME_PIPELINE, pipelines, n);
 }
 
 static void GLAD_API_PTR w_glCreateQueries(GLenum target, GLsizei n, GLuint * ids)
@@ -2332,6 +2359,7 @@ static void GLAD_API_PTR w_glCreateQueries(GLenum target, GLsizei n, GLuint * id
 	chimera_a.n = n;
 	chimera_a.ids = ids;
 	g_bridge(CHIMERA_GL_OP_glCreateQueries, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+	chimera_gl_mark(CHIMERA_GL_NAME_QUERY, ids, n);
 }
 
 static void GLAD_API_PTR w_glCreateRenderbuffers(GLsizei n, GLuint * renderbuffers)
@@ -2340,6 +2368,7 @@ static void GLAD_API_PTR w_glCreateRenderbuffers(GLsizei n, GLuint * renderbuffe
 	chimera_a.n = n;
 	chimera_a.renderbuffers = renderbuffers;
 	g_bridge(CHIMERA_GL_OP_glCreateRenderbuffers, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+	chimera_gl_mark(CHIMERA_GL_NAME_RENDERBUFFER, renderbuffers, n);
 }
 
 static void GLAD_API_PTR w_glCreateTransformFeedbacks(GLsizei n, GLuint * ids)
@@ -2348,6 +2377,7 @@ static void GLAD_API_PTR w_glCreateTransformFeedbacks(GLsizei n, GLuint * ids)
 	chimera_a.n = n;
 	chimera_a.ids = ids;
 	g_bridge(CHIMERA_GL_OP_glCreateTransformFeedbacks, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+	chimera_gl_mark(CHIMERA_GL_NAME_TRANSFORM_FEEDBACK, ids, n);
 }
 
 static void GLAD_API_PTR w_glCreateVertexArrays(GLsizei n, GLuint * arrays)
@@ -2356,6 +2386,7 @@ static void GLAD_API_PTR w_glCreateVertexArrays(GLsizei n, GLuint * arrays)
 	chimera_a.n = n;
 	chimera_a.arrays = arrays;
 	g_bridge(CHIMERA_GL_OP_glCreateVertexArrays, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+	chimera_gl_mark(CHIMERA_GL_NAME_VERTEX_ARRAY, arrays, n);
 }
 
 static void GLAD_API_PTR w_glDebugMessageCallbackARB(GLDEBUGPROCARB callback, const void * userParam)
@@ -5468,7 +5499,9 @@ static GLuint GLAD_API_PTR w_glCreateShaderProgramv(GLenum type, GLsizei count, 
 	chimera_a.type = type;
 	chimera_a.count = count;
 	chimera_a.strings = strings;
-	return (GLuint)g_bridge(CHIMERA_GL_OP_glCreateShaderProgramv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+	const GLuint chimera_r = (GLuint)g_bridge(CHIMERA_GL_OP_glCreateShaderProgramv, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+	chimera_gl_mark(CHIMERA_GL_NAME_PROGRAM, &chimera_r, 1);
+	return (GLuint)chimera_r;
 }
 
 static void GLAD_API_PTR w_glDebugMessageCallbackKHR(GLDEBUGPROCKHR callback, const void * userParam)
@@ -5647,6 +5680,7 @@ static void GLAD_API_PTR w_glGenProgramPipelines(GLsizei n, GLuint * pipelines)
 	chimera_a.n = n;
 	chimera_a.pipelines = pipelines;
 	g_bridge(CHIMERA_GL_OP_glGenProgramPipelines, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+	chimera_gl_mark(CHIMERA_GL_NAME_PIPELINE, pipelines, n);
 }
 
 static void GLAD_API_PTR w_glGenQueriesEXT(GLsizei n, GLuint * ids)
@@ -5663,6 +5697,7 @@ static void GLAD_API_PTR w_glGenTransformFeedbacks(GLsizei n, GLuint * ids)
 	chimera_a.n = n;
 	chimera_a.ids = ids;
 	g_bridge(CHIMERA_GL_OP_glGenTransformFeedbacks, (uint64_t)(uintptr_t)&chimera_a, 0, 0, 0, 0);
+	chimera_gl_mark(CHIMERA_GL_NAME_TRANSFORM_FEEDBACK, ids, n);
 }
 
 static void GLAD_API_PTR w_glGenVertexArraysAPPLE(GLsizei n, GLuint * arrays)
@@ -6936,6 +6971,9 @@ bool chimera_gl_install(chimera_gl_bridge_fn bridge)
 	}
 
 	g_bridge = bridge;
+	/* where the marks are; a host that does not ask about them says it has no
+	 * case for the opcode, once, and nothing changes */
+	bridge(GL_OP_NAME_MARKS, (uint64_t)(uintptr_t)&g_name_marks, sizeof g_name_marks, 0, 0, 0);
 	glad_glActiveTexture = w_glActiveTexture;
 	glad_glAttachShader = w_glAttachShader;
 	glad_glBeginQuery = w_glBeginQuery;

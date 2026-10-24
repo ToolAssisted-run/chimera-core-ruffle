@@ -1246,3 +1246,15 @@ audio 2/2, input 17/17, sub-frame 13/13, heap 6/6, variables 16/16, settings
 
 Not tested: the owner's movie past frame 55848, where its input ends, and
 Chimera's own window (the 1060 runs used chimera-run.exe, the same engine).
+
+## The GL names a state holds (chimera#367, 2026-10-24)
+
+miniBox's generator (96762cf, b7bc1a2) makes the guest keep the highest GL
+name of each kind it has been given in its own memory, so every state holds
+it, and tell the host where it is (GL_OP_NAME_MARKS). After a load Chimera
+keeps every number up to those marks from new objects, which covers a state
+taken by another process (a project opened again with its greenzone read
+back from disk). This core keeps its generated files in the repository, so
+`waterbox/generated/` was generated again: the guest half gains the marks,
+and the host half the test runner uses answers the new opcode with nothing.
+Gate: 120/120 and the sub-frame gate 13/13.

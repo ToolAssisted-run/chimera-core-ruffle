@@ -3,6 +3,11 @@
 #ifndef CHIMERA_GL_UNSUPPLIED
 #define CHIMERA_GL_UNSUPPLIED(op, name) ((void)0)
 #endif
+#ifndef CHIMERA_GL_HOST_NAME_MARKS
+		case GL_OP_NAME_MARKS:
+			(void)a;
+			return 0;
+#endif
 		case CHIMERA_GL_OP_glActiveTexture:
 		{
 			struct ChimeraGlArgs_glActiveTexture *chimera_p = (struct ChimeraGlArgs_glActiveTexture *)a;
