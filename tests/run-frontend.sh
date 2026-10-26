@@ -35,6 +35,28 @@ report() {
 }
 
 work="$here/work"; rm -rf "$work"; mkdir -p "$work"
+# A game runs only in a project (Chimera, 2026-10-26): crun_game <package>
+# <game> <movie> [chimera-run's options] makes one of the game and the movie,
+# with any --settings and --firmware given, and runs it with the rest
+# (each run under CRUN_TIMEOUT seconds when it is set).
+crun_game() {
+	local pkg="$1" game="$2" movie="$3" made=() run=() dir
+	shift 3
+	while [ $# -gt 0 ]; do
+		case "$1" in
+			--settings) made+=("$1" "$2"); shift ;;
+			--settings=*) made+=(--settings "${1#--settings=}") ;;
+			--firmware) made+=("$1" "$2"); run+=("$1" "$2"); shift ;;
+			--firmware=*) made+=(--firmware "${1#--firmware=}"); run+=(--firmware "${1#--firmware=}") ;;
+			*) run+=("$1") ;;
+		esac
+		shift
+	done
+	dir="$(mktemp -d "$work/project.XXXXXX")"
+	timeout "${CRUN_TIMEOUT:-0}" "$crun" --new-project "$dir/game.chimeraProject" "$pkg" "$game" "$movie" "${made[@]}" > "$dir/make.log" 2>&1 \
+		|| { echo "chimera-run: no project made: $(tail -1 "$dir/make.log")" >&2; return 2; }
+	timeout "${CRUN_TIMEOUT:-0}" "$crun" --project "$dir/game.chimeraProject" "$pkg" --files "$(dirname "$game")" "${run[@]}"
+}
 package="$chimera_root/build/Cores/ruffle.chimeraCore"
 crun="$chimera_root/build/meson-linux/chimera-run"
 # The upstream submodule, which is where the guest's path dependencies point
@@ -107,7 +129,7 @@ naxes = len(cfg["input"]["axes"]); nbuttons = len(cfg["input"]["buttons"])
 entry = "|" + ("%5d," % 0) * naxes + "." * nbuttons + "|"
 open(sys.argv[1], "w").write((entry + "\n") * 5)
 PYMOVIE
-		( cd "$chimera_root" && timeout 600 "$crun" "$package" "$test_dir/test.swf" \
+		( cd "$chimera_root" && CRUN_TIMEOUT=600 crun_game "$package" "$test_dir/test.swf" \
 			"$work/movie.txt" --gpu --screenshot 4="$work/frame.tga" ) > "$work/run.log" 2>&1
 		if [ ! -s "$work/frame.tga" ]; then
 			report "engine:picture" FAIL "no frame written (see tests/work/run.log)"
@@ -161,7 +183,7 @@ else
 	glrun() { # <movie> <out> <extra args...>
 		glmovie="$1"; glout="$2"; shift 2
 		( cd "$chimera_root" && CHIMERA_GL_TRACE=1 CHIMERA_GL_STATEAUDIT=1 \
-			timeout 600 "$crun" "$package" "$swf" "$glmovie" \
+			CRUN_TIMEOUT=600 crun_game "$package" "$swf" "$glmovie" \
 			--settings '{"renderer":"opengl-hw"}' --frames 30 --gpu "$@" \
 		) > "$glout" 2>&1 || true
 	}
@@ -228,7 +250,7 @@ else
 	printf '[Input]\nLogKey:#\n' > "$rf/none.txt"
 	rfrun() { # <movie> <out> <extra args...>
 		rfmovie="$1"; rfout="$2"; shift 2
-		( cd "$chimera_root" && timeout 900 "$crun" "$package" "$rf/shapes.swf" "$rfmovie" \
+		( cd "$chimera_root" && CRUN_TIMEOUT=900 crun_game "$package" "$rf/shapes.swf" "$rfmovie" \
 			--settings '{"renderer":"opengl-hw"}' --frames 240 --gpu "$@" \
 		) > "$rfout" 2>&1 || true
 	}
@@ -275,7 +297,7 @@ else
 	mkdir -p "$bm"
 	python3 "$here/make-bitmaps-swf.py" "$bm/bitmaps.swf" 20 30
 	printf '[Input]\nLogKey:#\n' > "$bm/none.txt"
-	( cd "$chimera_root" && timeout 900 "$crun" "$package" "$bm/bitmaps.swf" "$bm/none.txt" \
+	( cd "$chimera_root" && CRUN_TIMEOUT=900 crun_game "$package" "$bm/bitmaps.swf" "$bm/none.txt" \
 		--settings '{"renderer":"software"}' --record "$bm/movie.txt" --frames 30 \
 	) > "$bm/run.log" 2>&1
 	rc=$?
