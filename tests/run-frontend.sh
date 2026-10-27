@@ -88,27 +88,56 @@ else
 	report "keybinds" FAIL "$(cat "$work/keys.txt")"
 fi
 
-# --- the frontend's own loader must accept the package ---
-dlls="$chimera_root/build/dll"
-libs="$chimera_root/build/meson-linux"
-if ! command -v mcs >/dev/null || [ ! -f "$dlls/Chimera.Client.Common.dll" ]; then
-	report "frontend:loads" SKIP "mono/mcs or the frontend's assemblies not built"
+# --- Chimera's window must open a project of the package and run it ---
+# The engine's parser and the window's are different programs reading the same
+# file, and the window's is the strict one: a package can pass the gate and
+# chimera-run and still be unreadable to the program a user opens. So this runs
+# the window itself, headless (it needs no display), on a project made from the
+# package and one of ruffle's own test movies, for a few frames.
+#
+# The window offers a GPU only to a core whose "renderer" setting is named
+# something-hw, and this core cannot start without one, so the default is
+# checked as well.
+chimera_exe="$chimera_root/build/meson-linux/source/ui/chimera"
+if [ ! -x "$chimera_exe" ]; then
+	report "frontend:loads" SKIP "Chimera's window not built: $chimera_exe"
 elif [ ! -f "$package" ]; then
 	report "frontend:loads" SKIP "no package"
+elif [ ! -f "$swfs/text/br_at_start/test.swf" ]; then
+	report "frontend:loads" SKIP "ruffle's test corpus not present"
 else
-	if mcs -out:"$work/probe.exe" -r:"$dlls/Chimera.Client.Common.dll" \
-		-r:"$dlls/Chimera.Emulation.Common.dll" -r:"$dlls/Chimera.Common.dll" \
-		"$here/discovery-probe.cs" > "$work/probe.build.log" 2>&1; then
-		out=$( cd "$dlls" && MONO_PATH=. LD_LIBRARY_PATH="$libs:$dlls" \
-			timeout 180 mono "$work/probe.exe" "$(dirname "$package")" 2>&1 )
-		echo "$out" > "$work/probe.log"
-		if echo "$out" | grep -q "^RUFFLE OK"; then
-			report "frontend:loads" PASS "discovered and loaded by the frontend's own loader"
-		else
-			report "frontend:loads" FAIL "$(echo "$out" | grep -E "RUFFLE (NOT|FAILED)" | head -1)"
-		fi
+	wl="$work/window"
+	mkdir -p "$wl"
+	python3 - "$wl/movie.txt" "$root/waterbox/waterbox.config" <<'PYMOVIE'
+import json, sys
+cfg = json.load(open(sys.argv[2]))
+naxes = len(cfg["input"]["axes"]); nbuttons = len(cfg["input"]["buttons"])
+entry = "|" + ("%5d," % 0) * naxes + "." * nbuttons + "|"
+open(sys.argv[1], "w").write((entry + "\n") * 5)
+PYMOVIE
+	default_renderer=$(python3 -c '
+import json, sys
+for s in json.load(open(sys.argv[1])).get("settings", []):
+    if s.get("name") == "renderer": print(s.get("default", ""))' "$root/waterbox/waterbox.config")
+	# the movie file beside the project, where the window looks for it
+	cp "$swfs/text/br_at_start/test.swf" "$wl/test.swf"
+	if ! timeout 600 "$crun" --new-project "$wl/game.chimeraProject" "$package" "$wl/test.swf" "$wl/movie.txt" > "$wl/make.log" 2>&1; then
+		report "frontend:loads" FAIL "no project made: $(tail -1 "$wl/make.log")"
 	else
-		report "frontend:loads" SKIP "could not build the probe (see tests/work/probe.build.log)"
+		out=$( cd "$chimera_root" && env ALSOFT_DRIVERS=null CHIMERA_CORES_DIR="$chimera_root/build/Cores" 			CHIMERA_QT_CACHE="$wl/qt-cache" CHIMERA_QT_RECOVERY="$wl/qt-recovery" 			CHIMERA_QT_HASHES="$wl/qt-file-hashes.txt" CHIMERA_QT_CHIMERA_SETTINGS="$wl/no-chimera-config.ini" 			timeout 600 "$chimera_exe" --headless "--config=$wl/settings.json" 			"--project=$wl/game.chimeraProject" "--lua=$here/window-loads.lua" 2>&1 )
+		rc=$?
+		echo "$out" > "$wl/window.log"
+		case "$default_renderer" in
+			*-hw) hw=1 ;;
+			*) hw=0 ;;
+		esac
+		if [ "$rc" -eq 0 ] && echo "$out" | grep -q "RUFFLE OK frames=" && [ "$hw" = 1 ]; then
+			report "frontend:loads" PASS "opened and run by Chimera's window; renderer default \"$default_renderer\" asks for a GPU"
+		elif [ "$hw" != 1 ]; then
+			report "frontend:loads" FAIL "the window would not offer a GPU: renderer default is \"$default_renderer\""
+		else
+			report "frontend:loads" FAIL "exit $rc: $(echo "$out" | tail -1 | cut -c1-160) (see tests/work/window/window.log)"
+		fi
 	fi
 fi
 
