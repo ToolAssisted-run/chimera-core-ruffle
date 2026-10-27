@@ -16,9 +16,9 @@ and a GPU one, and CI runs the core gate and the frontend gate on every push.
 Chimera ships no cores and downloads nothing. Download the `.chimeraCore`
 package from this repository's
 [Releases](https://github.com/ToolAssisted-run/chimera-core-ruffle/releases)
-page, or build it, and put it in the `Cores` folder beside `Chimera.exe` (or
-the folder chosen in File > Core Manager > Change folder...). File > Core
-Manager lists the cores in that folder. The same package works on Linux and on
+page, or build it, and put it in the `cores` folder beside Chimera's program (or
+the folder chosen in Tools > Core Manager... > Change folder...). Tools > Core
+Manager... lists the cores in that folder. The same package works on Linux and on
 Windows.
 
 ## Building

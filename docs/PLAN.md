@@ -1062,7 +1062,7 @@ gives it ("Number1", "Enter", "Backtick", "KeypadAdd") or else its DistinctKey
 name ("Up"); and unless told otherwise it reads the left and right Shift, Ctrl
 and Alt as one key each, "Shift", "Ctrl" and "Alt" (Input.cs,
 Config.MergeLAndRModifierKeys). A default binding to another name never fired,
-so those controls shipped unbound on the keyboard. Checked on Xvfb: with 1,
+so those controls shipped unbound on the keyboard. Checked on a virtual display: with 1,
 Return, left Shift and Up held, Chimera reports Number1, Enter, Shift and Up.
 Left and right names stay beside the merged one, for a setup with the merging
 off.

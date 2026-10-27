@@ -35,7 +35,7 @@ The frontend gate job (builds Chimera and the package, runs
 
 ```sh
 sudo apt-get update
-sudo apt-get install -y --no-install-recommends meson ninja-build build-essential cmake pkg-config python3 bison flex python3-mako python3-packaging default-jdk mono-complete xvfb libgl1-mesa-dev libx11-dev libxext-dev libasound2-dev
+sudo apt-get install -y --no-install-recommends meson ninja-build build-essential cmake pkg-config python3 bison flex python3-mako python3-packaging default-jdk libgl1-mesa-dev libx11-dev libxext-dev libasound2-dev
 ```
 
 A machine that does both wants both lists. What the less obvious ones are for:
@@ -50,8 +50,6 @@ A machine that does both wants both lists. What the less obvious ones are for:
   the host end of the GPU bridge. It compiles against EGL and needs a driver at
   run time. On a machine with no GPU that driver is Mesa's software rasteriser,
   reached through EGL's surfaceless platform.
-- `mono-complete` - `tests/run-frontend.sh` compiles a probe with `mcs` and
-  runs it with `mono`.
 
 **Rust.** Through rustup. The workflow runs:
 
@@ -72,13 +70,9 @@ rustup default stable
   (`waterbox/guest/Cargo.lock`, `waterbox/run-native/Cargo.lock`).
 - rustup itself is not installed by the workflow: the runner image has it.
 
-**.NET SDK 8.0** (frontend gate only). The workflow uses
-`actions/setup-dotnet@v4` with `dotnet-version: '8.0'`. Chimera's README gives
-the manual install:
-
-```sh
-curl -sSL https://dot.net/v1/dotnet-install.sh | bash -s -- --channel 8.0
-```
+**Qt 6.12** (frontend gate only). Chimera's window needs it. Chimera's
+`tools/ci-chimera.sh` installs it (from Qt's own archives, with aqt) and builds
+Chimera; the workflow keeps it in `~/qt` between runs.
 
 **What the scripts fetch or build themselves.**
 
@@ -351,10 +345,10 @@ page, or builds it, and puts it in Chimera's `Cores` folder.
 - In a Chimera source checkout the cores folder is `<chimera>/build/Cores/`.
   `waterbox/build-package.sh -r <chimera>` writes the package straight there,
   so there is nothing more to do.
-- In a release bundle it is the `Cores` folder beside `Chimera.exe`, or another
-  folder chosen in File > Core Manager > Change folder... Copy
+- In a release bundle it is the `cores` folder beside Chimera's program, or another
+  folder chosen in Tools > Core Manager... > Change folder... Copy
   `ruffle.chimeraCore` into it.
-- File > Core Manager lists what is in that folder. Refresh List rescans it.
+- Tools > Core Manager... lists what is in that folder. Refresh List rescans it.
 
 Published packages are at
 https://github.com/ToolAssisted-run/chimera-core-ruffle/releases.
@@ -420,15 +414,13 @@ all only says `FAIL` on every line: run the smoke test above to see why.
 ```
 
 Options: `--chimera-root <path>` and `--minibox <path>` (or `MINIBOX_DIR`). It
-needs Chimera built. The workflow's commands:
+needs Chimera built with its window. The workflow's command:
 
 ```sh
-cd <chimera>
-meson setup build/meson-linux --prefix "$PWD/build" --libdir dll
-meson compile -C build/meson-linux
-meson install -C build/meson-linux
-dotnet build source/gui/Chimera.sln -c Release /nodeReuse:false -p:UseSharedCompilation=false
+<chimera>/tools/ci-chimera.sh
 ```
+
+The window runs headless and needs no display.
 
 It tests the package at `<chimera>/build/Cores/ruffle.chimeraCore` and builds
 it first if it is missing. Its legs:
@@ -436,8 +428,10 @@ it first if it is missing. Its legs:
 - `package` - the package holds `core.wbx`, `waterbox.config`,
   `default_keybinds.json` and `file_slots.json`.
 - `keybinds` - every declared button and axis has a default binding.
-- `frontend:loads` - Chimera's own loader discovers and loads the package.
-  SKIP without `mcs` or without Chimera's assemblies in `<chimera>/build/dll`.
+- `frontend:loads` - Chimera's window, run headless, opens a project of the
+  package and runs a few frames of a test movie (`tests/window-loads.lua`), and
+  the package's renderer setting defaults to a GPU renderer. SKIP without the
+  window at `<chimera>/build/meson-linux/source/ui/chimera`.
 - `engine:picture` - `chimera-run` plays a test movie from the package and the
   frame matches upstream's expected PNG. SKIP without
   `<chimera>/build/meson-linux/chimera-run`.
@@ -454,8 +448,7 @@ frontend runs, become a working factory, bind only buttons its controller
 declares, and stamp a version.
 
 ```sh
-cd <chimera>
-CHIMERA_CORES_DIR=<chimera>/build/Cores dotnet test source/gui/Chimera.Tests.Client.Common/Chimera.Tests.Client.Common.csproj -c Release --nologo --filter "FullyQualifiedName~InstalledCorePackagesTests|FullyQualifiedName~MnemonicUniquenessTests"
+CHIMERA_CORES_DIR=<chimera>/build/Cores <chimera>/build/meson-linux/source/ui/test-packages
 ```
 
 ## Files the core needs at run time

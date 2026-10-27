@@ -56,8 +56,8 @@ meson compile -C "$mb/build/meson-linux"
 meson compile -C "$mb/build/meson-cpp"
 ```
 
-The frontend gate also needs Chimera itself built, .NET 8.0 and
-`mono-complete`: see `docs/BUILDING.md`.
+The frontend gate also needs Chimera itself built, with its window
+(`<chimera>/tools/ci-chimera.sh`): see `docs/BUILDING.md`.
 
 ## Build
 
@@ -88,9 +88,9 @@ only draw through the GPU bridge, and the gate's sandbox legs then fail.
 Chimera ships no cores and downloads nothing: a package is put in its `Cores`
 folder by hand. In a source checkout `build-package.sh -r <chimera>` already
 wrote it there, as `<chimera>/build/Cores/ruffle.chimeraCore`. For a release
-bundle, copy the file into the `Cores` folder beside `Chimera.exe`, or into
-the folder chosen in File > Core Manager > Change folder... File > Core
-Manager lists the folder; Refresh List rescans it.
+bundle, copy the file into the `cores` folder beside Chimera's program, or into
+the folder chosen in Tools > Core Manager... > Change folder... Tools > Core
+Manager... lists the folder; Refresh List rescans it.
 
 A hand-built package is stamped `<commit>+local` (`-dirty` when the tree has
 changes) and is for testing. CI stamps the commit and publishes the `dev` and
@@ -102,7 +102,7 @@ changes) and is for testing. CI stamps the commit and publishes the `dev` and
 ./waterbox/run-gate.sh
 # also, with Chimera built, when the package or what the frontend sees changed:
 ./tests/run-frontend.sh --chimera-root <chimera>
-cd <chimera> && CHIMERA_CORES_DIR=<chimera>/build/Cores dotnet test source/gui/Chimera.Tests.Client.Common/Chimera.Tests.Client.Common.csproj -c Release --nologo --filter "FullyQualifiedName~InstalledCorePackagesTests|FullyQualifiedName~MnemonicUniquenessTests"
+CHIMERA_CORES_DIR=<chimera>/build/Cores <chimera>/build/meson-linux/source/ui/test-packages
 ```
 
 `run-gate.sh` needs the native reference, `waterbox/build/core.wbx` and
