@@ -88,7 +88,7 @@ approximates. That is the pitch.
   accesses, and Init faults at the first thread_local read (HashMap
   RandomState) because the guest thread pointer is not established (arch_prctl
   158 absent from miniBox's dispatch; host-context %fs switching unwired).
-  NEXT: make guest TLS work, then wire the WaterboxCore exports
+  NEXT: make guest TLS work, then wire the core's exports
   (Init/FrameAdvance/memory domains/GetTty for trace) and reproduce M0's trace
   digests in the sandbox.
 - **M2 DONE (2026-09-03): input.** Mouse as two axes (stage pixels) plus
@@ -1057,11 +1057,8 @@ ActionScript 3 movie.
 
 Left Shift, Left Control and Left Alt were on their left names alone; they are
 on Shift and LeftShift, Ctrl and LeftCtrl, Alt and LeftAlt. Chimera hands a
-key to the bindings under one name: the name its DistinctKeyNameOverrides
-gives it ("Number1", "Enter", "Backtick", "KeypadAdd") or else its DistinctKey
-name ("Up"); and unless told otherwise it reads the left and right Shift, Ctrl
-and Alt as one key each, "Shift", "Ctrl" and "Alt" (Input.cs,
-Config.MergeLAndRModifierKeys). A default binding to another name never fired,
+key to the bindings under one name: the name Chimera gives it ("Number1", "Enter", "Backtick", "KeypadAdd") or else its own name ("Up"); and unless told otherwise it reads the left and right Shift, Ctrl
+and Alt as one key each, "Shift", "Ctrl" and "Alt". A default binding to another name never fired,
 so those controls shipped unbound on the keyboard. Checked on a virtual display: with 1,
 Return, left Shift and Up held, Chimera reports Number1, Enter, Shift and Up.
 Left and right names stay beside the merged one, for a setup with the merging
