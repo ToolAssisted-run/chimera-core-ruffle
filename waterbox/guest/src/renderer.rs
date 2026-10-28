@@ -142,7 +142,7 @@ pub fn build(w: u32, h: u32, which: Which) -> Result<GuestRenderer, String> {
     let loader: fn(&str) -> *const c_void = match which {
         Software => {
             if unsafe { chimera_gl_software_init() } == 0 {
-                return Err("the guest's own OpenGL would not start".to_string());
+                return Err(crate::say("error.software_gl", &[]));
             }
             |sym| match CString::new(sym) {
                 Ok(c) => unsafe { chimera_gl_lookup_software(c.as_ptr()) },
@@ -155,9 +155,7 @@ pub fn build(w: u32, h: u32, which: Which) -> Result<GuestRenderer, String> {
                 // different pixels, and a run that asked for the GPU and
                 // quietly got the softpipe would be a movie that says one
                 // thing and was made under another.
-                return Err("no GPU bridge: this Chimera did not offer a GL context. \
-                    Set the renderer setting to 'software' to draw inside the sandbox instead"
-                    .to_string());
+                return Err(crate::say("error.no_bridge", &[]));
             }
             |sym| match CString::new(sym) {
                 Ok(c) => unsafe { chimera_gl_lookup_guest(c.as_ptr()) },
@@ -173,7 +171,7 @@ pub fn build(w: u32, h: u32, which: Which) -> Result<GuestRenderer, String> {
     let exposed = unsafe {
         wgpu::hal::gles::Adapter::new_external(loader, Default::default())
     }
-    .ok_or_else(|| "wgpu would not accept this GL context".to_string())?;
+    .ok_or_else(|| crate::say("error.gl_refused", &[]))?;
 
     let mut idesc = wgpu::InstanceDescriptor::new_without_display_handle();
     idesc.backends = wgpu::Backends::GL;
@@ -193,12 +191,12 @@ pub fn build(w: u32, h: u32, which: Which) -> Result<GuestRenderer, String> {
         trace: Default::default(),
         experimental_features: Default::default(),
     }))
-    .map_err(|e| format!("no wgpu device on the host's GL: {e:?}"))?;
+    .map_err(|e| crate::say("error.no_device", &[&format!("{e:?}")]))?;
 
     let descriptors = Arc::new(Descriptors::new(instance, adapter, device, queue));
     let target = TextureTarget::new(&descriptors.device, (w, h))
-        .map_err(|e| format!("offscreen target {w}x{h}: {e:?}"))?;
-    WgpuRenderBackend::new(descriptors, target).map_err(|e| format!("ruffle wgpu backend: {e:?}"))
+        .map_err(|e| crate::say("error.no_target", &[&format!("{w}x{h}"), &format!("{e:?}")]))?;
+    WgpuRenderBackend::new(descriptors, target).map_err(|e| crate::say("error.backend", &[&format!("{e:?}")]))
 }
 
 /// A new GL context is taking over: from here on only names made after this

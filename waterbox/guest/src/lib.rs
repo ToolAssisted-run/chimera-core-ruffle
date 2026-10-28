@@ -391,6 +391,17 @@ pub extern "C" fn SetSpoofUrl(ptr: *const u8, len: i32) {
     }
 }
 
+/// A text a person reads: a key of languages/en.json, each of its arguments
+/// after a 0x1F byte (chimera docs/translations.md).
+pub(crate) fn say(key: &str, args: &[&str]) -> String {
+    let mut out = key.to_string();
+    for arg in args {
+        out.push('\u{1f}');
+        out.push_str(arg);
+    }
+    out
+}
+
 fn set_load_error(msg: &str) {
     unsafe {
         let e = &mut *core::ptr::addr_of_mut!(LOAD_ERROR);
@@ -435,7 +446,7 @@ pub extern "C" fn Init() -> i32 {
         match read_whole("game") {
             Ok(bytes) if !bytes.is_empty() => { mounted = bytes; &mounted }
             _ => {
-                set_load_error("no SWF: nothing was handed over and no movie is mounted as 'game'");
+                set_load_error("error.no_file");
                 return 0;
             }
         }
@@ -443,7 +454,7 @@ pub extern "C" fn Init() -> i32 {
     let movie = match SwfMovie::from_data(data, "file:///game.swf".to_string(), None, None) {
         Ok(m) => m,
         Err(e) => {
-            set_load_error(&format!("not a SWF: {e}"));
+            set_load_error(&say("error.not_swf", &[&e.to_string()]));
             return 0;
         }
     };
@@ -505,7 +516,7 @@ pub extern "C" fn Init() -> i32 {
     let render_backend = match renderer::build(vw, vh, which) {
         Ok(r) => r,
         Err(e) => {
-            set_load_error(&format!("no renderer: {e}"));
+            set_load_error(&e);
             return 0;
         }
     };
@@ -1277,7 +1288,7 @@ mod variables {
             Kind::Number => out.put(b",\"type\":\"f64\""),
             Kind::Bool => out.put(b",\"type\":\"bool\""),
             Kind::Int => out.put(b",\"type\":\"s32\""),
-            Kind::Twips => out.put(b",\"type\":\"s32\",\"description\":\"in twips: 20 to a pixel\""),
+            Kind::Twips => out.put(b",\"type\":\"s32\",\"description\":\"property.twips\""),
             Kind::Frame => out.put(b",\"type\":\"u16\""),
             Kind::Latin1 | Kind::Utf16 => {
                 out.put(b",\"type\":\"string\",\"encoding\":");

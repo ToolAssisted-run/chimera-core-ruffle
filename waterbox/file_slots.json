@@ -3,17 +3,17 @@
   "slots": [
     {
       "id": "movie",
-      "title": "Movie",
+      "title": "slot.movie",
       "min": 1,
       "max": 1,
       "formats": [
         "swf"
       ],
-      "help": "The Flash movie (.swf) to play."
+      "help": "slot.movie.help"
     },
     {
       "id": "assets",
-      "title": "Files the movie loads",
+      "title": "slot.assets",
       "min": 0,
       "max": -1,
       "formats": [
@@ -30,7 +30,7 @@
         "flv",
         "csv"
       ],
-      "help": "Everything the movie loads while it runs (with loadMovie, loadSound, loadVariables or URLLoader). These are more .swf files, images, sounds and data. Keep the names the movie asks for, because it looks for them next to itself. A movie that loads nothing needs nothing here."
+      "help": "slot.assets.help"
     }
   ]
 }
