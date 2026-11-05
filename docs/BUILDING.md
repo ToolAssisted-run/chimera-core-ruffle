@@ -331,10 +331,9 @@ in UTC, is stamped beside it as `versionDate`. Hand-built packages are for
 testing: Chimera's publishing script refuses a version that carries `+local` or
 `-dirty`.
 
-**Releases.** On every green push to `main` the workflow's `publish` job
-replaces the rolling `dev` release. The scheduled run (cron `0 4 * * *`)
+**Releases.** The scheduled run (cron `0 4 * * *`), or a run started by hand,
 publishes a dated `nightly-YYYY-MM-DD` release, only when `main` moved since
-the last one. Nothing is published from a pull request.
+the last one. Nothing is published from a push or a pull request.
 
 ## Install it into Chimera
 

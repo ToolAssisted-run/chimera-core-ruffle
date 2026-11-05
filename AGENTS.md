@@ -93,7 +93,7 @@ the folder chosen in Tools > Core Manager... > Change folder... Tools > Core
 Manager... lists the folder; Refresh List rescans it.
 
 A hand-built package is stamped `<commit>+local` (`-dirty` when the tree has
-changes) and is for testing. CI stamps the commit and publishes the `dev` and
+changes) and is for testing. CI stamps the commit and publishes the
 `nightly-YYYY-MM-DD` releases.
 
 ## Test before you commit

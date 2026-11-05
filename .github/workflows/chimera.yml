@@ -19,12 +19,6 @@ on:
   push:
     branches: [ "main" ]
   workflow_dispatch:
-    inputs:
-      kind:
-        description: 'dev (rolling) or nightly (dated). Blank means dev.'
-        required: false
-        default: ''
-        type: string
   schedule:
     # 04:00 UTC. A nightly is published only when main moved since the last one;
     # the reusable workflow checks, so an unchanged core costs one idle run.
@@ -261,17 +255,18 @@ jobs:
           path: tests/work/
 
   publish:
-    # What the gates passed, published as this core's own release: a rolling
-    # `dev` on every green push to main, an immutable `nightly-YYYY-MM-DD` from
-    # the scheduled run. Chimera ships no cores and downloads none: a user
-    # downloads the package from here and puts it in Chimera's Cores folder.
+    # What the gates passed, published as this core's own release: an immutable
+    # `nightly-YYYY-MM-DD` from the scheduled run, or from one started by hand.
+    # A push to main publishes nothing. Chimera ships no cores and downloads
+    # none: a user downloads the package from here and puts it in Chimera's
+    # Cores folder.
     #
     # The logic is Chimera's tools/publish-core.sh, called through one reusable
     # workflow, so all fifteen cores publish the same way and there is one place
     # to change it.
     name: publish
     needs: [ core-gate, frontend-gate ]
-    if: github.event_name != 'pull_request'
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     permissions:
       contents: write
     uses: ToolAssisted-run/chimera/.github/workflows/publish-core.yml@main
@@ -279,4 +274,3 @@ jobs:
       core-id: ruffle
       artifact: ruffle-${{ github.sha }}
       package: ruffle.chimeraCore
-      kind: ${{ github.event.inputs.kind }}
