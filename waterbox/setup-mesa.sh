@@ -76,6 +76,14 @@ if [ ! -d "$mesa/src/gallium" ]; then
 	mkdir -p "$mesa"
 	tar -xf "$tarball" -C "$mesa" --strip-components=1
 fi
+# x86-64: Mesa's hand-written GL dispatch (glapi_x86-64.S) reads the thread's
+# GL context at an offset from %fs, which an Intel Mac cannot run. Without the
+# assembly Mesa dispatches in C, which reads it as any other thread local.
+sed -i "/^elif host_machine.cpu_family() == 'x86_64'\$/{n;s/^  if system_has_kms_drm\$/  if false # Chimera: no x86-64 assembly/}" "$mesa/meson.build"
+grep -A1 "^elif host_machine.cpu_family() == 'x86_64'\$" "$mesa/meson.build" | grep -q "if false" || {
+	echo "mesa: its x86-64 assembly could not be turned off" >&2
+	exit 1
+}
 
 # Prefer a system meson that already has what Mesa needs; fall back to a
 # private venv. Not the other way round: `python3 -m venv` fails outright on a

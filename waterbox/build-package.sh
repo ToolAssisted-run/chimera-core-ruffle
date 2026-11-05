@@ -31,6 +31,9 @@ chimera_root="$(cd "$chimera_root" && pwd)"
 
 # the guest (Rust + the generated GL bridge); build-guest.sh knows the recipe
 MINIBOX_DIR="$mb" sh "$here/build-guest.sh"
+# where the code reads its thread pointer, listed in the image: an Intel Mac
+# rewrites those reads as the core loads (miniBox's wbx-tp-rewrite.py)
+[ -f "$mb/source/guest/wbx-tp-rewrite.py" ] && python3 "$mb/source/guest/wbx-tp-rewrite.py" "$here/build/core.wbx"
 [ -f "$mb/source/guest/check-wbx.sh" ] && sh "$mb/source/guest/check-wbx.sh" "$here/build/core.wbx"
 
 staging="$root/build/package-staging"
