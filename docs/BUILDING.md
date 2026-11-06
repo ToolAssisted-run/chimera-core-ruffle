@@ -400,6 +400,10 @@ The legs, each with the list in `tests/` that drives it:
   and changed, and reading it changes nothing.
 - variables - a movie's ActionScript 1/2 variables are listed by name, followed
   when they move, changed by a write, and asking allocates nothing.
+- fonts - a project's fonts are the movie's device fonts: a Chinese letter in
+  `_sans` and in a font the movie names shows only with the font, the same in
+  every run, and Latin text is unchanged by it (chimera#525). The font is
+  made by `tests/make-han-font.py`, the movies by `tests/make-text-swf.py`.
 
 The `opengl-hw` image pass and the quality checks need a host OpenGL through
 EGL. The script prints one summary line per leg and exits non-zero if any leg
@@ -461,6 +465,11 @@ them. This core needs no BIOS and no firmware (`waterbox.config` declares
   `.jpg`, `.jpeg`, `.gif`, `.xml`, `.txt`, `.dat`, `.bin`, `.flv`, `.csv`. They
   must keep the names the movie asks for, because a movie loads them by name
   relative to itself.
+- **Fonts** - any number, optional: `.ttf`, `.otf`, `.ttc`, `.otc`. A Flash
+  movie draws much of its text with the computer's fonts ("device fonts"),
+  which the sandbox does not give the core. Ruffle carries only a small font
+  with no Chinese, Japanese or Korean letters, so such text is missing until
+  the project holds a font that has them (chimera#525).
 
 The `renderer` setting defaults to `opengl-hw`, which draws on the machine's
 GPU and needs a Chimera built with the GPU bridge; without one the core refuses

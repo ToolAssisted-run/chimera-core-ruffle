@@ -31,6 +31,8 @@
 		"setting.spoofurl.about": "Nettadressen filmen får vite at den ble lastet fra. Når den er tom, lastes filmen som file:///game.swf, som en lokal fil. Mange Flash-spill sjekker dette. Noen nekter å starte andre steder enn sponsorens nettsted, noen signerer forespørslene sine mot siden de kom fra, og filer en film laster med et relativt navn (et nivå, musikk, en poengtavle) slås opp mot denne adressen. Sett den til siden spillet ble publisert på, for eksempel https://www.kongregate.com/games/example, og da ser disse sjekkene det de forventer. Den endrer ikke hvordan filmen emuleres. Det er én tekst som gis til spilleren ved innlasting, så et opptak gjort med én adresse må spilles av med samme.",
 		"slot.assets": "Filer filmen laster",
 		"slot.assets.help": "Alt filmen laster mens den kjører (med loadMovie, loadSound, loadVariables eller URLLoader). Dette er flere .swf-filer, bilder, lyder og data. Behold navnene filmen ber om, for den leter etter dem ved siden av seg selv. En film som ikke laster noe, trenger ingenting her.",
+		"slot.fonts": "Skrifter",
+		"slot.fonts.help": "Skrifter som filmen tegner teksten sin med (.ttf, .otf, .ttc). En Flash-film bruker ofte datamaskinens egne skrifter, og Ruffle har her bare en liten skrift uten kinesiske, japanske eller koreanske tegn. Mangler det tekst, legg til en skrift som har disse tegnene, for eksempel den filmen nevner. La feltet stå tomt hvis all tekst vises.",
 		"slot.movie": "Film",
 		"slot.movie.help": "Flash-filmen (.swf) som skal spilles."
 	}

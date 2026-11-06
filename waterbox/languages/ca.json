@@ -31,6 +31,8 @@
 		"setting.spoofurl.about": "L'adreça web de la qual es diu a la pel·lícula que va ser carregada. Si es deixa buida, la pel·lícula es carrega com a file:///game.swf, com un fitxer local. Molts jocs de Flash ho comproven. Alguns es neguen a començar fora del lloc del seu patrocinador, alguns signen les seves peticions amb la pàgina d'on venen, i els fitxers que una pel·lícula carrega per un nom relatiu (un nivell, una música, un marcador) es busquen a partir d'aquesta adreça. Poseu-hi la pàgina on es va publicar el joc, per exemple https://www.kongregate.com/games/example, i aquestes comprovacions veuran el que esperen. No canvia com s'emula la pel·lícula. És un text que es dona al reproductor en carregar-la, de manera que una pel·lícula enregistrada amb una adreça s'ha de reproduir amb la mateixa.",
 		"slot.assets": "Fitxers que carrega la pel·lícula",
 		"slot.assets.help": "Tot el que la pel·lícula carrega mentre s'executa (amb loadMovie, loadSound, loadVariables o URLLoader). Són més fitxers .swf, imatges, sons i dades. Mantingueu els noms que demana la pel·lícula, perquè els busca al costat de si mateixa. Una pel·lícula que no carrega res no necessita res aquí.",
+		"slot.fonts": "Tipus de lletra",
+		"slot.fonts.help": "Tipus de lletra amb què la pel·lícula dibuixa el text (.ttf, .otf, .ttc). Una pel·lícula Flash sovint fa servir els tipus de lletra de l'ordinador, i aquí Ruffle només en té un de petit sense lletres xineses, japoneses ni coreanes. Si hi falta text, afegiu-hi un tipus de lletra que tingui aquestes lletres, per exemple el que anomena la pel·lícula. Deixeu-ho buit si es veu tot el text.",
 		"slot.movie": "Pel·lícula",
 		"slot.movie.help": "La pel·lícula Flash (.swf) que s'ha de reproduir."
 	}

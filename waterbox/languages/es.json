@@ -31,6 +31,8 @@
 		"setting.spoofurl.about": "La dirección web de la que se dice a la película que se cargó. Si se deja vacía, la película se carga como file:///game.swf, como un archivo local. Muchos juegos de Flash lo comprueban. Algunos se niegan a arrancar fuera del sitio de su patrocinador, algunos firman sus peticiones con la página de la que vienen, y los archivos que una película carga por un nombre relativo (un nivel, música, una tabla de puntuaciones) se buscan a partir de esta dirección. Póngala en la página en que se publicó el juego, por ejemplo https://www.kongregate.com/games/example, y esas comprobaciones verán lo que esperan. No cambia cómo se emula la película. Es un texto que se entrega al reproductor al cargar, así que una película grabada con una dirección debe reproducirse con la misma.",
 		"slot.assets": "Archivos que carga la película",
 		"slot.assets.help": "Todo lo que la película carga mientras se ejecuta (con loadMovie, loadSound, loadVariables o URLLoader). Son más archivos .swf, imágenes, sonidos y datos. Mantenga los nombres que pide la película, porque la película los busca junto a sí misma. Una película que no carga nada no necesita nada aquí.",
+		"slot.fonts": "Fuentes",
+		"slot.fonts.help": "Fuentes con las que la película dibuja su texto (.ttf, .otf, .ttc). Una película Flash suele usar las fuentes del ordenador, y aquí Ruffle solo tiene una pequeña sin caracteres chinos, japoneses ni coreanos. Si falta texto, añada una fuente que tenga esos caracteres, por ejemplo la que nombra la película. Déjelo vacío si se ve todo el texto.",
 		"slot.movie": "Película",
 		"slot.movie.help": "La película Flash (.swf) que se reproduce."
 	}

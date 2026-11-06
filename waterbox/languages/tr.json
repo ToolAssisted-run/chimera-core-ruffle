@@ -31,6 +31,8 @@
 		"setting.spoofurl.about": "Kayda, yüklendiği söylenen web adresi. Boş bırakılırsa kayıt file:///game.swf olarak, yerel bir dosya gibi yüklenir. Birçok Flash oyunu bunu denetler. Bazıları yalnızca sponsorlarının sitesinde başlamayı reddeder, bazıları istekleri çağrıldığı sayfaya göre imzalar, ve bir kaydın göreli bir adla yüklediği dosyalar (bir bölüm, müzik, bir skor tablosu) bu adrese göre aranır. Bunu oyunun yayımlandığı sayfaya ayarlayın; örneğin https://www.kongregate.com/games/example. Bu, kaydın nasıl öykünüldüğünü değiştirmez. Yükleme sırasında oyuncuya verilen tek bir metin parçasıdır; bu yüzden bir adresle kaydedilen bir kayıt, aynı adresle oynatılmalıdır.",
 		"slot.assets": "Kaydın yüklediği dosyalar",
 		"slot.assets.help": "Kaydın çalışırken yüklediği her şey (loadMovie, loadSound, loadVariables ya da URLLoader ile). Bunlar daha fazla .swf dosyası, resim, ses ve veridir. Kaydın istediği adları koruyun, çünkü kayıt bunları kendi yanında arar. Hiçbir şey yüklemeyen bir kayıt burada bir şeye ihtiyaç duymaz.",
+		"slot.fonts": "Yazı tipleri",
+		"slot.fonts.help": "Filmin metnini çizdiği yazı tipleri (.ttf, .otf, .ttc). Bir Flash filmi çoğu zaman bilgisayarın kendi yazı tiplerini kullanır; buradaki Ruffle'da ise Çince, Japonca ya da Korece karakter içermeyen küçük bir yazı tipi vardır. Metin eksikse bu karakterleri içeren bir yazı tipi ekleyin, örneğin filmin adını verdiği yazı tipini. Tüm metin görünüyorsa boş bırakın.",
 		"slot.movie": "Kayıt",
 		"slot.movie.help": "Oynatılacak Flash kaydı (.swf)."
 	}

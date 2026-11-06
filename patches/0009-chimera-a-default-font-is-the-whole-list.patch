@@ -1,0 +1,30 @@
+diff --git a/core/src/library.rs b/core/src/library.rs
+index 74188cd5..f8ebb422 100644
+--- a/core/src/library.rs
++++ b/core/src/library.rs
+@@ -507,13 +507,15 @@ impl<'gc> Library<'gc> {
+         }
+ 
+         let mut result = vec![];
+-        // First try to find any exactly matching fonts.
++        // First try to find any exactly matching fonts. Every one found is
++        // kept: the first draws the text, and the others give the glyphs it
++        // does not have (chimera: a font the person added for Chinese text
++        // after Noto Sans, which has none).
+         for name in self.default_font_names.entry(name).or_default().clone() {
+             let query = FontQuery::new(FontType::Device, name, is_bold, is_italic);
+             if let Some(font) = self.get_or_load_exact_device_font(&query, ui, renderer, gc_context)
+             {
+                 result.push(font);
+-                break; // TODO: Return multiple fonts when it's needed.
+             }
+         }
+ 
+@@ -523,7 +525,6 @@ impl<'gc> Library<'gc> {
+                 let query = FontQuery::new(FontType::Device, name, is_bold, is_italic);
+                 if let Some(font) = self.device_fonts.find(&query) {
+                     result.push(font);
+-                    break; // TODO: Return multiple fonts when it's needed.
+                 }
+             }
+         }

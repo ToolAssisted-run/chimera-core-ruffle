@@ -1255,3 +1255,42 @@ back from disk). This core keeps its generated files in the repository, so
 `waterbox/generated/` was generated again: the guest half gains the marks,
 and the host half the test runner uses answers the new opcode with nothing.
 Gate: 120/120 and the sub-frame gate 13/13.
+
+## Fonts the project holds (chimera#525, 2026-11-06; user-decided)
+
+A Chinese Flash game showed no Chinese text. Flash draws much of its text with
+the computer's own fonts, by name ("SimSun") or as `_sans`. The sandbox gives
+the core no computer fonts, so a movie draws the same text on every machine,
+and the one font Ruffle carries (a subset of Noto Sans) has no Chinese,
+Japanese or Korean letters. Ruffle left such letters out.
+
+The owner chose to have the person add the fonts, rather than ship a Chinese,
+Japanese and Korean font in the package (15-20 MB more). A project gets a
+"Fonts" slot (`.ttf`, `.otf`, `.ttc`, `.otc`). The project pins each file's
+SHA-1, so a movie replays with the same fonts. In the guest
+(`waterbox/guest/src/fonts.rs`):
+
+- each face of each file is a device font under every family name the file
+  gives it, in every language (a Chinese font is asked for by its English or
+  its Chinese name), bold and italic as the file says;
+- each regular face is added after Noto Sans to every default font (`_sans`,
+  `_serif`, `_typewriter` and the Japanese ones). Text in those, or in a font
+  nobody has, takes the letters Noto Sans lacks from the added fonts.
+
+Ruffle used only the first default font it found (a TODO in `library.rs`).
+Patch 0009 keeps every one, and its text set falls back from one to the next
+for a letter the first does not have. Latin text still draws in Noto Sans.
+
+Not done: a movie that names a font the project holds draws all its text in
+that font. A letter that font lacks is not taken from Noto Sans. A real
+Chinese font has the Latin letters, so this shows only with a font that has
+not.
+
+Tested: the core's test script, all of it (120/120 traces identical in the
+sandbox, pictures 394/394, states 30/30, navigator 92/92, audio 2/2, input
+17/17, sub-frame 13/13, heap 6/6, variables 16/16, settings 19/19, and the
+new fonts leg 5/5, of which the core from before this change fails 2),
+Chimera's package contract tests 24/24, and a test movie with Chinese text in `_sans`, in "SimSun" and in
+a font nobody has, drawn through chimera-run with Windows' simsun.ttc in the
+project: all three show the letters, and none without the font.
+

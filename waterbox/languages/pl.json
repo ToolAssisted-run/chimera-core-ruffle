@@ -31,6 +31,8 @@
 		"setting.spoofurl.about": "Adres strony internetowej, z której film „został wczytany”. Gdy zostawisz puste, film wczytuje się jako file:///game.swf, jak plik lokalny. Wiele gier Flash to sprawdza. Niektóre nie startują nigdzie poza stroną swojego sponsora, niektóre podpisują swoje żądania stroną, z której pochodzą, a pliki, które film wczytuje po nazwie względnej (poziom, muzyka, tablica wyników), są szukane względem tego adresu. Ustaw go na stronę, na której gra została opublikowana, na przykład https://www.kongregate.com/games/example, a te sprawdzenia zobaczą to, czego oczekują. Nie zmienia to sposobu emulacji. To jeden kawałek tekstu podany odtwarzaczowi przy wczytaniu, więc nagranie zrobione z jednym adresem trzeba odtwarzać z tym samym.",
 		"slot.assets": "Pliki wczytywane przez film",
 		"slot.assets.help": "Wszystko, co film wczytuje w trakcie działania (przez loadMovie, loadSound, loadVariables albo URLLoader). To kolejne pliki .swf, obrazy, dźwięki i dane. Zachowaj nazwy, o które film prosi, bo szuka ich obok siebie. Film, który nic nie wczytuje, nie potrzebuje tu niczego.",
+		"slot.fonts": "Czcionki",
+		"slot.fonts.help": "Czcionki, którymi film rysuje tekst (.ttf, .otf, .ttc). Film Flash często używa czcionek komputera, a Ruffle ma tu tylko jedną małą czcionkę bez znaków chińskich, japońskich i koreańskich. Jeśli brakuje tekstu, dodaj czcionkę, która ma te znaki, na przykład tę, którą wskazuje film. Zostaw puste, jeśli widać cały tekst.",
 		"slot.movie": "Film",
 		"slot.movie.help": "Film Flash (.swf) do odtworzenia."
 	}

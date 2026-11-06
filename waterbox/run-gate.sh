@@ -659,9 +659,48 @@ WANT
   rm -rf "$vtmp"
 fi
 
+# ---- fonts: the project's own device fonts (chimera#525) ----
+# A movie's text in device fonts (_sans, or a font it names) is drawn from the
+# fonts a project holds in its "fonts" slot: the engine mounts the slot map as
+# "slots" and each file by its name, and run-wbx mounts them the same way.
+# Ruffle's own font has no Chinese letter, so the letter shows only with the
+# font. The font is made here (tests/make-han-font.py): one letter, a square.
+tok=0; tbad=0; ttotal=0
+if [ "$have_sandbox" = 1 ]; then
+  ttmp=$(mktemp -d)
+  python3 "$root/tests/make-han-font.py" "$ttmp/han.ttf"
+  printf '{"fonts":["han.ttf"]}' > "$ttmp/slots.json"
+  python3 "$root/tests/make-text-swf.py" "$ttmp/sans.swf" _sans 'A\u4e2dB'
+  python3 "$root/tests/make-text-swf.py" "$ttmp/named.swf" ChimeraTestHan '\u4e2d'
+  python3 "$root/tests/make-text-swf.py" "$ttmp/latin.swf" _sans 'ABC'
+  tdigest() { # swf [with]
+    if [ "${2:-}" = with ]; then
+      timeout 60 "$wbx" "$core" "$1" --frames 2 --file "slots=$ttmp/slots.json" --file "han.ttf=$ttmp/han.ttf" 2>&1 >/dev/null | grep -oP 'videoDigest=\K\w+'
+    else
+      timeout 60 "$wbx" "$core" "$1" --frames 2 2>&1 >/dev/null | grep -oP 'videoDigest=\K\w+'
+    fi
+  }
+  tcheck() { # name 0|1 detail
+    ttotal=$((ttotal+1))
+    if [ "$2" = 0 ]; then tok=$((tok+1)); else tbad=$((tbad+1)); echo "  fonts $1: $3"; fi
+  }
+  for s in sans named; do
+    without=$(tdigest "$ttmp/$s.swf"); with=$(tdigest "$ttmp/$s.swf" with); again=$(tdigest "$ttmp/$s.swf" with)
+    [ -n "$without" ] && [ -n "$with" ] && [ "$with" != "$without" ]
+    tcheck "$s drawn" $? "the letter did not change the frame ($without without the font, $with with it)"
+    [ "$with" = "$again" ]; tcheck "$s rerun" $? "two runs with the font drew $with and $again"
+  done
+  # a font added for Chinese letters leaves the Latin ones to Ruffle's own font
+  without=$(tdigest "$ttmp/latin.swf"); with=$(tdigest "$ttmp/latin.swf" with)
+  [ -n "$without" ] && [ "$with" = "$without" ]
+  tcheck "latin unchanged" $? "Latin text changed with the font ($without without, $with with)"
+  rm -rf "$ttmp"
+fi
+
 if [ "$have_sandbox" = 1 ]; then
   echo "ruffle heap gate: $hok/$htotal the Heap bus holds a movie's number where it can be found, followed and changed, and reading it changes nothing; $hbad failures"
   echo "ruffle variables gate: $vok/$vtotal a movie's variables are listed by name where they are, followed when they move, and changed by a write, and asking allocates nothing; $vbad failures"
+  echo "ruffle fonts gate: $tok/$ttotal a project's fonts are the movie's device fonts - text in _sans and in a font the movie names takes the letters Ruffle's own font lacks from them, the same every run, and Latin text is left as it was; $tbad failures"
   echo "ruffle settings gate: $pok/$ptotal the settings channel reaches the player - the movie reports the address it was told to, quality and font substitution show up in the frame, and every other setting is invisible at its declared default; $pbad failures"
   echo "ruffle state gate: $sok/$stotal movies survive a save and reload before every frame with the same trace, audio and picture; $sbadstate failures"
   echo "ruffle image gate: $gok/$gtotal movies draw the frame ruffle draws (both renderers, each to its own stated budget), reruns identical; $gbad failures"
@@ -673,4 +712,4 @@ if [ "$have_sandbox" = 1 ]; then
 else
   echo "ruffle gate: $ok/$total trace-identical to ruffle AND deterministic; $bad correctness, $nondet determinism failures (sandbox SKIPPED: build waterbox/build/core.wbx with build-guest.sh)"
 fi
-[ "$bad" -eq 0 ] && [ "$nondet" -eq 0 ] && [ "$sbad" -eq 0 ] && [ "$ibad" -eq 0 ] && [ "$fbad" -eq 0 ] && [ "$abad" -eq 0 ] && [ "$nbad" -eq 0 ] && [ "$gbad" -eq 0 ] && [ "$sbadstate" -eq 0 ] && [ "$pbad" -eq 0 ] && [ "$hbad" -eq 0 ] && [ "$vbad" -eq 0 ]
+[ "$bad" -eq 0 ] && [ "$nondet" -eq 0 ] && [ "$sbad" -eq 0 ] && [ "$ibad" -eq 0 ] && [ "$fbad" -eq 0 ] && [ "$abad" -eq 0 ] && [ "$nbad" -eq 0 ] && [ "$gbad" -eq 0 ] && [ "$sbadstate" -eq 0 ] && [ "$pbad" -eq 0 ] && [ "$hbad" -eq 0 ] && [ "$vbad" -eq 0 ] && [ "$tbad" -eq 0 ]

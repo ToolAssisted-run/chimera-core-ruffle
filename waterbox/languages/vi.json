@@ -31,6 +31,8 @@
 		"setting.spoofurl.about": "Địa chỉ web mà movie được báo là đã được nạp từ đó. Để trống thì movie được nạp như file:///game.swf, như một tệp cục bộ. Nhiều game Flash kiểm tra điều này. Một số từ chối khởi động ở bất kỳ nơi nào ngoài trang của nhà tài trợ, một số ký các yêu cầu của chúng theo trang mà chúng đến từ, và các tệp mà movie nạp bằng tên tương đối (một màn chơi, nhạc, bảng điểm) được tìm theo địa chỉ này. Đặt nó thành trang mà game được xuất bản, ví dụ https://www.kongregate.com/games/example, và các kiểm tra đó thấy điều chúng mong đợi. Nó không thay đổi cách movie được mô phỏng. Đó là một đoạn văn bản được đưa cho trình phát khi nạp, nên movie ghi với một địa chỉ phải được phát lại với cùng địa chỉ đó.",
 		"slot.assets": "Các tệp movie nạp",
 		"slot.assets.help": "Mọi thứ movie nạp trong khi chạy (với loadMovie, loadSound, loadVariables hoặc URLLoader). Đây là thêm các tệp .swf, hình ảnh, âm thanh và dữ liệu. Giữ đúng tên mà movie yêu cầu, vì nó tìm chúng ngay cạnh chính nó. Movie không nạp gì thì không cần gì ở đây.",
+		"slot.fonts": "Phông chữ",
+		"slot.fonts.help": "Phông chữ mà phim dùng để vẽ chữ (.ttf, .otf, .ttc). Phim Flash thường dùng phông chữ của máy tính, còn Ruffle ở đây chỉ có một phông nhỏ không có chữ Trung, Nhật hay Hàn. Nếu thiếu chữ, hãy thêm một phông có các chữ đó, ví dụ phông mà phim nêu tên. Để trống nếu mọi chữ đều hiện.",
 		"slot.movie": "Movie",
 		"slot.movie.help": "Movie Flash (.swf) để phát."
 	}

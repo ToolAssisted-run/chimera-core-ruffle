@@ -31,6 +31,8 @@
 		"setting.spoofurl.about": "A webcím, amelyből a movie betöltöttnek mondja magát. Üresen hagyva a movie file:///game.swf címről töltődik be, mint egy helyi fájl. Sok Flash-játék ezt ellenőrzi. Néhány csak a támogatója oldalán indul el, néhány a kérelmeit ahhoz az oldalhoz írja alá, ahonnan jött, a movie által relatív névvel betöltött fájlokat (pálya, zene, eredménytábla) pedig ehhez a címhez képest keresik. Állítsd arra az oldalra, ahol a játékot közzétették, például https://www.kongregate.com/games/example, és ezek az ellenőrzések azt látják, amit várnak. Nem változtatja meg a movie emulációját. Egyetlen szöveg, amelyet a lejátszó betöltéskor kap, ezért a movie-t ugyanazzal a címmel kell lejátszani, amellyel rögzítették.",
 		"slot.assets": "A movie által betöltött fájlok",
 		"slot.assets.help": "Minden, amit a movie futás közben betölt (loadMovie, loadSound, loadVariables vagy URLLoader segítségével). Ezek további .swf fájlok, képek, hangok és adatok. Tartsd meg a neveket, amelyeket a movie kér, mert a saját mellette keresi őket. Ami nem tölt be semmit, annak itt nincs szüksége semmire.",
+		"slot.fonts": "Betűtípusok",
+		"slot.fonts.help": "Betűtípusok, amelyekkel a film a szövegét rajzolja (.ttf, .otf, .ttc). Egy Flash-film gyakran a számítógép saját betűtípusait használja, a Ruffle-nek itt pedig csak egy kicsi van, kínai, japán és koreai karakterek nélkül. Ha szöveg hiányzik, adjon hozzá egy betűtípust, amelyben ezek a karakterek megvannak, például azt, amelyet a film megnevez. Hagyja üresen, ha minden szöveg megjelenik.",
 		"slot.movie": "Movie",
 		"slot.movie.help": "A lejátszandó Flash-movie (.swf)."
 	}

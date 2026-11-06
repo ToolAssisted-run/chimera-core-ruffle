@@ -31,6 +31,8 @@
 		"setting.spoofurl.about": "Adresa web de la care i se spune înregistrării că a fost încărcată. Dacă este goală, înregistrarea se încarcă ca file:///game.swf, ca un fișier local. Multe jocuri Flash verifică asta. Unele refuză să pornească oriunde în afara site-ului sponsorului lor, unele își semnează cererile după pagina de unde au venit, iar fișierele pe care le încarcă o înregistrare după un nume relativ (un nivel, muzică, un tabel de scoruri) sunt căutate față de această adresă. Puneți pagina pe care a fost publicat jocul, de exemplu https://www.kongregate.com/games/example, și verificările văd ce se așteaptă. Nu schimbă cum este emulată înregistrarea. Este un text dat playerului la încărcare, deci o înregistrare făcută cu o adresă trebuie redată cu aceeași adresă.",
 		"slot.assets": "Fișierele pe care le încarcă înregistrarea",
 		"slot.assets.help": "Tot ce încarcă înregistrarea cât rulează (cu loadMovie, loadSound, loadVariables sau URLLoader). Acestea sunt alte fișiere .swf, imagini, sunete și date. Păstrați numele pe care le cere înregistrarea, pentru că le caută lângă ea. O înregistrare care nu încarcă nimic nu are nevoie de nimic aici.",
+		"slot.fonts": "Fonturi",
+		"slot.fonts.help": "Fonturi cu care filmul își desenează textul (.ttf, .otf, .ttc). Un film Flash folosește adesea fonturile calculatorului, iar Ruffle are aici doar unul mic, fără caractere chinezești, japoneze sau coreene. Dacă lipsește text, adăugați un font care are aceste caractere, de exemplu cel pe care îl numește filmul. Lăsați gol dacă tot textul apare.",
 		"slot.movie": "Înregistrarea",
 		"slot.movie.help": "Înregistrarea Flash (.swf) de redat."
 	}

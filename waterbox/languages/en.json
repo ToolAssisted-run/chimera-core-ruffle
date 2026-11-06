@@ -31,6 +31,8 @@
 		"setting.spoofurl.about": "The web address the movie is told it was loaded from. Left empty, the movie is loaded as file:///game.swf, like a local file. Many Flash games check this. Some refuse to start anywhere except their sponsor's site, some sign their requests against the page they came from, and files a movie loads by a relative name (a level, music, a scoreboard) are looked up against this address. Set it to the page the game was published on, for example https://www.kongregate.com/games/example, and those checks see what they expect. It does not change how the movie is emulated. It is one piece of text given to the player at load, so a movie recorded with one address must be played back with the same one.",
 		"slot.assets": "Files the movie loads",
 		"slot.assets.help": "Everything the movie loads while it runs (with loadMovie, loadSound, loadVariables or URLLoader). These are more .swf files, images, sounds and data. Keep the names the movie asks for, because it looks for them next to itself. A movie that loads nothing needs nothing here.",
+		"slot.fonts": "Fonts",
+		"slot.fonts.help": "Fonts the movie draws its text with (.ttf, .otf, .ttc). A Flash movie often uses the computer's own fonts, and Ruffle here has only a small one with no Chinese, Japanese or Korean letters. If text is missing, add a font that has those letters, for example the one the movie names. Leave this empty if all text shows.",
 		"slot.movie": "Movie",
 		"slot.movie.help": "The Flash movie (.swf) to play."
 	}

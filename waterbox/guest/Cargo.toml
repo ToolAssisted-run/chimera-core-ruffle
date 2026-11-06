@@ -31,6 +31,9 @@ tracing = "=0.1.44"
 # the same version ruffle pins: Date is built here, not read from a clock
 # the sandbox does not have (see WaterboxLocale in lib.rs)
 chrono = { version = "=0.4.44", default-features = false }
+# the version ruffle_core reads fonts with: the family names of a font the
+# project holds (fonts.rs)
+ttf-parser = "=0.25.1"
 
 [profile.release]
 # NOT "immediate-abort": that strategy applied to this crate while std was

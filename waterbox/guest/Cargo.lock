@@ -2232,6 +2232,7 @@ dependencies = [
  "ruffle_render_wgpu",
  "serde_json",
  "tracing",
+ "ttf-parser",
  "url",
  "wgpu",
 ]

@@ -37,6 +37,7 @@ use ruffle_core::limits::ExecutionLimit;
 use ruffle_core::tag_utils::SwfMovie;
 use ruffle_core::{FloatDuration, Player, PlayerBuilder, PlayerEvent};
 
+mod fonts;
 mod input_table;
 mod navigator;
 mod renderer;
@@ -594,6 +595,7 @@ pub extern "C" fn Init() -> i32 {
     });
     builder = builder.with_default_font(cfg.bool("defaultFont", true));
     let player = builder.build();
+    fonts::load(&mut player.lock().unwrap());
 
     player.lock().unwrap().preload(&mut ExecutionLimit::exhausted());
 

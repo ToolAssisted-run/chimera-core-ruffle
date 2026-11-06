@@ -31,6 +31,8 @@
 		"setting.spoofurl.about": "Webová adresa, za kterou se film tváří, že byl načten. Pokud je prázdná, film se načte jako file:///game.swf, jako místní soubor. Mnoho flashových her to kontroluje. Některé odmítnou běžet kdekoli jinde než na stránce svého sponzora, některé podepisují své požadavky stránkou, ze které přišly, a soubory, které film načítá relativním jménem (úroveň, hudbu, žebříček), se hledají vůči této adrese. Nastavte ji na stránku, na které hra vyšla, například https://www.kongregate.com/games/example, a tyto kontroly uvidí, co čekají. Nemění to, jak se film emuluje. Je to jeden textový údaj předaný přehrávači při načtení, takže záznam pořízený s jednou adresou se musí přehrát se stejnou.",
 		"slot.assets": "Soubory, které film načítá",
 		"slot.assets.help": "Vše, co film načítá za běhu (pomocí loadMovie, loadSound, loadVariables nebo URLLoader). Jsou to další soubory .swf, obrázky, zvuky a data. Ponechte názvy, které film žádá, protože je hledá vedle sebe. Film, který nic nenačítá, zde nic nepotřebuje.",
+		"slot.fonts": "Písma",
+		"slot.fonts.help": "Písma, kterými film kreslí text (.ttf, .otf, .ttc). Film ve Flashi často používá písma počítače a Ruffle zde má jen jedno malé bez čínských, japonských a korejských znaků. Pokud text chybí, přidejte písmo, které tyto znaky má, například to, které film jmenuje. Pokud se zobrazuje veškerý text, nechte prázdné.",
 		"slot.movie": "Film",
 		"slot.movie.help": "Flashový film (.swf), který se má přehrát."
 	}

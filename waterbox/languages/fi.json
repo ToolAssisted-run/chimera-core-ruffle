@@ -31,6 +31,8 @@
 		"setting.spoofurl.about": "Verkko-osoite, josta elokuvan kerrotaan ladatun. Kun tämä on tyhjä, elokuva ladataan osoitteena file:///game.swf, kuin paikallinen tiedosto. Monet Flash-pelit tarkistavat tämän. Jotkut kieltäytyvät käynnistymästä muualla kuin sponsorinsa sivustolla, jotkut allekirjoittavat pyyntönsä sen sivun mukaan, josta ne tulivat, ja tiedostot, jotka elokuva lataa suhteellisella nimellä (taso, musiikki, tulostaulu), haetaan tätä osoitetta vasten. Aseta se sivulle, jolle peli julkaistiin, esimerkiksi https://www.kongregate.com/games/example, niin nämä tarkistukset näkevät, mitä ne odottavat. Se ei muuta, miten elokuva emuloidaan. Se on yksi tekstinpätkä, joka annetaan soittimelle latauksessa, joten elokuva, joka tallennettiin yhdellä osoitteella, on toistettava samalla osoitteella.",
 		"slot.assets": "Elokuvan lataamat tiedostot",
 		"slot.assets.help": "Kaikki, minkä elokuva lataa ajon aikana (loadMovie-, loadSound-, loadVariables- tai URLLoader-komennoilla). Nämä ovat lisää .swf-tiedostoja, kuvia, ääniä ja dataa. Pidä nimet, joita elokuva pyytää, koska se etsii tiedostoja itsensä vierestä. Elokuva, joka ei lataa mitään, ei tarvitse tähän mitään.",
+		"slot.fonts": "Fontit",
+		"slot.fonts.help": "Fontit, joilla elokuva piirtää tekstinsä (.ttf, .otf, .ttc). Flash-elokuva käyttää usein tietokoneen omia fontteja, ja tässä Ruffle sisältää vain yhden pienen fontin ilman kiinalaisia, japanilaisia tai korealaisia merkkejä. Jos tekstiä puuttuu, lisää fontti, jossa nämä merkit ovat, esimerkiksi se, jonka elokuva nimeää. Jätä tyhjäksi, jos kaikki teksti näkyy.",
 		"slot.movie": "Elokuva",
 		"slot.movie.help": "Flash-elokuva (.swf), joka toistetaan."
 	}

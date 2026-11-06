@@ -31,6 +31,8 @@
 		"setting.spoofurl.about": "Het webadres waarvan de film wordt verteld dat hij is geladen. Blijft het leeg, dan wordt de film geladen als file:///game.swf, zoals een lokaal bestand. Veel Flash-spellen controleren dit. Sommige weigeren te starten buiten de site van hun sponsor, sommige ondertekenen hun verzoeken met de pagina waar ze vandaan kwamen, en bestanden die een film met een relatieve naam laadt (een level, muziek, een scorebord) worden opgezocht op dit adres. Zet het op de pagina waarop het spel is gepubliceerd, bijvoorbeeld https://www.kongregate.com/games/example, en die controles zien wat ze verwachten. Het verandert niet hoe de film wordt geëmuleerd. Het is één stuk tekst dat bij het laden aan de speler wordt gegeven, dus een opname die met het ene adres is gemaakt, moet met hetzelfde adres worden afgespeeld.",
 		"slot.assets": "Bestanden die de film laadt",
 		"slot.assets.help": "Alles wat de film tijdens het lopen laadt (met loadMovie, loadSound, loadVariables of URLLoader). Dit zijn meer .swf-bestanden, afbeeldingen, geluiden en gegevens. Houd de namen aan die de film vraagt, want hij zoekt ze naast zichzelf. Een film die niets laadt, heeft hier niets nodig.",
+		"slot.fonts": "Lettertypen",
+		"slot.fonts.help": "Lettertypen waarmee de film zijn tekst tekent (.ttf, .otf, .ttc). Een Flash-film gebruikt vaak de lettertypen van de computer, en Ruffle heeft hier maar een klein lettertype zonder Chinese, Japanse of Koreaanse tekens. Ontbreekt er tekst, voeg dan een lettertype toe dat die tekens heeft, bijvoorbeeld het lettertype dat de film noemt. Laat leeg als alle tekst verschijnt.",
 		"slot.movie": "Film",
 		"slot.movie.help": "De Flash-film (.swf) om af te spelen."
 	}
