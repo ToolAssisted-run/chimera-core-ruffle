@@ -76,13 +76,19 @@ jobs:
         working-directory: chimera-checkout
         run: git submodule update --init extern/chimera-common-minibox
 
+      - name: Which Meson the runner has
+        # a build folder one Meson set up, another cannot read: the runner's
+        # Meson changed on 2026-11-12 and every cached miniBox build failed
+        id: meson
+        run: echo "version=$(meson --version)" >> "$GITHUB_OUTPUT"
+
       - name: Cache the guest toolchain
         uses: actions/cache@v4
         with:
           path: |
             chimera-checkout/extern/chimera-common-minibox/build/meson-linux
             chimera-checkout/extern/chimera-common-minibox/build/meson-cpp
-          key: guest-cpp-${{ runner.os }}-${{ hashFiles('chimera-checkout/extern/chimera-common-minibox/.git') }}-${{ hashFiles('chimera-checkout/extern/chimera-common-minibox/meson.build') }}
+          key: guest-cpp-meson${{ steps.meson.outputs.version }}-${{ runner.os }}-${{ hashFiles('chimera-checkout/extern/chimera-common-minibox/.git') }}-${{ hashFiles('chimera-checkout/extern/chimera-common-minibox/meson.build') }}
 
       - name: Build miniBox (host + C++ guest toolchain)
         run: |
@@ -194,13 +200,19 @@ jobs:
       - name: Build Chimera (the engine, chimera-run and the window)
         run: chimera-checkout/tools/ci-chimera.sh "$HOME/qt"
 
+      - name: Which Meson the runner has
+        # a build folder one Meson set up, another cannot read: the runner's
+        # Meson changed on 2026-11-12 and every cached miniBox build failed
+        id: meson
+        run: echo "version=$(meson --version)" >> "$GITHUB_OUTPUT"
+
       - name: Cache the guest toolchain
         uses: actions/cache@v4
         with:
           path: |
             chimera-checkout/extern/chimera-common-minibox/build/meson-linux
             chimera-checkout/extern/chimera-common-minibox/build/meson-cpp
-          key: guest-cpp-${{ runner.os }}-${{ hashFiles('chimera-checkout/extern/chimera-common-minibox/.git') }}-${{ hashFiles('chimera-checkout/extern/chimera-common-minibox/meson.build') }}
+          key: guest-cpp-meson${{ steps.meson.outputs.version }}-${{ runner.os }}-${{ hashFiles('chimera-checkout/extern/chimera-common-minibox/.git') }}-${{ hashFiles('chimera-checkout/extern/chimera-common-minibox/meson.build') }}
 
       - name: Build miniBox (host + C++ guest toolchain)
         run: |
