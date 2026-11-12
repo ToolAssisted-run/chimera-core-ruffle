@@ -41,7 +41,10 @@ jobs:
 
   core-gate:
     name: "core gate (upstream suite: trace, image, state, input, audio)"
-    runs-on: ubuntu-latest
+    # Ubuntu 24.04, not ubuntu-latest: on GitHub's 26.04 image GCC builds for
+    # x86-64-v3 (AVX2, FMA) by default, so a core built there would not run
+    # on an older processor and would round floating point differently
+    runs-on: ubuntu-24.04
     timeout-minutes: 150
     steps:
       - uses: actions/checkout@v6
@@ -166,7 +169,10 @@ jobs:
     # The package is BUILT here either way, which is what publishes the artifact
     # and proves the packaging is deterministic.
     name: frontend gate (Chimera)
-    runs-on: ubuntu-latest
+    # Ubuntu 24.04, not ubuntu-latest: on GitHub's 26.04 image GCC builds for
+    # x86-64-v3 (AVX2, FMA) by default, so a core built there would not run
+    # on an older processor and would round floating point differently
+    runs-on: ubuntu-24.04
     timeout-minutes: 150
     steps:
       - uses: actions/checkout@v6
